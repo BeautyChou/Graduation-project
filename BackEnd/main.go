@@ -3,7 +3,6 @@ package main
 import (
 	"BackEnd/Controller"
 	"BackEnd/Middleware"
-	"BackEnd/Model"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
@@ -16,11 +15,12 @@ func main(){
 		fmt.Println(err)
 	}
 	defer db.Close()
-	Model.CreateDatabase(db)
 	r:=gin.Default()
 	r.Use(Middleware.Cors())
 	r.POST("/test",Controller.Test)
 	r.POST("/login",Controller.Auth)
 	r.POST("/home",Middleware.JWTAuthMiddleWare(),Controller.HoeHandler)
+	r.POST("/image",Controller.ImageTest)
+	r.GET("/image",Controller.ImageSendTest)
 	r.Run(":9000")
 }

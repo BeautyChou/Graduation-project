@@ -1,60 +1,99 @@
 <template>
   <v-app>
-    <v-app-bar
-      app
-      color="primary"
-      dark
+    <v-card
+      class="mx-auto"
+      width="256"
+      tile
     >
-      <div class="d-flex align-center">
-        <v-img
-          alt="Vuetify Logo"
-          class="shrink mr-2"
-          contain
-          src="https://cdn.vuetifyjs.com/images/logos/vuetify-logo-dark.png"
-          transition="scale-transition"
-          width="40"
-        />
 
-        <v-img
-          alt="Vuetify Name"
-          class="shrink mt-1 hidden-sm-and-down"
-          contain
-          min-width="100"
-          src="https://cdn.vuetifyjs.com/images/logos/vuetify-name-dark.png"
-          width="100"
-        />
-      </div>
-
-      <v-spacer></v-spacer>
-
-      <v-btn
-        href="https://github.com/vuetifyjs/vuetify/releases/latest"
-        target="_blank"
-        text
-      >
-        <span class="mr-2">Latest Release</span>
-        <v-icon>mdi-open-in-new</v-icon>
-      </v-btn>
-    </v-app-bar>
-
+      <v-navigation-drawer permanent app expand-on-hover :mini-variant.sync="mini">
+        <v-system-bar></v-system-bar>
+        <v-toolbar-title class="text-center">周美丽专属教务系统</v-toolbar-title>
+        <v-list>
+          <v-list-item>
+            <v-list-item-avatar>
+              <v-avatar color="red" size="36">
+                <span class="white--text headline">CJ</span>
+              </v-avatar>
+            </v-list-item-avatar>
+            <v-list-item-content>
+              <v-list-item-title class="title">
+                周美丽
+              </v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+        </v-list>
+        <v-list
+          nav
+          dense
+        >
+          <v-list-group>
+            <template v-slot:activator>
+              <v-list-item-content >
+                <v-list-item-title>报名申请</v-list-item-title>
+              </v-list-item-content>
+            </template>
+            <v-list-item>
+              <v-list-item-content>
+                <v-list-item-title>重补修报名</v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+            <v-list-item>
+              <v-list-item-content>
+                <v-list-item-title>考级项目报名</v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+            <v-list-item>
+              <v-list-item-content>
+                <v-list-item-title>教学项目报名</v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+            <v-list-item>
+              <v-list-item-content>
+                <v-list-item-title>缓考|补考确认</v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+            <v-list-item>
+              <v-list-item-content>
+                <v-list-item-title>创新创业报名</v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+            <v-list-item>
+              <v-list-item-content>
+                <v-list-item-title>学生资格证书申请</v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+            <v-list-item>
+              <v-list-item-content>
+                <v-list-item-title>学籍异动申请</v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+          </v-list-group>
+        </v-list>
+      </v-navigation-drawer>
+    </v-card>
     <v-main>
-      <HelloWorld/>
+      <router-view></router-view>
     </v-main>
   </v-app>
 </template>
 
 <script>
 import HelloWorld from './components/HelloWorld';
+import canvastest from "./components/canvastest";
 
 export default {
   name: 'App',
 
   components: {
     HelloWorld,
+    canvastest
   },
 
   data: () => ({
-    //
+    selectedItem: 0,
+    mini:true,
+    isActive:true
   }),
 };
 </script>

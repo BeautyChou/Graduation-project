@@ -8,6 +8,7 @@ import '@babel/polyfill'
 import 'roboto-fontface/css/roboto/roboto-fontface.css'
 import '@mdi/font/css/materialdesignicons.css'
 import axios from 'axios'
+import './assets/index.css'
 
 Vue.prototype.$axios = axios
 Vue.config.productionTip = false
