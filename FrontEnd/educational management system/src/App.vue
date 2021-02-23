@@ -80,14 +80,17 @@
 
 <script>
 import HelloWorld from './components/HelloWorld';
-import canvastest from "./components/canvastest";
+import Canvas from "./components/Canvas";
+import ClassSheet from "./components/ClassSheet";
 
 export default {
   name: 'App',
 
   components: {
     HelloWorld,
-    canvastest
+    Canvas,
+    ClassSheet
+
   },
 
   data: () => ({

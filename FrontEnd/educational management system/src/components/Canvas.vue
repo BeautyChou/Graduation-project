@@ -36,7 +36,7 @@
                     <v-card-subtitle>分数：{{ item.score }}/{{ item.question_max_score }}</v-card-subtitle>
                   </v-card>
                 </template>
-                <span class="col-3">{{ item.content }}</span>
+                  <div>{{ item.content }}</div>
               </v-tooltip>
 
             </template>
@@ -276,7 +276,7 @@
 
 <script>
 export default {
-  name: "canvastest",
+  name: "Canvas",
   data() {
     return {
       canvas: {},
@@ -856,6 +856,10 @@ export default {
 </script>
 
 <style scoped>
+.content{
+  word-wrap: break-word;
+}
+
 canvas {
   border: 1px solid black;
 }

@@ -1,7 +1,10 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-import HelloWorld from '@/components/HelloWorld'
-import Canvas from '../components/canvastest'
+import HelloWorld from '../components/HelloWorld'
+import canvas from '../components/Canvas'
+import ClassSheet from "../components/ClassSheet";
+import canvastest from "../components/canvastest";
+
 
 Vue.use(Router)
 
@@ -13,9 +16,19 @@ export default new Router({
       component: HelloWorld
     },
     {
-      path: '/test',
-      name: 'Canvas',
-      component: Canvas
+      path: '/canvas',
+      name: 'canvas',
+      component: canvas,
+    },
+    {
+      path: '/Canvastest',
+      name: 'Canvastest',
+      component: canvastest,
+    },
+    {
+      path: '/ClassSheet',
+      name:'ClassSheet',
+      component:ClassSheet,
     }
   ]
 })

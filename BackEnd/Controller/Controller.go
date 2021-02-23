@@ -2,21 +2,22 @@ package Controller
 
 import (
 	"BackEnd/Middleware"
-	"bytes"
+	"BackEnd/Model"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"image"
-	"image/jpeg"
-	"io"
+	"github.com/jinzhu/gorm"
 	"log"
 	"net/http"
-	"os"
 )
 
 type UserInfo struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
 }
+type HomeWork struct {
+	HomeworkID int `form:"homework_id" json:"homework_id" binding:"required"`
+}
+var HomeworkJudgeLists Model.HomeworkUploadRecordsForSelects
 
 func Test(c *gin.Context){
 	c.JSON(http.StatusOK, gin.H{
@@ -57,63 +58,49 @@ func HoeHandler(c *gin.Context){
 
 }
 
-func ImageTest(c *gin.Context){
-	file,err := c.FormFile("image")
-	if err!= nil {
-		c.JSON(http.StatusInternalServerError,gin.H{
-			"message":err.Error(),
-		})
-		return
-	}
-	file.Filename = "blob2"
-	log.Println(file.Filename)
-	dst := fmt.Sprintf("D:/FinProject/BackEnd/images/%s",file.Filename)
-	c.SaveUploadedFile(file,dst)
-	c.JSON(http.StatusOK,gin.H{
-		"message":fmt.Sprintf("'%s' uploaded!",file.Filename),
-	})
-}
-func ParseBlob()  {
-	file,err := os.Open("./images/blob")
-	if err != nil {
-		fmt.Print(err.Error())
-		return
-	}
-	defer file.Close()
-	var content []byte
-	var tmp = make([]byte,128)
-	for{
-		n,err := file.Read(tmp)
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
+
+func CheckedImage (db *gorm.DB) func(ctx *gin.Context){
+	return  func(c *gin.Context){
+		file,err := c.FormFile("image")
+		studentID := c.PostForm("student_id")
+		homeworkID := c.PostForm("homework_id")
+		questionID := c.PostForm("question_id")
+		fmt.Println(studentID,homeworkID,questionID)
+		score := c.PostForm("score")
+		if err!= nil {
+			c.JSON(http.StatusInternalServerError,gin.H{
+				"message":err.Error(),
+			})
 			return
 		}
-		content = append(content,tmp[:n]...)
-	}
-	img, _, err := image.Decode(bytes.NewReader(content))
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	out, _ := os.Create("./images/img.jpeg")
-	defer out.Close()
-
-	var opts jpeg.Options
-	opts.Quality = 1
-
-	err = jpeg.Encode(out, img, &opts)
-	//jpeg.Encode(out, img, nil)
-	if err != nil {
-		log.Println(err)
+		file.Filename = studentID+"-checked"
+		log.Println(file.Filename)
+		dst := fmt.Sprintf("D:/FinProject/BackEnd/images/%s/%s/%s",homeworkID,questionID,file.Filename)
+		c.SaveUploadedFile(file,dst)
+		db.Raw("UPDATE homework_upload_records SET score = ?,is_scored = 1 where homework_id = ? AND question_id = ? AND student_id = ?",score,homeworkID,questionID,studentID)
+		c.JSON(http.StatusOK,gin.H{
+			"message":fmt.Sprintf("'%s' uploaded!",file.Filename),
+		})
 	}
 }
+
 func ImageSendTest(c *gin.Context){
 	homeworkid := c.Query("homework")
+	questionid := c.Query("question")
 	studentid := c.Query("student")
-	c.File("./images/"+homeworkid+"/"+studentid)
-	//c.JSON(http.StatusOK,gin.H{
-	//	"images":content,
-	//})
+	c.File("./images/"+homeworkid+"/"+questionid+"/"+studentid)
+}
+
+func HomeworkJudgeList (db *gorm.DB) func(*gin.Context){
+	return func(c *gin.Context) {
+		var checked int64
+		homework := c.Query("homework_id")
+		fmt.Println(homework)
+		db.Raw("SELECT name,homework_upload_records.question_id,student_id,score,is_scored,content,question_max_score from homework_upload_records RIGHT JOIN questions ON homework_upload_records.question_id = questions.id LEFT JOIN students On students.id=homework_upload_records.student_id RIGHT JOIN homeworks on homeworks.id = homework_upload_records.homework_id AND homeworks.question_id = homework_upload_records.question_id where homework_id = ?",homework).Scan(&HomeworkJudgeLists)
+		db.Model(&Model.HomeworkUploadRecord{}).Where("homework_id = ? AND is_scored = 1",homework).Count(&checked)
+		c.JSON(http.StatusOK,gin.H{
+			"lists":HomeworkJudgeLists,
+			"checked":checked,
+		})
+	}
 }

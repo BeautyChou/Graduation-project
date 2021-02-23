@@ -20,7 +20,8 @@ func main(){
 	r.POST("/test",Controller.Test)
 	r.POST("/login",Controller.Auth)
 	r.POST("/home",Middleware.JWTAuthMiddleWare(),Controller.HoeHandler)
-	r.POST("/image",Controller.ImageTest)
+	r.POST("/image",Controller.CheckedImage(db))
 	r.GET("/image",Controller.ImageSendTest)
+	r.GET("/homeworkJudgeList",Controller.HomeworkJudgeList(db))
 	r.Run(":9000")
 }
