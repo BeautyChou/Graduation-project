@@ -80,10 +80,9 @@ export default {
         //学年由上传年份决定
         {text:'开始周',sortable:false,value:'startWeek'},
         {text:'结束周',sortable:false,value:'endWeek'},
-        {text:'班级',sortable:false,value:'classes'},
       ],
       classes: [
-        {name:'计算机导论',time:6,teacher:1,classroom:1,years:2,startWeek:3,endWeek:5,classes:2}
+        {name:'计算机导论',time:6,teacher:1,classroom:1,years:2,startWeek:3,endWeek:5}
       ],
       drag: false,
       classTime:[
@@ -130,28 +129,6 @@ export default {
         {name:"第二周",value:2},
         {name:"第三周",value:3},
         {name:"第四周",value:4},
-        {name:"第五周",value:5},
-        {name:"第六周",value:6},
-        {name:"第七周",value:7},
-        {name:"第八周",value:8},
-        {name:"第九周",value:9},
-        {name:"第十周",value:10},
-        {name:"第十一周",value:11},
-        {name:"第十二周",value:12},
-        {name:"第十三周",value:13},
-        {name:"第十四周",value:14},
-        {name:"第十五周",value:15},
-        {name:"第十六周",value:16},
-        {name:"第十七周",value:17},
-        {name:"第十八周",value:18},
-        {name:"第十九周",value:19},
-        {name:"第二十周",value:20},
-      ],
-      classTable:[
-        {name:"软件一班",value:1},
-        {name:"软件二班",value:2},
-        {name:"软件三班",value:3},
-        {name:"软件四班",value:4},
         {name:"第五周",value:5},
         {name:"第六周",value:6},
         {name:"第七周",value:7},

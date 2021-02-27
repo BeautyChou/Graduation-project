@@ -24,7 +24,7 @@
                   <v-card
                     elevation="2"
                     class="ma-4"
-                    @click="SelectObj = item;UploadScore = false;createCanvas(item);resetCanvas();"
+                    @click="SelectObj = item;UploadScore = false;uploadFlag = false;createCanvas(item);resetCanvas();"
                     :color="item.is_scored===true?'green':'white'"
                     v-bind="attrs"
                     v-on="on"
@@ -36,7 +36,7 @@
                     <v-card-subtitle>分数：{{ item.score }}/{{ item.question_max_score }}</v-card-subtitle>
                   </v-card>
                 </template>
-                  <div>{{ item.content }}</div>
+                <div>{{ item.content }}</div>
               </v-tooltip>
 
             </template>
@@ -59,7 +59,7 @@
                     </template>
                     <span>更换颜色</span>
                   </v-tooltip>
-                  <v-snackbar v-model="AdjustColor" timeout="-1" multi-line="true" class="mr-0">
+                  <v-snackbar v-model="AdjustColor" timeout="-1" :multi-line="true" class="mr-0">
                     <v-row justify="center" class="font-weight-bold my-1">
                       <div style="font-size: 18px">
                         更改颜色
@@ -95,7 +95,7 @@
                     </template>
                     <span>使用画笔/修改画笔粗细</span>
                   </v-tooltip>
-                  <v-snackbar v-model="AdjustPenSize" timeout="5000" multi-line="true" class="mr-0">
+                  <v-snackbar v-model="AdjustPenSize" timeout="5000" :multi-line="true" class="mr-0">
                     <v-row justify="center" class="font-weight-bold my-1">
                       <div style="font-size: 18px">
                         更改画笔大小
@@ -179,8 +179,7 @@
                     </template>
                     <span>使用橡皮擦/调整橡皮擦大小</span>
                   </v-tooltip>
-                  <v-snackbar v-model="AdjustEraserSize" timeout="5000" multi-line="true" class="mr-0" v-bind="attrs"
-                              v-on="on">
+                  <v-snackbar v-model="AdjustEraserSize" timeout="5000" :multi-line="true" class="mr-0">
                     <v-row justify="center" class="font-weight-bold my-1">
                       <div style="font-size: 18px">
                         更改橡皮擦大小
@@ -222,13 +221,14 @@
                   <v-tooltip bottom>
                     <template v-slot:activator="{ on, attrs }">
                       <v-btn fab x-large class="mr-3" color="primary" @click.native="clearProps();UploadScore = true"
-                             v-bind="attrs" v-on="on">
+                             v-bind="attrs" v-on="on" :disabled="uploadFlag">
                         <v-icon dark>mdi-upload</v-icon>
                       </v-btn>
                     </template>
                     <span>上传成绩和批改</span>
                   </v-tooltip>
-                  <v-snackbar v-model="UploadScore" timeout="-1" multi-line="true" v-bind="attrs" v-on="on">
+
+                  <v-snackbar v-model="UploadScore" timeout="-1" :multi-line="true">
                     <v-row justify="center" class="font-weight-bold my-1">
                       <div style="font-size: 18px">
                         输入成绩
@@ -279,6 +279,7 @@ export default {
   name: "Canvas",
   data() {
     return {
+      uploadFlag:true,
       canvas: {},
       Txt: {},
       ctx: {},
@@ -311,37 +312,13 @@ export default {
       SelectObjScore: 0,
     }
   },
-  created() {
-    this.$axios({
-      method: "GET",
-      url: "http://127.0.0.1:9000/homeworkJudgeList",
-      params: {
-        "homework_id": 1
-      },
-    }).then((response) => {
-      this.lists = response.data.lists
-      this.checked = response.data.checked
-      this.createCanvas(this.lists[0])
-    })
-    this.windowWidth = (window.innerWidth - 272) * 0.75
-    this.windowHeight = (window.innerHeight - 144 - 48)
-  },
-  mounted() {
-    this.canvas = document.getElementById('canvas');
-    this.Txt = document.getElementById('txt');
-    this.ctx = canvas.getContext('2d');
-    this.imgs = new Image();
-    this.imgs.crossOrigin = "Anonymous"
-  },
   methods: {
     createCanvas(HomeworkObj) {
-      console.log("createCanvas")
-      var HomeworkId = '0000001';
       var QuestionID = HomeworkObj.question_id;
       var StudentID = HomeworkObj.student_id
       this.widths = this.windowWidth
       this.heights = this.windowHeight
-      var src = "http://127.0.0.1:9000/image?homework=" + HomeworkId + "&question=" + QuestionID + "&student=" + StudentID;
+      var src = "http://127.0.0.1:9000/image?homework=" + this.$store.state.homeworkId + "&question=" + QuestionID + "&student=" + StudentID;
       setTimeout(this.drawImg(src), 100)
       this.pen();
     },
@@ -795,7 +772,7 @@ export default {
         const formData = new FormData();
         formData.append("image", imgFile);
         formData.append("student_id", this.SelectObj.student_id);
-        formData.append("homework_id", "0000001");
+        formData.append("homework_id", this.$store.state.homeworkId);
         formData.append("question_id", this.SelectObj.question_id);
         formData.append("score", this.SelectObjScore);
 
@@ -838,11 +815,14 @@ export default {
       this.UploadScore = false;
     },
     score(sid, qid) {
+      if (this.imgData.length === 0) {
+        return;
+      }
       this.lists.some((item, i) => {
         if (item.student_id === sid && item.question_id === qid) {
           if (this.lists[i].is_scored === false) {
             this.lists[i].score = this.SelectObjScore
-            this.lists[i].is_scored = 1
+            this.lists[i].is_scored = true
             this.checked++;
           } else {
             this.lists[i].score = this.SelectObjScore
@@ -851,12 +831,60 @@ export default {
       })
     }
   },
-
+  created() {
+    this.$axios({
+      method: "GET",
+      url: "http://127.0.0.1:9000/homeworkJudgeList",
+      params: {
+        "homework_id": this.$store.state.homeworkId
+      },
+    }).then((response) => {
+      this.lists = response.data.lists
+      console.log(this.lists)
+      this.checked = response.data.checked
+      this.createCanvas(this.lists[0])
+    })
+    this.windowWidth = (window.innerWidth - 272) * 0.75
+    this.windowHeight = (window.innerHeight - 144 - 48)
+    console.log("123456",)
+  },
+  mounted() {
+    this.canvas = document.getElementById('canvas');
+    this.Txt = document.getElementById('txt');
+    this.ctx = canvas.getContext('2d');
+    this.imgs = new Image();
+    this.imgs.crossOrigin = "Anonymous"
+  },
+  watch: {
+    '$store.state.homeworkId': {
+      handler(newValue, oldValue) {
+        this.$axios({
+          method: "GET",
+          url: "http://127.0.0.1:9000/homeworkJudgeList",
+          params: {
+            "homework_id": newValue
+          },
+        }).then((response) => {
+          this.lists = response.data.lists
+          this.checked = response.data.checked
+          this.createCanvas(this.lists[0])
+        })
+        this.windowWidth = (window.innerWidth - 272) * 0.75
+        this.windowHeight = (window.innerHeight - 144 - 48)
+        this.canvas = document.getElementById('canvas');
+        this.Txt = document.getElementById('txt');
+        this.ctx = canvas.getContext('2d');
+        this.imgs = new Image();
+        this.imgs.crossOrigin = "Anonymous"
+      },
+      immediate: true
+    }
+  },
 }
 </script>
 
 <style scoped>
-.content{
+.content {
   word-wrap: break-word;
 }
 

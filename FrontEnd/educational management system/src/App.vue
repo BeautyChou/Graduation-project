@@ -8,7 +8,7 @@
 
       <v-navigation-drawer permanent app expand-on-hover :mini-variant.sync="mini">
         <v-system-bar></v-system-bar>
-        <v-toolbar-title class="text-center">周美丽专属教务系统</v-toolbar-title>
+        <v-toolbar-title class="text-center">周美丽专属教务系统{{ $store.state.homeworkId }}</v-toolbar-title>
         <v-list>
           <v-list-item>
             <v-list-item-avatar>
@@ -82,6 +82,8 @@
 import HelloWorld from './components/HelloWorld';
 import Canvas from "./components/Canvas";
 import ClassSheet from "./components/ClassSheet";
+import SelectCourse from "./components/SelectCourse";
+import SelectHomework from "./components/SelectHomework";
 
 export default {
   name: 'App',
@@ -89,7 +91,9 @@ export default {
   components: {
     HelloWorld,
     Canvas,
-    ClassSheet
+    ClassSheet,
+    SelectCourse,
+    SelectHomework
 
   },
 

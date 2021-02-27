@@ -125,6 +125,7 @@ type Homework struct {
 	DeadLine         time.Time
 	CourseID         int    `json:"course_id" gorm:"primary_Key;uniqueIndex:question_id;" sql:"type:INT(11) NOT NULL"`
 	Course           Course `gorm:"ForeignKey:CourseID;-"`
+	HomeworkTitle    string `json:"homework_title" gorm:"uniqueIndex:homework_title"`
 }
 
 type Question struct {
@@ -133,6 +134,16 @@ type Question struct {
 	UpdatedAt time.Time
 	DeletedAt *time.Time `sql:"index"`
 	Content   string     `json:"content" gorm:"primary_Key;uniqueIndex:content;"`
+}
+
+type Student2Course struct {
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt *time.Time `sql:"index"`
+	StudentID int        `json:"student_id" gorm:"primary_Key;uniqueIndex:student_id;" sql:"type:INT(11) NOT NULL"`
+	Student   Student    `gorm:"ForeignKey:StudentID;-"`
+	Course    Course     `gorm:"ForeignKey:CourseID;-"`
+	CourseID  int        `json:"course_id" gorm:"primary_Key;uniqueIndex:course_id;" sql:"type:INT(11) NOT NULL"`
 }
 
 type HomeworkUploadRecordsForSelect struct {
@@ -144,24 +155,51 @@ type HomeworkUploadRecordsForSelect struct {
 	IsUpload         bool   `json:"is_upload" gorm:"uniqueIndex:is_upload;"`
 	Content          string `json:"content" gorm:"primary_Key;uniqueIndex:content;"`
 	QuestionMaxScore int    `json:"question_max_score" gorm:"uniqueIndex:question_max_score;" sql:"type:INT(11) NOT NULL"`
+	HomeworkTitle    string `json:"homework_title" gorm:"uniqueIndex:homework_title"`
+}
+
+type HomeworkForSelect struct {
+	ID               int `json:"id" gorm:"primary_key;" sql:"type:INT(11) NOT NULL"`
+	QuestionID       int `json:"question_id" gorm:"primary_Key;uniqueIndex:question_id;" sql:"type:INT(11) NOT NULL"`
+	QuestionMaxScore int `json:"question_max_score" gorm:"uniqueIndex:question_max_score;" sql:"type:INT(11) NOT NULL"`
+	DeadLine         time.Time
+	CourseID         int    `json:"course_id" gorm:"primary_Key;uniqueIndex:question_id;" sql:"type:INT(11) NOT NULL"`
+	HomeworkTitle    string `json:"homework_title" gorm:"uniqueIndex:homework_title"`
+}
+
+type CourseForSelect struct {
+	ID           int       `json:"course_id" gorm:"primary_key;"`
+	CourseName   string    `json:"course_name" gorm:"type:varchar(60);not null;"`             // 课程名
+	Credit       string    `json:"credit" gorm:"type:varchar(50);"`                           // 学分
+	TeacherID    int       `json:"teacher_id" gorm:"type:int(11);not null;index:teacher_id;"` // 教师ID
+	ClassroomID  int       `json:"classroom_id" gorm:"type:int(11);index:classroom_id;"`      // 教室号
+	MaxChooseNum int       `json:"max_choose_num" gorm:"type:int(11);not null;"`              // 最大可选课人数
+	SelectedNum  int       `json:"selected_num" gorm:"type:int(11);default:0;"`               // 已选人数
+	StartTime    time.Time `json:"start_time" gorm:"type:datetime;"`                          // 开始时间
+	EndTime      time.Time `json:"end_time" gorm:"type:datetime;"`                            // 结束时间
+	Name         string    `json:"name" gorm:"size:50;not null"`                              // 教师姓名
 }
 
 type HomeworkUploadRecordsForSelects []HomeworkUploadRecordsForSelect
 type HomeworkUploadRecords []HomeworkUploadRecord
+type HomeworkForSelects []HomeworkForSelect
+type CourseForSelects []CourseForSelect
 
 func CreateDatabase(db *gorm.DB) {
-	db.AutoMigrate(&Title{}, &Faculty{}, &Teacher{}, &Course{}, &Elective{}, &Admin{}, &Classroom{}, &Student{}, &HomeworkUploadRecord{}, &Homework{}, &Question{})
-	db.Model(&Teacher{}).AddForeignKey("title_id", "titles(id)", "no action", "no action")
-	db.Model(&Teacher{}).AddForeignKey("faculty_id", "faculties(id)", "cascade", "no action")
-	db.Model(&Course{}).AddForeignKey("teacher_id", "teachers(id)", "cascade", "no action")
-	db.Model(&Course{}).AddForeignKey("classroom_id", "classrooms(id)", "no action", "no action")
-	db.Model(&Student{}).AddForeignKey("faculty_id", "faculties(id)", "cascade", "no action")
-	db.Model(&Elective{}).AddForeignKey("student_id", "students(id)", "cascade", "no action")
-	db.Model(&Elective{}).AddForeignKey("course_id", "courses(id)", "cascade", "no action")
-	db.Model(&Elective{}).AddForeignKey("course_id", "courses(id)", "cascade", "no action")
-	db.Model(&HomeworkUploadRecord{}).AddForeignKey("homework_id", "homeworks(id)", "no action", "no action")
-	db.Model(&HomeworkUploadRecord{}).AddForeignKey("question_id", "questions(id)", "no action", "no action")
-	db.Model(&HomeworkUploadRecord{}).AddForeignKey("student_id", "students(id)", "no action", "no action")
-	db.Model(&Homework{}).AddForeignKey("question_id", "questions(id)", "no action", "no action")
-	db.Model(&Homework{}).AddForeignKey("course_id", "courses(id)", "no action", "no action")
+	//db.AutoMigrate(&Title{}, &Faculty{}, &Teacher{}, &Course{}, &Elective{}, &Admin{}, &Classroom{}, &Student{}, &HomeworkUploadRecord{}, &Homework{}, &Question{},&Student2Course{})
+	//db.Model(&Teacher{}).AddForeignKey("title_id", "titles(id)", "no action", "no action")
+	//db.Model(&Teacher{}).AddForeignKey("faculty_id", "faculties(id)", "cascade", "no action")
+	//db.Model(&Course{}).AddForeignKey("teacher_id", "teachers(id)", "cascade", "no action")
+	//db.Model(&Course{}).AddForeignKey("classroom_id", "classrooms(id)", "no action", "no action")
+	//db.Model(&Student{}).AddForeignKey("faculty_id", "faculties(id)", "cascade", "no action")
+	//db.Model(&Elective{}).AddForeignKey("student_id", "students(id)", "cascade", "no action")
+	//db.Model(&Elective{}).AddForeignKey("course_id", "courses(id)", "cascade", "no action")
+	//db.Model(&Elective{}).AddForeignKey("course_id", "courses(id)", "cascade", "no action")
+	//db.Model(&HomeworkUploadRecord{}).AddForeignKey("homework_id", "homeworks(id)", "no action", "no action")
+	//db.Model(&HomeworkUploadRecord{}).AddForeignKey("question_id", "questions(id)", "no action", "no action")
+	//db.Model(&HomeworkUploadRecord{}).AddForeignKey("student_id", "students(id)", "no action", "no action")
+	//db.Model(&Homework{}).AddForeignKey("question_id", "questions(id)", "no action", "no action")
+	//db.Model(&Homework{}).AddForeignKey("course_id", "courses(id)", "no action", "no action")
+	//db.Model(&Student2Course{}).AddForeignKey("course_id", "courses(id)", "no action", "no action")
+	//db.Model(&Student2Course{}).AddForeignKey("student_id", "students(id)", "no action", "no action")
 }

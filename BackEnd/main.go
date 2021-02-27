@@ -15,6 +15,7 @@ func main(){
 		fmt.Println(err)
 	}
 	defer db.Close()
+	//Model.CreateDatabase(db)
 	r:=gin.Default()
 	r.Use(Middleware.Cors())
 	r.POST("/test",Controller.Test)
@@ -23,5 +24,9 @@ func main(){
 	r.POST("/image",Controller.CheckedImage(db))
 	r.GET("/image",Controller.ImageSendTest)
 	r.GET("/homeworkJudgeList",Controller.HomeworkJudgeList(db))
+	r.GET("/getCourseList",Controller.GetCourseList(db))
+	r.GET("/getHomeworkList",Controller.GetHomeworkList(db))
+	r.DELETE("/deleteHomework",Controller.DeleteHomework(db))
+	r.OPTIONS("/deleteHomework",Controller.ReturnOK)
 	r.Run(":9000")
 }
