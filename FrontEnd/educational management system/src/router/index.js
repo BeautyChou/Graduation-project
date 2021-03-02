@@ -6,6 +6,7 @@ import ClassSheet from "../components/ClassSheet";
 import canvastest from "../components/canvastest";
 import SelectCourse from "../components/SelectCourse";
 import SelectHomework from "../components/SelectHomework";
+import AddHomework from "../components/AddHomework";
 
 Vue.use(Router)
 
@@ -40,6 +41,11 @@ export default new Router({
       path:'/SelectHomework',
       name:'SelectHomework',
       component:SelectHomework
+    },
+    {
+      path:'/AddHomework',
+      name:'AddHomework',
+      component:AddHomework
     }
   ]
 })

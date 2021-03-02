@@ -1,8 +1,7 @@
 package Model
 
 import (
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/mysql"
+	"gorm.io/gorm"
 	"time"
 )
 
@@ -122,14 +121,14 @@ type Homework struct {
 	Question         Question   `gorm:"ForeignKey:QuestionID;-"`
 	QuestionID       int        `json:"question_id" gorm:"primary_Key;uniqueIndex:question_id;" sql:"type:INT(11) NOT NULL"`
 	QuestionMaxScore int        `json:"question_max_score" gorm:"uniqueIndex:question_max_score;" sql:"type:INT(11) NOT NULL"`
-	DeadLine         time.Time
+	DeadLine         time.Time  `json:"deadline"`
 	CourseID         int    `json:"course_id" gorm:"primary_Key;uniqueIndex:question_id;" sql:"type:INT(11) NOT NULL"`
 	Course           Course `gorm:"ForeignKey:CourseID;-"`
 	HomeworkTitle    string `json:"homework_title" gorm:"uniqueIndex:homework_title"`
 }
 
 type Question struct {
-	ID        int `json:"id" gorm:"primary_key;" sql:"type:INT(11) NOT NULL"`
+	ID        int `json:"id" gorm:"primary_key;autoIncrement" sql:"type:INT(11) NOT NULL"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt *time.Time `sql:"index"`
@@ -180,12 +179,29 @@ type CourseForSelect struct {
 	Name         string    `json:"name" gorm:"size:50;not null"`                              // 教师姓名
 }
 
+type QuestionForSelect struct {
+	ID      int    `json:"id" gorm:"primary_key;autoIncrement" sql:"type:INT(11) NOT NULL"`
+	Content string `json:"content" gorm:"primary_Key;uniqueIndex:content;"`
+}
+
+type HomeworkForCreate struct {
+	ID               int `json:"id" gorm:"primary_key;" sql:"type:INT(11) NOT NULL"`
+	QuestionID       int        `json:"question_id" gorm:"primary_Key;uniqueIndex:question_id;" sql:"type:INT(11) NOT NULL"`
+	QuestionMaxScore int        `json:"question_max_score" gorm:"uniqueIndex:question_max_score;" sql:"type:INT(11) NOT NULL"`
+	DeadLine         time.Time  `json:"deadline"`
+	CourseID         int    `json:"course_id" gorm:"primary_Key;uniqueIndex:question_id;" sql:"type:INT(11) NOT NULL"`
+	HomeworkTitle    string `json:"homework_title" gorm:"uniqueIndex:homework_title"`
+}
+
 type HomeworkUploadRecordsForSelects []HomeworkUploadRecordsForSelect
 type HomeworkUploadRecords []HomeworkUploadRecord
 type HomeworkForSelects []HomeworkForSelect
 type CourseForSelects []CourseForSelect
+type QuestionForSelects []QuestionForSelect
+type Homeworks []Homework
 
 func CreateDatabase(db *gorm.DB) {
+	db.AutoMigrate(&Question{})
 	//db.AutoMigrate(&Title{}, &Faculty{}, &Teacher{}, &Course{}, &Elective{}, &Admin{}, &Classroom{}, &Student{}, &HomeworkUploadRecord{}, &Homework{}, &Question{},&Student2Course{})
 	//db.Model(&Teacher{}).AddForeignKey("title_id", "titles(id)", "no action", "no action")
 	//db.Model(&Teacher{}).AddForeignKey("faculty_id", "faculties(id)", "cascade", "no action")

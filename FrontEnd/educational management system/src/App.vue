@@ -35,40 +35,19 @@
             </template>
             <v-list-item>
               <v-list-item-content>
-                <v-list-item-title>重补修报名</v-list-item-title>
-              </v-list-item-content>
-            </v-list-item>
-            <v-list-item>
-              <v-list-item-content>
-                <v-list-item-title>考级项目报名</v-list-item-title>
-              </v-list-item-content>
-            </v-list-item>
-            <v-list-item>
-              <v-list-item-content>
-                <v-list-item-title>教学项目报名</v-list-item-title>
-              </v-list-item-content>
-            </v-list-item>
-            <v-list-item>
-              <v-list-item-content>
-                <v-list-item-title>缓考|补考确认</v-list-item-title>
-              </v-list-item-content>
-            </v-list-item>
-            <v-list-item>
-              <v-list-item-content>
-                <v-list-item-title>创新创业报名</v-list-item-title>
-              </v-list-item-content>
-            </v-list-item>
-            <v-list-item>
-              <v-list-item-content>
-                <v-list-item-title>学生资格证书申请</v-list-item-title>
-              </v-list-item-content>
-            </v-list-item>
-            <v-list-item>
-              <v-list-item-content>
                 <v-list-item-title>学籍异动申请</v-list-item-title>
               </v-list-item-content>
             </v-list-item>
           </v-list-group>
+
+          <v-list-item>
+            <v-list-item-content>
+              <router-link to="/SelectCourse">
+                <v-list-item-title>作业管理</v-list-item-title>
+              </router-link>
+            </v-list-item-content>
+          </v-list-item>
+
         </v-list>
       </v-navigation-drawer>
     </v-card>

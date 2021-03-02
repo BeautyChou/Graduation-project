@@ -5,7 +5,7 @@ import (
 	"BackEnd/Model"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 	"net/http"
 	"strconv"
 	"time"
@@ -65,7 +65,7 @@ func CheckedImage (db *gorm.DB) func(ctx *gin.Context){
 		questionID := c.PostForm("question_id")
 		score := c.PostForm("score")
 		fmt.Println(studentID,homeworkID,questionID,score)
-		score_num,err := strconv.Atoi(score)
+		scoreNum,err := strconv.Atoi(score)
 		if err!= nil {
 			c.JSON(http.StatusInternalServerError,gin.H{
 				"message":err.Error(),
@@ -75,8 +75,8 @@ func CheckedImage (db *gorm.DB) func(ctx *gin.Context){
 		file.Filename = studentID+"-checked"
 		dst := fmt.Sprintf("D:/FinProject/BackEnd/images/%s/%s/%s",homeworkID,questionID,file.Filename)
 		c.SaveUploadedFile(file,dst)
-		db.Debug().Model(&Model.HomeworkUploadRecord{}).Where("homework_id = ? AND question_id = ? AND student_id = ?",homeworkID,questionID,studentID).Update(&Model.HomeworkUploadRecord{
-			Score:    score_num,
+		db.Model(&Model.HomeworkUploadRecord{}).Where("homework_id = ? AND question_id = ? AND student_id = ?",homeworkID,questionID,studentID).Updates(&Model.HomeworkUploadRecord{
+			Score:    scoreNum,
 			IsScored: true,
 		})
 		c.JSON(http.StatusOK,gin.H{
@@ -136,6 +136,56 @@ func DeleteHomework(db *gorm.DB) func(c *gin.Context){
 		c.JSON(http.StatusOK,gin.H{
 			"id":id,
 		})
+	}
+}
+
+func PostQuestion(db *gorm.DB) func(c *gin.Context){
+	return func(c *gin.Context) {
+		var content = c.PostForm("content")
+		var question Model.Question
+		var newQuestion Model.Question
+		db.Last(&question)
+		fmt.Println(question)
+		newQuestion.ID = question.ID+1
+		newQuestion.Content = content
+		db.Create(&newQuestion)
+		c.JSON(http.StatusOK,gin.H{
+			"id":newQuestion.ID,
+		})
+	}
+}
+
+func GetContentList(db *gorm.DB) func(c *gin.Context){
+	return func(c *gin.Context) {
+		var questions Model.QuestionForSelects
+		db.Raw("select * from questions").Scan(&questions)
+		c.JSON(http.StatusOK,gin.H{
+			"questions":questions,
+		})
+	}
+}
+
+func GetNewHomeworkID(db *gorm.DB)func(c *gin.Context){
+	return func(c *gin.Context) {
+		var homework Model.Homework
+		db.Unscoped().Order("id desc").Last(&homework)
+		homework.ID++
+		db.Create(&homework)
+		c.JSON(http.StatusOK,gin.H{
+			"id":homework.ID,
+		})
+	}
+}
+
+func CreateHomework(db *gorm.DB) func(c *gin.Context){
+	return func(c *gin.Context) {
+		var questions Model.Homeworks
+		if err := c.ShouldBindJSON(&questions);err !=nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		db.Where("id = ?",questions[0].ID).Delete(&Model.Homework{})
+		db.Create(&questions)
 	}
 }
 

@@ -1,19 +1,31 @@
 <template>
   <v-card>
-    <v-alert
-      :value="alert"
-      type="success"
-      dark
-      icon="mdi-check-circle"
-      transition="scroll-y-transition"
-    >
-      删除作业成功!
-    </v-alert>
-    <v-card-title>选择作业</v-card-title>
+    <v-snackbar v-model="alert" :timeout="3000" color="green" top>
+      <v-icon>
+        mdi-check-circle
+      </v-icon>
+      <span>
+        删除作业成功!
+      </span>
+    </v-snackbar>
+
+
+    <v-card-title>
+      <div>
+        选择作业
+      </div>
+      <v-spacer></v-spacer>
+      <v-btn color="primary" to="/AddHomework">
+        <v-icon>mdi-plus-thick</v-icon>
+        <span>
+          添加作业
+        </span>
+      </v-btn>
+    </v-card-title>
     <v-data-table
       :headers="headers"
       :items="homeworks"
-      :items-per-page="5"
+      :items-per-page="10"
       class="elevation-1"
     >
       <template v-slot:item.DeadLine="{ item }">
@@ -106,6 +118,7 @@
         </v-tooltip>
       </template>
     </v-data-table>
+
   </v-card>
 </template>
 

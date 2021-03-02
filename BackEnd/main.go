@@ -3,19 +3,23 @@ package main
 import (
 	"BackEnd/Controller"
 	"BackEnd/Middleware"
+	"BackEnd/Model"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/mysql"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
 func main(){
-	db, err := gorm.Open("mysql", "root:123456@/tttt?charset=utf8&parseTime=True&loc=Local")
+
+	dsn := "root:123456@tcp(127.0.0.1:3306)/tttt?charset=utf8mb4&parseTime=True&loc=Local"
+	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	//db, err := gorm.Open("mysql", "root:123456@/tttt?charset=utf8&parseTime=True&loc=Local")
 	if err != nil {
 		fmt.Println(err)
 	}
-	defer db.Close()
-	//Model.CreateDatabase(db)
+	//defer db.Close()
+	Model.CreateDatabase(db)
 	r:=gin.Default()
 	r.Use(Middleware.Cors())
 	r.POST("/test",Controller.Test)
@@ -28,5 +32,9 @@ func main(){
 	r.GET("/getHomeworkList",Controller.GetHomeworkList(db))
 	r.DELETE("/deleteHomework",Controller.DeleteHomework(db))
 	r.OPTIONS("/deleteHomework",Controller.ReturnOK)
+	r.POST("/postQuestion",Controller.PostQuestion(db))
+	r.GET("/getContentList",Controller.GetContentList(db))
+	r.POST("/createHomework",Controller.CreateHomework(db))
+	r.GET("/getNewHomeworkID",Controller.GetNewHomeworkID(db))
 	r.Run(":9000")
 }

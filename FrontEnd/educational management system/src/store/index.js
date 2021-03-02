@@ -6,9 +6,9 @@ Vue.use(Vuex)
 export default new Vuex.Store({
   state: {
     homeworkId:null,
-    courseId:'1',
+    courseId:null,
     Jwt:null,
-    teacherId:'1',
+    teacherId:1,
     studentId:null,
     homeworkFlag:false,
     courseFlag:false,
