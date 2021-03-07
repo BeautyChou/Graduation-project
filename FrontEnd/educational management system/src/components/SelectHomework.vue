@@ -11,11 +11,18 @@
 
 
     <v-card-title>
-      <div>
+
+      <v-btn icon to="/SelectCourse" @click.native="$store.commit('previousPage');">
+        <v-icon>mdi-arrow-left-bold</v-icon>
+        <span>返回</span>
+      </v-btn>
+
+
+      <div class="mx-8">
         选择作业
       </div>
       <v-spacer></v-spacer>
-      <v-btn color="primary" to="/AddHomework">
+      <v-btn color="primary" to="/AddHomework" @click.native="$store.commit('addHomework')">
         <v-icon>mdi-plus-thick</v-icon>
         <span>
           添加作业
@@ -25,16 +32,27 @@
     <v-data-table
       :headers="headers"
       :items="homeworks"
-      :items-per-page="10"
       class="elevation-1"
+      :loading="loadingFlag"
+      loading-text="加载中... 请稍后"
     >
       <template v-slot:item.DeadLine="{ item }">
-        {{ item.DeadLine | dateFormat }}
+        <div v-if="item.DeadLine">
+          {{dateFormat(item.DeadLine)}}
+        </div>
       </template>
       <template v-slot:item.operation="{ item }">
         <v-tooltip v-if="$store.state.level===2||true" bottom>
           <template v-slot:activator="{ on,attrs }">
-            <v-btn icon color="green" v-bind="attrs" v-on="on" to="/canvas" @click.native="$store.commit('setHomeworkId',item.id)" x-large>
+            <v-btn
+              icon
+              color="green"
+              v-bind="attrs"
+              v-on="on"
+              to="/canvas"
+              @click.native="$store.commit('setHomeworkId',item.id)"
+              :disabled=" time < item.DeadLine && false"
+              x-large>
               <v-icon>
                 mdi-check-bold
               </v-icon>
@@ -44,15 +62,13 @@
         </v-tooltip>
         <v-tooltip v-if="$store.state.level===2||true" bottom>
           <template v-slot:activator="{ on,attrs }">
-            <v-btn icon color="primary" v-bind="attrs" v-on="on" x-large>
+            <v-btn icon color="primary" v-bind="attrs" v-on="on" x-large to="/AddHomework"  @click.native="$store.commit('setHomeworkId',item.id);$store.commit('modifyHomework')">
               <v-icon>
                 mdi-lead-pencil
-                <router-link to="/SelectHomework" @click.native="$store.commit('setCourseId',item.course_id)">修改作业内容
-                </router-link>
               </v-icon>
             </v-btn>
           </template>
-          <span>修改作业内容</span>
+          <span>查看作业内容</span>
         </v-tooltip>
         <v-tooltip v-if="$store.state.level===2||true" bottom>
           <template v-slot:activator="{ on,attrs }">
@@ -96,11 +112,17 @@
         </v-dialog>
         <v-tooltip v-if="$store.state.level===1||true" bottom>
           <template v-slot:activator="{ on,attrs }">
-            <v-btn icon color="primary" v-bind="attrs" v-on="on" :disabled=" time > item.DeadLine " x-large>
+            <v-btn
+              icon
+              color="primary"
+              v-bind="attrs"
+              v-on="on"
+              :disabled=" time > item.DeadLine "
+              x-large
+              to="/SubmitHomework"
+              @click.native="$store.commit('setHomeworkId',item.id)">
               <v-icon>
                 mdi-square-edit-outline
-                <router-link to="/SelectHomework" @click.native="$store.commit('setCourseId',item.course_id)">修改作业内容
-                </router-link>
               </v-icon>
             </v-btn>
           </template>
@@ -108,7 +130,14 @@
         </v-tooltip>
         <v-tooltip v-if="$store.state.level===1||true" bottom>
           <template v-slot:activator="{ on,attrs }">
-            <v-btn icon color="green" v-bind="attrs" v-on="on" x-large>
+            <v-btn
+              icon
+              color="green"
+              to="/CheckReview"
+              v-bind="attrs"
+              v-on="on"
+              x-large
+              @click.native="$store.commit('setHomeworkId',item.id)">
               <v-icon>
                 mdi-file-check
               </v-icon>
@@ -138,6 +167,7 @@ export default {
         //学年由上传年份决定
         {text: '操作', sortable: false, value: 'operation'},
       ],
+      loadingFlag: true,
     }
   },
   methods: {
@@ -171,19 +201,38 @@ export default {
         }).then((response) => {
           this.homeworks = response.data.homeworks
           this.time = response.data.time
-          console.log(response)
+          this.loadingFlag = false
+          console.log('1',response)
         })
       },
-      immediate: true
-    }
+    },
+    '$store.state.refreshFlag':{
+      handler(newValue, oldValue) {
+        console.log(newValue,oldValue)
+        if (newValue < 1 ) return
+          this.$axios({
+            method: "get",
+            url: 'http://127.0.0.1:9000/getHomeworkList',
+            params: {
+              'course_id': this.$store.state.courseId,
+            }
+          }).then((response) => {
+            this.homeworks = response.data.homeworks
+            this.time = response.data.time
+            this.loadingFlag = false
+            this.$store.commit('nextPage')
+            console.log('2',response)
+          })
+        },
+    },
   },
-  filters: {
-    dateFormat(str) {
-      var date = str.substring(0, 10)
-      var time = str.substring(11, 19)
-      return `${date}` + '　' + `${time}`
-    }
-  },
+  computed:{
+    dateFormat() {
+      return function (str){
+        return str.substring(0, 10) + '　' + str.substring(11, 19)
+      }
+    },
+  }
 }
 </script>
 

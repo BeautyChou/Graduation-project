@@ -9,7 +9,7 @@ type MyModel struct {
 	ID        int `json:"id" gorm:"primary_key;"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
-	DeletedAt *time.Time `sql:"index"`
+	DeletedAt gorm.DeletedAt `sql:"index"`
 }
 
 //管理员表
@@ -88,7 +88,7 @@ type Elective struct {
 	ID            int `json:"id" gorm:"primary_key;" sql:"type:INT(11) NOT NULL"`
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
-	DeletedAt     *time.Time `sql:"index"`
+	DeletedAt gorm.DeletedAt `sql:"index"`
 	Student       Student    `gorm:"ForeignKey:StudentNumber;"`                                                         // 学生外键
 	StudentID     int        `json:"student_id" gorm:"primary_Key;uniqueIndex:student_id;" sql:"type:INT(11) NOT NULL"` // 学号
 	Course        Course     `gorm:"ForeignKey:CourseID;"`                                                              // 课程外键
@@ -101,7 +101,7 @@ type Elective struct {
 type HomeworkUploadRecord struct {
 	CreatedAt  time.Time
 	UpdatedAt  time.Time
-	DeletedAt  *time.Time `sql:"index"`
+	DeletedAt gorm.DeletedAt `sql:"index"`
 	Homework   Homework   `gorm:"ForeignKey:HomeworkID;-"`
 	HomeworkID int        `json:"homework_id" gorm:"primary_Key;uniqueIndex:homework_id;" sql:"type:INT(11) NOT NULL"` // 课程号
 	QuestionID int        `json:"question_id" gorm:"primary_Key;uniqueIndex:homework_id;" sql:"type:INT(11) NOT NULL"` // 课程号
@@ -117,28 +117,28 @@ type Homework struct {
 	ID               int `json:"id" gorm:"primary_key;" sql:"type:INT(11) NOT NULL"`
 	CreatedAt        time.Time
 	UpdatedAt        time.Time
-	DeletedAt        *time.Time `sql:"index"`
+	DeletedAt gorm.DeletedAt `sql:"index"`
 	Question         Question   `gorm:"ForeignKey:QuestionID;-"`
 	QuestionID       int        `json:"question_id" gorm:"primary_Key;uniqueIndex:question_id;" sql:"type:INT(11) NOT NULL"`
 	QuestionMaxScore int        `json:"question_max_score" gorm:"uniqueIndex:question_max_score;" sql:"type:INT(11) NOT NULL"`
 	DeadLine         time.Time  `json:"deadline"`
-	CourseID         int    `json:"course_id" gorm:"primary_Key;uniqueIndex:question_id;" sql:"type:INT(11) NOT NULL"`
-	Course           Course `gorm:"ForeignKey:CourseID;-"`
-	HomeworkTitle    string `json:"homework_title" gorm:"uniqueIndex:homework_title"`
+	CourseID         int        `json:"course_id" gorm:"primary_Key;uniqueIndex:question_id;" sql:"type:INT(11) NOT NULL"`
+	Course           Course     `gorm:"ForeignKey:CourseID;-"`
+	HomeworkTitle    string     `json:"homework_title" gorm:"uniqueIndex:homework_title"`
 }
 
 type Question struct {
 	ID        int `json:"id" gorm:"primary_key;autoIncrement" sql:"type:INT(11) NOT NULL"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
-	DeletedAt *time.Time `sql:"index"`
+	DeletedAt gorm.DeletedAt `sql:"index"`
 	Content   string     `json:"content" gorm:"primary_Key;uniqueIndex:content;"`
 }
 
 type Student2Course struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
-	DeletedAt *time.Time `sql:"index"`
+	DeletedAt gorm.DeletedAt `sql:"index"`
 	StudentID int        `json:"student_id" gorm:"primary_Key;uniqueIndex:student_id;" sql:"type:INT(11) NOT NULL"`
 	Student   Student    `gorm:"ForeignKey:StudentID;-"`
 	Course    Course     `gorm:"ForeignKey:CourseID;-"`
@@ -185,20 +185,48 @@ type QuestionForSelect struct {
 }
 
 type HomeworkForCreate struct {
-	ID               int `json:"id" gorm:"primary_key;" sql:"type:INT(11) NOT NULL"`
-	QuestionID       int        `json:"question_id" gorm:"primary_Key;uniqueIndex:question_id;" sql:"type:INT(11) NOT NULL"`
-	QuestionMaxScore int        `json:"question_max_score" gorm:"uniqueIndex:question_max_score;" sql:"type:INT(11) NOT NULL"`
-	DeadLine         time.Time  `json:"deadline"`
-	CourseID         int    `json:"course_id" gorm:"primary_Key;uniqueIndex:question_id;" sql:"type:INT(11) NOT NULL"`
-	HomeworkTitle    string `json:"homework_title" gorm:"uniqueIndex:homework_title"`
+	ID               int       `json:"id" gorm:"primary_key;" sql:"type:INT(11) NOT NULL"`
+	QuestionID       int       `json:"question_id" gorm:"primary_Key;uniqueIndex:question_id;" sql:"type:INT(11) NOT NULL"`
+	QuestionMaxScore int       `json:"question_max_score" gorm:"uniqueIndex:question_max_score;" sql:"type:INT(11) NOT NULL"`
+	DeadLine         time.Time `json:"deadline"`
+	CourseID         int       `json:"course_id" gorm:"primary_Key;uniqueIndex:question_id;" sql:"type:INT(11) NOT NULL"`
+	HomeworkTitle    string    `json:"homework_title" gorm:"uniqueIndex:homework_title"`
 }
 
+type QuestionForCheck struct {
+	QuestionMaxScore int `json:"question_max_score" gorm:"uniqueIndex:question_max_score;" sql:"type:INT(11) NOT NULL"`
+	DeadLine         time.Time
+	HomeworkTitle    string `json:"homework_title" gorm:"uniqueIndex:homework_title"`
+	Content          string `json:"content" gorm:"primary_Key;uniqueIndex:content;"`
+	QuestionId       int    `json:"question_id"`
+}
+
+type QuestionForStudent struct {
+	QuestionMaxScore int `json:"question_max_score" gorm:"uniqueIndex:question_max_score;" sql:"type:INT(11) NOT NULL"`
+	DeadLine         time.Time
+	HomeworkTitle    string `json:"homework_title" gorm:"uniqueIndex:homework_title"`
+	Content          string `json:"content" gorm:"primary_Key;uniqueIndex:content;"`
+	QuestionId       int    `json:"question_id"`
+	Uploaded         bool   `json:"uploaded"`
+}
+
+type RecordForReview struct {
+	QuestionID       int    `json:"question_id" gorm:"primary_Key;uniqueIndex:homework_id;" sql:"type:INT(11) NOT NULL"` // 课程号
+	Score            int    `json:"score" gorm:"uniqueIndex:score;" sql:"type:INT(11) NOT NULL"` // 课程号
+	IsScored         bool   `json:"is_scored" gorm:"uniqueIndex:is_scored;"`                     // 课程号
+	Content          string `json:"content" gorm:"primary_Key;uniqueIndex:content;"`
+	QuestionMaxScore int    `json:"question_max_score" gorm:"uniqueIndex:question_max_score;" sql:"type:INT(11) NOT NULL"`
+	HomeworkTitle    string `json:"homework_title" gorm:"uniqueIndex:homework_title"`
+}
 type HomeworkUploadRecordsForSelects []HomeworkUploadRecordsForSelect
 type HomeworkUploadRecords []HomeworkUploadRecord
 type HomeworkForSelects []HomeworkForSelect
 type CourseForSelects []CourseForSelect
 type QuestionForSelects []QuestionForSelect
 type Homeworks []Homework
+type QuestionForChecks []QuestionForCheck
+type QuestionForStudents []QuestionForStudent
+type RecordForReviews []RecordForReview
 
 func CreateDatabase(db *gorm.DB) {
 	db.AutoMigrate(&Question{})

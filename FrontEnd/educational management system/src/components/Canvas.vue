@@ -3,15 +3,17 @@
     <v-row>
       <v-col class="col-3">
         <v-list shaped elevation="5">
-          <v-list-item>
-            <v-list-item-content>
-              <v-list-item-title class="title text-center">
-                <div class="d-inline-block">选择学生</div>
-                <v-progress-circular :value="100*checked/lists.length" :width="10" color="teal"
-                                     class="float-right d-block" :rotate="-90"></v-progress-circular>
-              </v-list-item-title>
-            </v-list-item-content>
-          </v-list-item>
+          <v-card-title>
+            <v-btn icon to="/SelectHomework" @click.native="$store.commit('previousPage')" x-large>
+              <v-icon>mdi-arrow-left-bold</v-icon>
+              <span>返回</span>
+            </v-btn>
+            <v-spacer></v-spacer>
+            <div class="">选择学生</div>
+            <v-spacer></v-spacer>
+            <v-progress-circular :value="100*checked/lists.length" :width="10" color="teal"
+                                 class="" :rotate="-90"></v-progress-circular>
+          </v-card-title>
           <v-virtual-scroll
             :items="lists"
             :item-height="100"
@@ -36,7 +38,7 @@
                     <v-card-subtitle>分数：{{ item.score }}/{{ item.question_max_score }}</v-card-subtitle>
                   </v-card>
                 </template>
-                <div>{{ item.content }}</div>
+                <div class="text-wrap">{{ item.content }}</div>
               </v-tooltip>
 
             </template>
@@ -67,19 +69,19 @@
                     </v-row>
                     <v-row justify="center" class="mr-0">
                       <v-btn class="ma-2 pb-16" fab x-large color="red"
-                             @click="selectColor('#F44336');sheet=!sheet;UIColor='red';"></v-btn>
+                             @click="selectColor('#F44336');AdjustColor=!AdjustColor;UIColor='red';"></v-btn>
                       <v-btn class="ma-2 " fab x-large color="green"
-                             @click="selectColor('#4CAF50');sheet=!sheet;UIColor='green';"></v-btn>
+                             @click="selectColor('#4CAF50');AdjustColor=!AdjustColor;UIColor='green';"></v-btn>
                       <v-btn class="ma-2 " fab x-large color="blue"
-                             @click="selectColor('#2196F3');sheet=!sheet;UIColor='blue';"></v-btn>
+                             @click="selectColor('#2196F3');AdjustColor=!AdjustColor;UIColor='blue';"></v-btn>
                       <v-btn class="ma-2 " fab x-large color="orange"
-                             @click="selectColor('#FF9800');sheet=!sheet;UIColor='orange';"></v-btn>
+                             @click="selectColor('#FF9800');AdjustColor=!AdjustColor;UIColor='orange';"></v-btn>
                       <v-btn class="ma-2 " fab x-large color="pink"
-                             @click="selectColor('#E91E63');sheet=!sheet;UIColor='pink';"></v-btn>
+                             @click="selectColor('#E91E63');AdjustColor=!AdjustColor;UIColor='pink';"></v-btn>
                       <v-btn class="ma-2 " fab x-large color="purple"
-                             @click="selectColor('#9C27B0');sheet=!sheet;UIColor='purple';"></v-btn>
+                             @click="selectColor('#9C27B0');AdjustColor=!AdjustColor;UIColor='purple';"></v-btn>
                       <v-btn class="ma-2 " fab x-large color="black"
-                             @click="selectColor('#000000');sheet=!sheet;UIColor='black';"></v-btn>
+                             @click="selectColor('#000000');AdjustColor=!AdjustColor;UIColor='black';"></v-btn>
                     </v-row>
                   </v-snackbar>
                   <v-tooltip bottom>
@@ -236,28 +238,25 @@
                     </v-row>
                     <v-row class="mr-0">
                       <v-col class="col-8">
-
                         <v-text-field label="请输入成绩" hide-details class="pa-0 ma-0"
-                                      v-model="SelectObjScore"></v-text-field>
+                                      v-model.number="SelectObjScore"></v-text-field>
                       </v-col>
                       <v-col class="col-2">
                         <div class="py-2 align-center" style="font-size: 18px">/{{ SelectObj.question_max_score }}</div>
                       </v-col>
                       <v-col class="col-2">
-                        <v-btn :disabled="SelectObjScore>SelectObj.question_max_score"
-                               @click.native="saveCanvas();score(SelectObj.student_id,SelectObj.question_id);">提交
+                        <v-btn
+                          :disabled="SelectObjScore>SelectObj.question_max_score||SelectObjScore < 0||SelectObjScore === '-' "
+                          @click.native="saveCanvas();score(SelectObj.student_id,SelectObj.question_id);">提交
                         </v-btn>
                       </v-col>
-
                     </v-row>
                   </v-snackbar>
-
-
                 </v-row>
               </v-content>
             </v-item-group>
           </v-container>
-          <v-container class="mx-auto">
+          <v-container class="mx-auto pa-0" id="canvasContainer">
             <canvas id="canvas" :width="widths" :height="heights" class="mx-auto d-block justify-space-between">
               您的浏览器不兼容，请升级或更换浏览器！
             </canvas>
@@ -275,11 +274,13 @@
 </template>
 
 <script>
+import html2canvas from "html2canvas";
+
 export default {
   name: "Canvas",
   data() {
     return {
-      uploadFlag:true,
+      uploadFlag: true,
       canvas: {},
       Txt: {},
       ctx: {},
@@ -289,7 +290,6 @@ export default {
       widths: '',
       heights: '',
       color: '#F44336',
-      sheet: false,
       UIColor: 'red',
       PenIsSmall: true,
       PenIsMedium: false,
@@ -310,16 +310,24 @@ export default {
       UploadScore: false,
       SelectObj: {},
       SelectObjScore: 0,
+      backgroundImageWidth: 0,
+      backgroundImageHeight: 0,
     }
   },
   methods: {
     createCanvas(HomeworkObj) {
       var QuestionID = HomeworkObj.question_id;
       var StudentID = HomeworkObj.student_id
+      var img = new Image()
+      this.src = "http://127.0.0.1:9000/image?homework=" + this.$store.state.homeworkId + "&question=" + QuestionID + "&student=" + StudentID;
+      img.crossOrigin = "Anonymous"
+      img.src = this.src
       this.widths = this.windowWidth
       this.heights = this.windowHeight
-      var src = "http://127.0.0.1:9000/image?homework=" + this.$store.state.homeworkId + "&question=" + QuestionID + "&student=" + StudentID;
-      setTimeout(this.drawImg(src), 100)
+      img.onload = () => {
+        console.log(img.width,img.height)
+        this.drawImg(this.src,img.width,img.height)
+      }
       this.pen();
     },
     changeEraserSize(num) {
@@ -359,10 +367,11 @@ export default {
         eraser.style.display = 'none'
       }
     },
-    drawImg(src) {
+    drawImg(src,width,height) {
       this.canvas.style.backgroundImage = 'url(' + src + ')'
       this.canvas.style.backgroundRepeat = 'no-repeat'
-      if ((this.imgs.width / this.windowWidth) > (this.imgs.height / this.windowHeight)) {
+      console.log(width, this.windowWidth, height, this.windowHeight)
+      if ((width / this.windowWidth) > (height / this.windowHeight)) {
         this.canvas.style.backgroundSize = '100% auto';
         this.canvas.style.backgroundPositionY = 'center'
       } else {
@@ -646,12 +655,13 @@ export default {
         ctx.fontWeight = "800"
         Txt.style.position = 'absolute'
         Txt.style.top = ev.offsetY + 144 + 'px'
-        Txt.style.left = ev.offsetX + width / 4 + 'px'
+        Txt.style.left = ev.offsetX + 56 + (this.widths - 56) / 4 + 'px'
+        console.log(Txt.style.top, Txt.style.left, ev.offsetY, ev.offsetX)
 
         Txt.style.background = 'rgb(0,0,0,0)'
-        Txt.style.border = '3px solid ' + this_.color
-        Txt.style.color = this_.color
-        Txt.style.width = canvas.width - 20 + "px"
+        Txt.style.border = '3px solid ' + this.color
+        Txt.style.color = this.color
+        Txt.style.width = canvas.width * 0.25 + "px"
 
         document.body.append(Txt)
         setTimeout(() => {
@@ -698,7 +708,7 @@ export default {
 
           Txt = document.createElement("textArea");
           Txt.style.display = "block";
-          ctx.font = "16px Microsoft Yahei";
+          ctx.font = "18px Microsoft Yahei";
           Txt.style.position = 'absolute'
           Txt.style.top = ev.offsetY + 144 + 'px'
           Txt.style.right = ev.offsetX - ((this.widths + 256) / 4) + 'px'
@@ -742,51 +752,40 @@ export default {
     },
     saveCanvas() {
       this.clearEvent();
-      let tempCanvas = document.createElement("canvas");
-      tempCanvas.width = this.widths
-      tempCanvas.height = this.heights
-      let tempCtx = tempCanvas.getContext('2d');
-      if (this.imgData.length === 0) {
-        return;
-      }
-      var image = new Image();
-      image = this.canvas.toDataURL('Image/png');
-      let imageObj = document.createElement('img');
-      imageObj.src = image;
-      setTimeout(() => {
-        tempCtx.drawImage(this.imgs, 0, 0, this.widths, this.heights);
-        tempCtx.drawImage(imageObj, 0, 0, this.widths, this.heights);
-        var tempImage = new Image();
-        tempImage = tempCanvas.toDataURL('Image/png')
-        let arr = tempImage.split(","),
-          mime = arr[0].match(/:(.*?);/)[1],
-          bstr = atob(arr[1]),
-          n = bstr.length,
-          u8arr = new Uint8Array(n);
-        while (n--) {
-          u8arr[n] = bstr.charCodeAt(n);
-        }
-        let imgFile = new Blob([u8arr], {
-          type: mime
-        });
-        const formData = new FormData();
-        formData.append("image", imgFile);
-        formData.append("student_id", this.SelectObj.student_id);
-        formData.append("homework_id", this.$store.state.homeworkId);
-        formData.append("question_id", this.SelectObj.question_id);
-        formData.append("score", this.SelectObjScore);
-
-        this.$axios({
-          method: "post",
-          url: "http://127.0.0.1:9000/image",
-          data: formData,
-          headers: {
-            "Content-Type": "multipart/form-data"
+      html2canvas(document.getElementById('canvasContainer'), {useCORS: true, allowTaint: false}).then((canvas) => {
+        let imgUrl = canvas.toDataURL('Image/png')
+        setTimeout(() => {
+          let arr = imgUrl.split(","),
+            mime = arr[0].match(/:(.*?);/)[1],
+            bstr = atob(arr[1]),
+            n = bstr.length,
+            u8arr = new Uint8Array(n);
+          while (n--) {
+            u8arr[n] = bstr.charCodeAt(n);
           }
-        });
-      }, 100);
+          let imgFile = new Blob([u8arr], {
+            type: mime
+          });
+          const formData = new FormData();
+          formData.append("image", imgFile);
+          formData.append("student_id", this.SelectObj.student_id);
+          formData.append("homework_id", this.$store.state.homeworkId);
+          formData.append("question_id", this.SelectObj.question_id);
+          formData.append("score", this.SelectObjScore);
 
-
+          this.$axios({
+            method: "post",
+            url: "http://127.0.0.1:9000/image",
+            data: formData,
+            headers: {
+              "Content-Type": "multipart/form-data"
+            }
+          }).then(() => {
+            this.$store.commit('setSuccess',"成绩提交成功!")
+            this.UploadScore = false
+          });
+        }, 100)
+      })
     },
     clearEvent() {
       var canvas = this.canvas;
@@ -831,27 +830,10 @@ export default {
       })
     }
   },
-  created() {
-    this.$axios({
-      method: "GET",
-      url: "http://127.0.0.1:9000/homeworkJudgeList",
-      params: {
-        "homework_id": this.$store.state.homeworkId
-      },
-    }).then((response) => {
-      this.lists = response.data.lists
-      console.log(this.lists)
-      this.checked = response.data.checked
-      this.createCanvas(this.lists[0])
-    })
-    this.windowWidth = (window.innerWidth - 272) * 0.75
-    this.windowHeight = (window.innerHeight - 144 - 48)
-    console.log("123456",)
-  },
   mounted() {
     this.canvas = document.getElementById('canvas');
     this.Txt = document.getElementById('txt');
-    this.ctx = canvas.getContext('2d');
+    this.ctx = this.canvas.getContext('2d');
     this.imgs = new Image();
     this.imgs.crossOrigin = "Anonymous"
   },
@@ -867,18 +849,46 @@ export default {
         }).then((response) => {
           this.lists = response.data.lists
           this.checked = response.data.checked
+          this.windowWidth = (window.innerWidth - 272) * 0.75
+          this.windowHeight = (window.innerHeight - 144 - 48)
+          this.canvas = document.getElementById('canvas');
+          this.Txt = document.getElementById('txt');
+          this.ctx = this.canvas.getContext('2d');
+          this.imgs = new Image();
+          this.imgs.crossOrigin = "Anonymous"
           this.createCanvas(this.lists[0])
         })
-        this.windowWidth = (window.innerWidth - 272) * 0.75
-        this.windowHeight = (window.innerHeight - 144 - 48)
-        this.canvas = document.getElementById('canvas');
-        this.Txt = document.getElementById('txt');
-        this.ctx = canvas.getContext('2d');
-        this.imgs = new Image();
-        this.imgs.crossOrigin = "Anonymous"
+      }
+    },
+    '$store.state.refreshFlag': {
+      handler(newValue, oldValue) {
+        if (newValue === 1) {
+          this.$store.commit('nextPage')
+          this.$axios({
+            method: "GET",
+            url: "http://127.0.0.1:9000/homeworkJudgeList",
+            params: {
+              "homework_id": this.$store.state.homeworkId
+            },
+          }).then((response) => {
+            this.lists = response.data.lists
+            this.checked = response.data.checked
+            this.windowWidth = (window.innerWidth - 272) * 0.75
+            this.windowHeight = (window.innerHeight - 144 - 48)
+            this.canvas = document.getElementById('canvas');
+            this.Txt = document.getElementById('txt');
+            this.ctx = this.canvas.getContext('2d');
+            this.imgs = new Image();
+            this.imgs.crossOrigin = "Anonymous"
+            this.$store.commit('nextPage')
+            this.createCanvas(this.lists[0])
+          })
+        } else {
+          return
+        }
       },
       immediate: true
-    }
+    },
   },
 }
 </script>
@@ -890,6 +900,22 @@ export default {
 
 canvas {
   border: 1px solid black;
+}
+
+#canvasContainer {
+  position: relative;
+}
+
+#img {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+}
+
+#canvas {
+  position: relative;
 }
 
 .hide {

@@ -26,7 +26,8 @@ func main(){
 	r.POST("/login",Controller.Auth)
 	r.POST("/home",Middleware.JWTAuthMiddleWare(),Controller.HoeHandler)
 	r.POST("/image",Controller.CheckedImage(db))
-	r.GET("/image",Controller.ImageSendTest)
+	r.GET("/image",Controller.ImageSend)
+	r.GET("/imageTest",Controller.ImageSendTest)
 	r.GET("/homeworkJudgeList",Controller.HomeworkJudgeList(db))
 	r.GET("/getCourseList",Controller.GetCourseList(db))
 	r.GET("/getHomeworkList",Controller.GetHomeworkList(db))
@@ -36,5 +37,8 @@ func main(){
 	r.GET("/getContentList",Controller.GetContentList(db))
 	r.POST("/createHomework",Controller.CreateHomework(db))
 	r.GET("/getNewHomeworkID",Controller.GetNewHomeworkID(db))
+	r.GET("/getQuestionList",Controller.GetQuestionList(db))
+	r.POST("/postHomework",Controller.PostHomework(db))
+	r.GET("/getReviewList",Controller.GetReviewList(db))
 	r.Run(":9000")
 }

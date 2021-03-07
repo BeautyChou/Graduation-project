@@ -52,6 +52,22 @@
       </v-navigation-drawer>
     </v-card>
     <v-main>
+      <v-snackbar v-model="$store.state.successFlag" :timeout="3000" color="green" top>
+        <v-icon>
+          mdi-check-circle
+        </v-icon>
+        <span>
+        {{ $store.state.successMsg }}
+      </span>
+      </v-snackbar>
+      <v-snackbar v-model="$store.state.errorFlag" :timeout="3000" color="red" top>
+        <v-icon>
+          mdi-minus-circle
+        </v-icon>
+        <span>
+        {{ $store.state.errorMsg }}
+      </span>
+      </v-snackbar>
       <router-view></router-view>
     </v-main>
   </v-app>

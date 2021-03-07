@@ -42,9 +42,23 @@ export default {
       console.log(this.courses)
     })
   },
-  beforeRouteLeave(to,from,next){
-
-    next()
+  watch:{
+    '$store.state.refreshFlag':{
+      handler(newValue, oldValue) {
+        console.log(newValue,oldValue)
+        if (newValue !== 1 ) return
+        this.$axios({
+          method:"get",
+          url:'http://127.0.0.1:9000/getCourseList',
+          params:{
+            'teacher_id':this.$store.state.teacherId
+          }
+        }).then((response)=>{
+          this.courses = response.data.courses
+          console.log(this.courses)
+        })
+      },
+    },
   }
 }
 </script>

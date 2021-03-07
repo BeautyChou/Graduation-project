@@ -1,24 +1,15 @@
 <template>
   <v-card>
-    <v-snackbar v-model="newQuestionStatus" :timeout="3000" color="green" top>
-      <v-icon>
-        mdi-check-circle
-      </v-icon>
-      <span>
-        {{ successText }}
-      </span>
-    </v-snackbar>
-    <v-snackbar v-model="errorStatus" :timeout="3000" color="red" top>
-      <v-icon>
-        mdi-minus-circle
-      </v-icon>
-      <span>
-        {{ errorText }}
-      </span>
-    </v-snackbar>
+
 
     <v-card-title>
-      <div>添加作业</div>
+      <v-btn icon to="/SelectHomework" @click.native="$store.commit('previousPage')">
+        <v-icon>mdi-arrow-left-bold</v-icon>
+        <span>返回</span>
+      </v-btn>
+
+      <div class="mx-8" v-if="!$store.state.modifyHomeworkFlag">添加作业</div>
+      <div class="mx-8" v-if="$store.state.modifyHomeworkFlag">查看作业</div>
 
       <v-menu
         ref="menu"
@@ -34,6 +25,7 @@
             prepend-icon="mdi-calendar"
             v-bind="attrs"
             v-on="on"
+            :disabled="$store.state.modifyHomeworkFlag"
           ></v-text-field>
         </template>
         <v-date-picker
@@ -43,6 +35,7 @@
           :allowed-dates="allowedDates"
         ></v-date-picker>
       </v-menu>
+
       <v-menu
         ref="menu"
         v-model="menu1"
@@ -61,6 +54,7 @@
             prepend-icon="mdi-clock-time-four-outline"
             v-bind="attrs"
             v-on="on"
+            :disabled="$store.state.modifyHomeworkFlag"
           ></v-text-field>
         </template>
         <v-time-picker
@@ -73,10 +67,22 @@
           color="green lighten-1"
         ></v-time-picker>
       </v-menu>
-      <v-text-field v-model="homeworkTitle" prepend-icon="mdi-format-align-justify" label="作业标题"></v-text-field>
+
+      <v-text-field
+        v-model="homeworkTitle"
+        prepend-icon="mdi-format-align-justify"
+        label="作业标题"
+        :disabled="$store.state.modifyHomeworkFlag"></v-text-field>
+
+
       <v-spacer></v-spacer>
 
-      <v-btn :disabled="total!==100||deadlineDate===null||deadlineTime===null||homeworkTitle===null" color="green" class="mr-2" @click="createHomework">
+      <v-btn
+        :disabled="total!==100||deadlineDate===null||deadlineTime===null||homeworkTitle===null||$store.state.modifyHomeworkFlag"
+        color="green"
+        class="mr-2"
+        @click.native="createHomework();$store.commit('previousPage');"
+        to="/SelectHomework">
 
         <v-icon>mdi-upload</v-icon>
         <span>
@@ -85,7 +91,7 @@
       </v-btn>
       <v-menu offset-y>
         <template v-slot:activator="{ on,attrs }">
-          <v-btn color="primary" v-bind="attrs" v-on="on">
+          <v-btn color="primary" v-bind="attrs" v-on="on" :disabled="$store.state.modifyHomeworkFlag">
             <v-icon>mdi-plus-thick</v-icon>
             <span>
           添加题目
@@ -186,7 +192,10 @@
       </template>
       <template v-slot:item.question_max_score="{ item }">
         <td>
-          <v-text-field hide-details v-model.number="item.question_max_score"></v-text-field>
+          <v-text-field
+            hide-details
+            v-model.number="item.question_max_score"
+            :disabled="$store.state.modifyHomeworkFlag"></v-text-field>
         </td>
       </template>
 
@@ -194,7 +203,8 @@
       <template v-slot:item.operation="{ item }">
         <v-tooltip v-if="$store.state.level===2||true" bottom>
           <template v-slot:activator="{ on,attrs }">
-            <v-btn icon color="error" v-bind="attrs" v-on="on" x-large @click="dialog=true;selectId = item.id">
+            <v-btn icon color="error" v-bind="attrs" v-on="on" x-large @click="deleteQuestion(item.question_id);"
+                   :disabled="$store.state.modifyHomeworkFlag">
               <v-icon>
                 mdi-delete
               </v-icon>
@@ -213,10 +223,10 @@ export default {
   name: "AddHomework",
   data() {
     return {
-      successText:null,
-      errorText:null,
-      homeworkTitle:null,
-      errorStatus:false,
+      successText: null,
+      errorText: null,
+      homeworkTitle: null,
+      errorStatus: false,
       menu: false,
       menu1: false,
       deadlineTime: null,
@@ -228,35 +238,38 @@ export default {
       newQuestionStatus: false,
       headers: [
         {text: '题目', align: 'start', sortable: false, value: 'content', width: '60%'},
-        {text: '分值(%)', sortable: false, value: 'question_max_score', width: '30%'},
+        {text: '分值(仅限正整数)(%)', sortable: false, value: 'question_max_score', width: '30%'},
         //学年由上传年份决定
         {text: '操作', sortable: false, value: 'operation', width: '10%'},
       ],
-      questions: [
-      ],
+      questions: [],
       contentList: null,
       question: null,
     }
   },
   methods: {
-    allowedDates(val){
+    allowedDates(val) {
       var date = new Date();
       var y = date.getFullYear();
-      var m = date.getMonth()+1;
+      var m = date.getMonth() + 1;
       var d = date.getDate()
-      if (m<10){m = '0'+m}
-      if (d<10){d = '0'+d}
-      var dateStr = y+'-'+m+'-'+d
-      return val>=dateStr
+      if (m < 10) {
+        m = '0' + m
+      }
+      if (d < 10) {
+        d = '0' + d
+      }
+      var dateStr = y + '-' + m + '-' + d
+      return val >= dateStr
     },
     createHomework() {
       this.$axios({
-        method:"get",
-        url:"http://127.0.0.1:9000/getNewHomeworkID"
-      }).then((response)=>{
-        for(let i = 0;i<this.questions.length;i++){
+        method: "get",
+        url: "http://127.0.0.1:9000/getNewHomeworkID"
+      }).then((response) => {
+        for (let i = 0; i < this.questions.length; i++) {
           this.questions[i].id = response.data.id
-          this.questions[i].deadline=this.deadlineDate+'T'+this.deadlineTime+':00+08:00'
+          this.questions[i].deadline = this.deadlineDate + 'T' + this.deadlineTime + ':00+08:00'
           this.questions[i].homework_title = this.homeworkTitle
           this.questions[i].course_id = this.$store.state.courseId
         }
@@ -265,33 +278,39 @@ export default {
           method: "post",
           url: "http://127.0.0.1:9000/createHomework",
           data: questions,
-          headers:{
+          headers: {
             "Content-Type": "multipart/form-data"
           }
-        }).catch((res)=>{
-          console.log(res)
+        }).then(() => {
+          this.$store.commit("setSuccess", "作业布置成功！")
         })
+          .catch((res) => {
+            console.log(res)
+          })
       })
 
 
     },
     addQuestionToHomework() {
       let flag = false;
-      this.questions.some((item,i)=>{
-        if(item.id === this.selectQuestion.id){
+      this.questions.some((item, i) => {
+        console.log(item, i)
+        if (item.question_id === this.selectQuestion.id) {
           flag = true
         }
       })
-      if (flag){
-        this.errorStatus = true
-        this.errorText = '你的作业中已经有这道题了！'
+      if (flag) {
+        this.$store.commit("setError", '你的作业中已经有这道题了！')
         return
       }
-      this.questions.push({question_id:this.selectQuestion.id,content: this.selectQuestion.content,question_max_score:0})
+      this.questions.push({
+        question_id: this.selectQuestion.id,
+        content: this.selectQuestion.content,
+        question_max_score: 0
+      })
       this.selectQuestion = null
       this.alreadyQuestion = false
-      this.successText = "添加至作业成功！"
-      this.newQuestionStatus = true
+      this.$store.commit("setSuccess", "添加至作业成功！")
     },
     getContentList() {
       this.alreadyQuestion = true
@@ -302,6 +321,13 @@ export default {
         this.contentList = response.data.questions
         this.contentList.header = null
         console.log(response)
+      })
+    },
+    deleteQuestion(id) {
+      this.questions.some((item, i) => {
+        if (item.question_id === id) {
+          this.questions.splice(i, 1)
+        }
       })
     },
     submitQuestion() {
@@ -316,20 +342,59 @@ export default {
         }
       }).then((response) => {
         this.newQuestion = false
-        this.successText = "添加题目成功！"
-        this.newQuestionStatus = true
-        this.questions.push({question_id: response.data.id,content: this.content, question_max_score: 0})
+        this.$store.commit("setSuccess", "添加题目成功！")
+        this.questions.push({question_id: response.data.id, content: this.content, question_max_score: 0})
         this.content = null
       })
-    }
+    },
   },
   computed: {
-    'total':function () {
+    'total': function () {
       var sum = 0
       for (let i = 0; i < this.questions.length; i++) {
-          sum += this.questions[i].question_max_score
+        if (this.questions[i].question_max_score <= 0) return (sum = -1)
+        else sum += this.questions[i].question_max_score
       }
       return sum
+    },
+  },
+  watch: {
+    '$store.state.homeworkId': {
+      handler(newValue, oldValue) {
+        this.$axios({
+          method: "get",
+          url: 'http://127.0.0.1:9000/getQuestionList',
+          params: {
+            'homework_id': newValue,
+          }
+        }).then((response) => {
+          this.questions = response.data.questions
+          console.log(response)
+          this.deadlineTime = response.data.questions[0].DeadLine.substr(11, 19)
+          this.deadlineDate = response.data.questions[0].DeadLine.substr(0, 10)
+          this.homeworkTitle = response.data.questions[0].homework_title
+        })
+      }
+    },
+    '$store.state.refreshFlag': {
+      handler(newValue, oldValue) {
+        if (newValue === 1)
+          this.$axios({
+            method: "get",
+            url: 'http://127.0.0.1:9000/getQuestionList',
+            params: {
+              'homework_id': $store.state.homeworkId,
+            }
+          }).then((response) => {
+            this.questions = response.data.questions
+            console.log(response)
+            this.deadlineTime = response.data.questions[0].DeadLine.substr(11, 19)
+            this.deadlineDate = response.data.questions[0].DeadLine.substr(0, 10)
+            this.homeworkTitle = response.data.questions[0].homework_title
+            this.$store.commit('nextPage')
+          })
+      },
+      immediate: true
     }
   }
 }

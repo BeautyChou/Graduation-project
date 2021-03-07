@@ -5,43 +5,67 @@ Vue.use(Vuex)
 
 export default new Vuex.Store({
   state: {
-    homeworkId:null,
-    courseId:null,
-    Jwt:null,
-    teacherId:1,
-    studentId:null,
-    homeworkFlag:false,
-    courseFlag:false,
-    level:1,
+    homeworkId: null,
+    courseId: null,
+    Jwt: null,
+    teacherId: 1,
+    studentId: 171020101,
+    homeworkFlag: false,
+    courseFlag: false,
+    level: 1,
+    successFlag: false,
+    successMsg: null,
+    errorFlag: false,
+    errorMsg: null,
+    modifyHomeworkFlag: false,
+    refreshFlag: 0,
   },
   mutations: {
-    setJwt(state,str){
+    setJwt(state, str) {
       state.Jwt = str
     },
-    setHomeworkId(state,id){
+    setHomeworkId(state, id) {
+      if (state.homeworkId === id) ++state.refreshFlag;
       state.homeworkId = id
       state.homeworkFlag = true
     },
-    setCourseId(state,id){
+    setCourseId(state, id) {
+      if (state.courseId === id) ++state.refreshFlag;
       state.courseId = id
       state.courseFlag = true
       return 0
     },
-    setTeacherId(state,id){
+    setTeacherId(state, id) {
       state.teacherId = id
     },
-    jumpToHomeworkSelect(state){
+    jumpToHomeworkSelect(state) {
       state.courseFlag = false
     },
-    jumpToCanvas(state){
+    jumpToCanvas(state) {
       state.homeworkFlag = false
+    },
+    setSuccess(state, str) {
+      state.successFlag = true
+      state.successMsg = str
+    },
+    setError(state, str) {
+      state.errorFlag = true
+      state.errorMsg = str
+    },
+    modifyHomework(state) {
+      state.modifyHomeworkFlag = true
+    },
+    addHomework(state) {
+      state.modifyHomeworkFlag = false
+    },
+    previousPage(state) {
+      state.refreshFlag++
+    },
+    nextPage(state) {
+      state.refreshFlag = 0
     }
-  },
-  actions: {
-    async setCourseId({ commit },id){
-      commit('setCourseId',id)
-    }
-  },
-  modules: {
   }
+  ,
+  actions: {},
+  modules: {}
 })
