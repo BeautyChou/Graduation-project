@@ -48,6 +48,14 @@
             </v-list-item-content>
           </v-list-item>
 
+          <v-list-item>
+            <v-list-item-content>
+              <router-link to="/ClassSheet">
+                <v-list-item-title>安排课程</v-list-item-title>
+              </router-link>
+            </v-list-item-content>
+          </v-list-item>
+
         </v-list>
       </v-navigation-drawer>
     </v-card>

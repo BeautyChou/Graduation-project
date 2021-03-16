@@ -66,7 +66,7 @@ export default new Router({
       path:'/CheckReview',
       name:'CheckReview',
       component:CheckReview,
+    },
 
-    }
   ]
 })

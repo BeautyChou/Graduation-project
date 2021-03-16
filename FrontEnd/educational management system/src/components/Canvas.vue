@@ -256,7 +256,7 @@
               </v-content>
             </v-item-group>
           </v-container>
-          <v-container class="mx-auto pa-0" id="canvasContainer">
+          <v-container class="mx-auto pa-0 pb-5" id="canvasContainer">
             <canvas id="canvas" :width="widths" :height="heights" class="mx-auto d-block justify-space-between">
               您的浏览器不兼容，请升级或更换浏览器！
             </canvas>
@@ -648,14 +648,14 @@ export default {
         }
         oldX = ev.offsetX;
         oldY = ev.offsetY;
-
+        console.log("After on-mousedown :",oldX,oldY)
         Txt = document.createElement("textArea");
         Txt.style.display = "inline";
         ctx.font = "18px Microsoft Yahei";
         ctx.fontWeight = "800"
         Txt.style.position = 'absolute'
         Txt.style.top = ev.offsetY + 144 + 'px'
-        Txt.style.left = ev.offsetX + 56 + (this.widths - 56) / 4 + 'px'
+        Txt.style.left = ev.offsetX + (this.windowWidth+272)*0.25+ 200 +'px'
         console.log(Txt.style.top, Txt.style.left, ev.offsetY, ev.offsetX)
 
         Txt.style.background = 'rgb(0,0,0,0)'
@@ -682,6 +682,7 @@ export default {
         if (v !== '') {
           ctx.fillStyle = this_.color
           ctx.moveTo(oldX, oldY);
+          console.log("fillTxt:",oldX,oldY)
           let row = []
           let temp = ""
           for (var a = 0; a < v.length; a++) {

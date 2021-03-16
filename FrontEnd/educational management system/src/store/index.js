@@ -12,7 +12,7 @@ export default new Vuex.Store({
     studentId: 171020101,
     homeworkFlag: false,
     courseFlag: false,
-    level: 1,
+    level: 3,
     successFlag: false,
     successMsg: null,
     errorFlag: false,
@@ -63,9 +63,12 @@ export default new Vuex.Store({
     },
     nextPage(state) {
       state.refreshFlag = 0
+    },
+    setLevel(state,level) {
+      if (state.level === level) ++state.refreshFlag
+      state.level = level
     }
-  }
-  ,
+  },
   actions: {},
   modules: {}
 })

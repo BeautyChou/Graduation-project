@@ -81,7 +81,7 @@
         :disabled="total!==100||deadlineDate===null||deadlineTime===null||homeworkTitle===null||$store.state.modifyHomeworkFlag"
         color="green"
         class="mr-2"
-        @click.native="createHomework();$store.commit('previousPage');"
+        @click.native="createHomework();"
         to="/SelectHomework">
 
         <v-icon>mdi-upload</v-icon>
@@ -282,6 +282,7 @@ export default {
             "Content-Type": "multipart/form-data"
           }
         }).then(() => {
+          this.$store.commit('previousPage')
           this.$store.commit("setSuccess", "作业布置成功！")
         })
           .catch((res) => {

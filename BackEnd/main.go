@@ -40,5 +40,9 @@ func main(){
 	r.GET("/getQuestionList",Controller.GetQuestionList(db))
 	r.POST("/postHomework",Controller.PostHomework(db))
 	r.GET("/getReviewList",Controller.GetReviewList(db))
+	r.GET("/getClassesList",Controller.GetClassesList(db))
+	r.POST("/postNewClass",Controller.PostNewClass(db))
+	r.DELETE("/deleteClass",Controller.DeleteClass(db))
+	r.OPTIONS("/deleteClass",Controller.ReturnOK)
 	r.Run(":9000")
 }

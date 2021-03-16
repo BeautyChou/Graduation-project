@@ -1,13 +1,5 @@
 <template>
   <v-card>
-    <v-snackbar v-model="alert" :timeout="3000" color="green" top>
-      <v-icon>
-        mdi-check-circle
-      </v-icon>
-      <span>
-        删除作业成功!
-      </span>
-    </v-snackbar>
 
 
     <v-card-title>
@@ -64,12 +56,13 @@
           <template v-slot:activator="{ on,attrs }">
             <v-btn icon color="primary" v-bind="attrs" v-on="on" x-large to="/AddHomework"  @click.native="$store.commit('setHomeworkId',item.id);$store.commit('modifyHomework')">
               <v-icon>
-                mdi-lead-pencil
+                mdi-text-box-search-outline
               </v-icon>
             </v-btn>
           </template>
           <span>查看作业内容</span>
         </v-tooltip>
+
         <v-tooltip v-if="$store.state.level===2||true" bottom>
           <template v-slot:activator="{ on,attrs }">
             <v-btn icon color="error" v-bind="attrs" v-on="on" x-large @click="dialog=true;selectId = item.id">
@@ -110,6 +103,7 @@
           </v-card>
 
         </v-dialog>
+
         <v-tooltip v-if="$store.state.level===1||true" bottom>
           <template v-slot:activator="{ on,attrs }">
             <v-btn
@@ -181,11 +175,8 @@ export default {
           if (item.id === id) {
             this.homeworks.splice(i, 1)
           }
+          this.$store.commit('setSuccess',"删除作业成功!")
         })
-        this.alert = true
-        setTimeout(() => {
-          this.alert = false
-        }, 3000)
       })
     }
   },

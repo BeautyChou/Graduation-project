@@ -128,7 +128,8 @@ func GetHomeworkList(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var courseId = c.Query("course_id")
 		var homeworks Model.HomeworkForSelects
-		db.Raw("Select * from homeworks where course_id = ? AND deleted_at is NULL GROUP BY id", courseId).Scan(&homeworks)
+		db.Model(&[]Model.Homework{}).Where("course_id = ?",courseId).Group("id").Scan(&homeworks)
+		//db.Raw("Select * from homeworks where course_id = ? AND deleted_at is NULL GROUP BY id", courseId).Scan(&homeworks)
 		c.JSON(http.StatusOK, gin.H{
 			"homeworks": homeworks,
 			"time":      time.Now(),
@@ -191,6 +192,7 @@ func CreateHomework(db *gorm.DB) func(c *gin.Context) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
+		db.Unscoped().Where("id = ?", questions[0].ID).Delete(&Model.Homework{})
 		id := utils.ToString(questions[0].ID)
 		for _, item := range questions {
 			err := os.MkdirAll("./images/"+id+"/"+utils.ToString(item.QuestionID), 0666)
@@ -199,7 +201,7 @@ func CreateHomework(db *gorm.DB) func(c *gin.Context) {
 				return
 			}
 		}
-		db.Where("id = ?", questions[0].ID).Delete(&Model.Homework{})
+
 		db.Create(&questions)
 	}
 }
@@ -213,8 +215,8 @@ func GetQuestionList(db *gorm.DB) func(c *gin.Context) {
 		db.Raw("select dead_line,homework_title,question_max_score,content,question_id from homeworks right join questions on homeworks.question_id = questions.id where homeworks.id = ?", homeworkID).Scan(&questions)
 		if studentId != "" {
 			db.Raw("select * from homework_upload_records where homework_id = ? AND student_id = ?", homeworkID, studentId).Scan(&records)
-			for _,value := range records{
-				for i,v := range questions{
+			for _, value := range records {
+				for i, v := range questions {
 					fmt.Println(v.QuestionId == value.QuestionID)
 					if v.QuestionId == value.QuestionID {
 						questions[i].Uploaded = true
@@ -223,8 +225,8 @@ func GetQuestionList(db *gorm.DB) func(c *gin.Context) {
 				}
 			}
 		}
-		c.JSON(http.StatusOK,gin.H{
-			"questions":questions,
+		c.JSON(http.StatusOK, gin.H{
+			"questions": questions,
 		})
 	}
 }
@@ -250,7 +252,7 @@ func PostHomework(db *gorm.DB) func(c *gin.Context) {
 		}
 		file.Filename = studentID
 		dst := fmt.Sprintf("./images/%s/%s/%s", homeworkID, questionID, file.Filename)
-		c.SaveUploadedFile(file, dst)
+		_ = c.SaveUploadedFile(file, dst)
 		db.Debug().Create(&record)
 		c.JSON(http.StatusOK, gin.H{
 			"message": fmt.Sprintf("'%s' uploaded!", file.Filename),
@@ -258,14 +260,90 @@ func PostHomework(db *gorm.DB) func(c *gin.Context) {
 	}
 }
 
-func GetReviewList(db *gorm.DB) func(c *gin.Context){
+func GetReviewList(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var reviwes Model.RecordForReviews
 		homeworkID := c.Query("homework_id")
 		studentId := c.Query("student_id")
-		db.Raw("select * from homework_upload_records right join homeworks h on h.id = homework_upload_records.homework_id AND h.question_id = homework_upload_records.question_id right join questions q on q.id = h.question_id where homework_id =? AND student_id = ?",homeworkID,studentId).Scan(&reviwes)
+		db.Raw("select * from homework_upload_records right join homeworks h on h.id = homework_upload_records.homework_id AND h.question_id = homework_upload_records.question_id right join questions q on q.id = h.question_id where homework_id =? AND student_id = ?", homeworkID, studentId).Scan(&reviwes)
+		c.JSON(http.StatusOK, gin.H{
+			"reviews": reviwes,
+		})
+	}
+}
+
+func GetClassesList(db *gorm.DB) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		level := c.Query("level")
+		classes := &Model.CourseForSelects{}
+		teachers := &Model.TeacherForSelects{}
+		faculties := Model.Faculties{}
+		directions := Model.DirectionForSelects{}
+		classrooms := &Model.ClassroomForSelects{}
+		sourceMap := make(map[int]Model.DirectionForSelects)
+		fmt.Println(level)
+		if level == "2" {
+			tId := c.Query("teacher_id")
+			db.Find("teacher_id = ?", tId, &Model.Course{}).Scan(&classes)
+			c.JSON(http.StatusOK, gin.H{
+				"classes":  classes,
+			})
+		} else {
+			db.Debug().Find(&[]Model.Teacher{}).Scan(&teachers)
+			db.Find(&[]Model.Course{}).Scan(&classes)
+			db.Find(&[]Model.Faculty{}).Scan(&faculties)
+			db.Find(&[]Model.Direction{}).Scan(&directions)
+			db.Find(&[]Model.Classroom{}).Scan(&classrooms)
+			for _,v := range directions{
+				sourceMap[v.FacultyID] = append(sourceMap[v.FacultyID],v)
+			}
+			fmt.Println(teachers)
+			c.JSON(http.StatusOK, gin.H{
+				"teachers": teachers,
+				"classes":  classes,
+				"faculties" : faculties,
+				"directions": sourceMap,
+				"classrooms": classrooms,
+			})
+		}
+	}
+}
+
+func PostNewClass(db *gorm.DB) func(c *gin.Context){
+	return func(c *gin.Context) {
+		course := &Model.Course{}
+		course.FacultyID,_ = strconv.Atoi(c.PostForm("faculty_id"))
+		course.CourseName = c.PostForm("name")
+		course.Credit = c.PostForm("credit")
+		course.MaxChooseNum,_ = strconv.Atoi(c.PostForm("max_choose_num"))
+		course.WeekTime,_= strconv.Atoi(c.PostForm("week_time"))
+		course.StartTime,_ = strconv.Atoi(c.PostForm("start_time"))
+		course.EndTime,_ = strconv.Atoi(c.PostForm("end_time"))
+		course.TeacherID,_ = strconv.Atoi(c.PostForm("teacher_id"))
+		course.StartWeek,_ =strconv.Atoi(c.PostForm("start_week"))
+		course.DirectionID,_ = strconv.Atoi(c.PostForm("direction_id"))
+		course.EndWeek,_ = strconv.Atoi(c.PostForm("end_week"))
+		course.ClassroomID,_=strconv.Atoi(c.PostForm("classroom_id"))
+		fmt.Println(course)
+		db.Create(&course)
 		c.JSON(http.StatusOK,gin.H{
-			"reviews":reviwes,
+			"snackbar": "setSuccess",
+			"msg":"添加课程成功",
+		})
+
+		//db.Create(&course)
+	}
+}
+
+func DeleteClass(db *gorm.DB) func(c *gin.Context){
+	return func(c *gin.Context) {
+		var id = c.Query("course_id")
+		result := db.Where("id = ?", id).Delete(&Model.Course{})
+		fmt.Println(result.RowsAffected)
+		c.JSON(http.StatusOK, gin.H{
+			"snackbar":"setSuccess",
+			"msg":"删除课程成功！",
+			"id": id,
 		})
 	}
 }
