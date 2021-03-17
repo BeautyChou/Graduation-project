@@ -4,7 +4,7 @@
       <v-card-title>
         安排课程
         <v-spacer></v-spacer>
-        <v-btn color="green">
+        <v-btn color="green" :disabled="uploadFlag" @click="uploadClasses">
           <v-icon>mdi-upload</v-icon>
           <span>
             上传课程
@@ -29,6 +29,7 @@
             :items="week_time"
             item-text="name"
             item-value="value"
+            @change="pushing(item)"
           ></v-select>
         </template>
         <template v-slot:item.start_time="{ item }">
@@ -37,6 +38,7 @@
             :items="start_time"
             item-text="name"
             item-value="value"
+            @change="pushing(item)"
           ></v-select>
         </template>
         <template v-slot:item.end_time="{ item }">
@@ -45,14 +47,19 @@
             :items="end_time"
             item-text="name"
             item-value="value"
+            @change="pushing(item)"
           ></v-select>
         </template>
         <template v-slot:item.max_choose_num="{ item }">
-          <v-text-field :value="item.max_choose_num"></v-text-field>
+          <v-text-field
+            :value="item.max_choose_num"
+            @change="pushing(item)"></v-text-field>
         </template>
         <template v-slot:item.credit="{ item }">
-          <!--          <span>{{item}}</span>-->
-          <v-text-field :value="item.credit"></v-text-field>
+          <span>{{item.copyFlag}}</span>
+          <v-text-field
+            :value="item.credit"
+            @change="pushing(item)"></v-text-field>
         </template>
         <template v-slot:item.teacher="{ item }">
           <v-select
@@ -60,6 +67,7 @@
             :items="teachers"
             item-text="name"
             item-value="value"
+            @change="pushing(item)"
           ></v-select>
         </template>
         <template v-slot:item.classes="{ item }">
@@ -68,6 +76,7 @@
             :items="classTable"
             item-text="name"
             item-value="value"
+            @change="pushing(item)"
           ></v-select>
         </template>
         <template v-slot:item.classroom="{ item }">
@@ -76,6 +85,7 @@
             :items="classrooms"
             item-text="name"
             item-value="value"
+            @change="pushing(item)"
           ></v-select>
         </template>
         <template v-slot:item.faculties="{ item }">
@@ -84,6 +94,7 @@
             :items="faculties"
             item-text="name"
             item-value="id"
+            @change="pushing(item)"
           ></v-select>
         </template>
         <template v-slot:item.directions="{ item }">
@@ -92,6 +103,7 @@
             :items="directions[item.faculty_id]"
             item-text="name"
             item-value="value"
+            @change="pushing(item)"
           ></v-select>
         </template>
         <template v-slot:item.startWeek="{ item }">
@@ -100,6 +112,7 @@
             :items="weeks"
             item-text="name"
             item-value="value"
+            @change="pushing(item)"
           ></v-select>
         </template>
         <template v-slot:item.endWeek="{ item }">
@@ -108,18 +121,29 @@
             :items="weeks"
             item-text="name"
             item-value="value"
+            @change="pushing(item)"
           ></v-select>
         </template>
         <template v-slot:item.operation="{ item }">
           <v-tooltip v-if="$store.state.level===2||true" bottom>
             <template v-slot:activator="{ on,attrs }">
-              <v-btn icon color="error" v-bind="attrs" v-on="on" x-large @click="dialog = true ;selectId = item.course_id;">
+              <v-btn icon color="error" v-bind="attrs" v-on="on" x-large @click="dialog = true ;selectId = item.course_id;" :disabled="item.copy_flag">
                 <v-icon>
                   mdi-delete
                 </v-icon>
               </v-btn>
             </template>
             <span>删除作业</span>
+          </v-tooltip>
+          <v-tooltip v-if="$store.state.level===2||true" bottom>
+            <template v-slot:activator="{ on,attrs }">
+              <v-btn icon color="primary" v-bind="attrs" v-on="on" x-large @click="copyClass(item)" :disabled="item.copy_flag">
+                <v-icon>
+                  mdi-plus-thick
+                </v-icon>
+              </v-btn>
+            </template>
+            <span>添加当周课程</span>
           </v-tooltip>
         </template>
       </v-data-table>
@@ -153,88 +177,108 @@
         </v-card>
 
       </v-dialog>
-      <v-dialog v-model="addClass" width="700" persistent>
+      <v-dialog v-model="addClass" width="900" persistent>
         <v-card>
           <v-card-title class="headline font-weight-bold">
-            添加新科目 {{ newClass }}
+            添加新科目
           </v-card-title>
           <v-card-text class="font-weight-bold">
-            <v-text-field
-              outlined
-              label="科目名称"
-              v-model="newClass.course_name"></v-text-field>
-            <v-text-field
-              outlined
-              label="学分"
-              v-model="newClass.credit"></v-text-field>
-            <v-text-field
-              outlined
-              label="最大人数"
-              v-model="newClass.max_choose_num"></v-text-field>
-            <v-select
-              v-model="newClass.week_time"
-              :items="week_time"
-              item-text="name"
-              item-value="value"
-              label="上课时间"
-              outlined></v-select>
-            <v-select
-              outlined
-              v-model="newClass.start_time"
-              :items="start_time"
-              item-text="name"
-              item-value="value"
-              label="起始节次"></v-select>
-            <v-select
-              outlined
-              v-model="newClass.end_time"
-              :items="end_time"
-              item-text="name"
-              item-value="value"
-              label="结束节次"></v-select>
-            <v-select
-              outlined
-              v-model="newClass.teacher_id"
-              :items="teachers"
-              item-text="name"
-              item-value="value"
-              label="教师"></v-select>
-            <v-select
-              v-model="newClass.classroom_id"
-              :items="classrooms"
-              item-text="name"
-              item-value="value"
-              outlined
-              label="上课教室"
-            ></v-select>
-            <v-select
-              outlined
-              v-model="newClass.start_week"
-              :items="weeks"
-              item-text="name"
-              item-value="value"
-              label="开始周"></v-select>
-            <v-select
-              outlined
-              v-model="newClass.end_week"
-              :items="weeks"
-              item-text="name"
-              item-value="value"
-              label="结束周"></v-select>
-            <v-select
-              outlined
-              v-model="newClass.faculty_id"
-              :items="faculties"
-              item-text="name"
-              item-value="id"
-              label="学生所属学院"></v-select>
-            <v-select
-              outlined
-              v-model="newClass.direction_id"
-              :items="directions[newClass.faculty_id]"
-              item-text="name"
-              item-value="value"
-              label="学生所属方向"></v-select>
+            <v-row class="mt-2">
+              <v-text-field
+                outlined
+                label="科目名称"
+                v-model="newClass.course_name"
+                :disabled="copyFlag"
+                class="col-4"></v-text-field>
+              <v-text-field
+                class="col-4"
+                outlined
+                label="学分"
+                v-model="newClass.credit"
+                :disabled="copyFlag"></v-text-field>
+              <v-text-field
+                class="col-4"
+                outlined
+                label="最大人数"
+                v-model="newClass.max_choose_num"
+                :disabled="copyFlag"></v-text-field>
+              <v-select
+                class="col-4"
+                v-model="newClass.week_time"
+                :items="week_time"
+                item-text="name"
+                item-value="value"
+                label="上课时间"
+                outlined></v-select>
+              <v-select
+                class="col-4"
+                outlined
+                v-model="newClass.start_time"
+                :items="start_time"
+                item-text="name"
+                item-value="value"
+                label="起始节次"></v-select>
+              <v-select
+                class="col-4"
+                outlined
+                v-model="newClass.end_time"
+                :items="end_time"
+                item-text="name"
+                item-value="value"
+                label="结束节次"></v-select>
+              <v-select
+                class="col-4"
+                outlined
+                v-model="newClass.teacher_id"
+                :items="teachers"
+                item-text="name"
+                item-value="value"
+                label="教师"
+                :disabled="copyFlag"></v-select>
+              <v-select
+                class="col-4"
+                v-model="newClass.classroom_id"
+                :items="classrooms"
+                item-text="name"
+                item-value="value"
+                outlined
+                label="上课教室"
+              ></v-select>
+              <v-select
+                class="col-4"
+                outlined
+                v-model="newClass.start_week"
+                :items="weeks"
+                item-text="name"
+                item-value="value"
+                label="开始周"></v-select>
+              <v-select
+                class="col-4"
+                outlined
+                v-model="newClass.end_week"
+                :items="weeks"
+                item-text="name"
+                item-value="value"
+                label="结束周"></v-select>
+              <v-select
+                class="col-4"
+                outlined
+                v-model="newClass.faculty_id"
+                :items="faculties"
+                item-text="name"
+                item-value="id"
+                label="学生所属学院"
+                :disabled="copyFlag"></v-select>
+              <v-select
+                class="col-4"
+                outlined
+                v-model="newClass.direction_id"
+                :items="directions[newClass.faculty_id]"
+                item-text="name"
+                item-value="value"
+                label="学生所属方向"
+                :disabled="copyFlag"></v-select>
+            </v-row>
           </v-card-text>
           <v-card-actions>
             <v-spacer></v-spacer>
@@ -310,8 +354,6 @@ export default {
         {name: "第十节", value: 10},
         {name: "第十一节", value: 11},
       ],
-      teachers: [],
-      classrooms: [],
       weeks: [
         {name: "第一周", value: 1},
         {name: "第二周", value: 2},
@@ -343,12 +385,18 @@ export default {
         {name: "星期六", value: 6},
         {name: "星期日", value: 7},
       ],
+      teachers: [],
+      classrooms: [],
       faculties: [],
       directions: [],
       addClass: false,
       newClass: {},
       dialog:false,
       selectId:null,
+      changedClasses:[],
+      uploadFlag:true,
+      copyFlag:false,
+      str:'',
     }
   },
   created() {
@@ -370,6 +418,18 @@ export default {
   },
   components: {},
   methods: {
+    copyClass(classOBJ){
+      this.copyFlag = true
+      this.addClass = true
+      this.selectId = classOBJ.course_id
+      this.newClass.course_name = classOBJ.course_name
+      this.newClass.credit = classOBJ.credit
+      this.newClass.max_choose_num = classOBJ.max_choose_num
+      this.newClass.teacher_id = classOBJ.teacher_id
+      this.newClass.faculty_id = classOBJ.faculty_id
+      this.newClass.direction_id = classOBJ.direction_id
+      this.str = 'copy'
+    },
     submitNewClass(){
       const formData = new FormData()
       formData.append("name",this.newClass.course_name)
@@ -384,6 +444,9 @@ export default {
       formData.append("faculty_id",this.newClass.faculty_id)
       formData.append("classroom_id",this.newClass.classroom_id)
       formData.append("direction_id",this.newClass.direction_id)
+      formData.append("flag",this.str)
+      this.newClass.copyFlag = this.str === 'copy';
+      this.str = ''
       this.$axios({
         method:"post",
         url:"http://127.0.0.1:9000/postNewClass",
@@ -395,7 +458,8 @@ export default {
         console.log(response)
         this.$store.commit(response.data.snackbar,response.data.msg)
         this.addClass = false
-        if (response.data.snackbar === 'setSuccess') {this.classes.push(this.newClass);this.newClass = {}}
+        this.copyFlag = false
+        if (response.data.snackbar === 'setSuccess') {this.classes.push(this.newClass);this.newClass = {};console.log(this.classes)}
       })
     },
     deleteClass(id){
@@ -404,15 +468,46 @@ export default {
         method: "DELETE",
         url: "http://127.0.0.1:9000/deleteClass?course_id=" + id,
       }).then((response) => {
-        this.classes.some((item, i) => {
-          if (item.course_id === id) {
-            this.classes.splice(i, 1)
+        for (let i = 0 ;i<this.changedClasses.length;i++){
+          if(this.changedClasses[i].course_id === id ) {
+            this.changedClasses.splice(i,1);
+            i--
           }
-          this.$store.commit(response.data.snackbar,response.data.msg)
-          this.dialog = false
-        })
+        }
+        if (this.changedClasses.length === 0) this.uploadFlag = true
+        for (let i = 0 ;i<this.classes.length;i++){
+          if(this.classes[i].course_id === id ) {
+            this.classes.splice(i,1);
+            i--
+          }
+        }
+        this.$store.commit(response.data.snackbar,response.data.msg)
+        this.dialog = false
       })
     },
+    uploadClasses(){
+      this.$axios({
+        method:"post",
+        url:"http://127.0.0.1:9000/uploadClass",
+        data:this.changedClasses,
+        headers: {
+          "Content-Type": "multipart/form-data"
+        }
+      })
+      console.log(this.classes)
+    },
+    pushing(classOBJ){
+      var flag = true
+      this.changedClasses.some((item,i)=>{
+        if(item.course_id === classOBJ.course_id){
+          flag = false
+          this.changedClasses.splice(i,1,item)
+        }
+      })
+      if (flag) this.changedClasses.push(classOBJ)
+      this.uploadFlag = false
+      console.log(this.changedClasses)
+    }
   },
   watch: {}
 }

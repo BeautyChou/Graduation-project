@@ -64,24 +64,51 @@ type Teacher struct {
 
 //所有课程
 type Course struct {
+	RecordID     int `json:"id" gorm:"primary_key"` //记录id
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+	DeletedAt    gorm.DeletedAt `sql:"index"`
+	ID           int            `json:"course_id" gorm:"primary_key;type:int(11);not null;index:course_id;"` //课程号
+	CourseName   string         `json:"course_name" gorm:"type:varchar(60);not null;"`                       // 课程名
+	Credit       string         `json:"credit" gorm:"type:varchar(50);"`                                     // 学分
+	Teacher      Teacher        `gorm:"ForeignKey:TeacherID;"`                                               // 教师外键
+	TeacherID    int            `json:"teacher_id" gorm:"type:int(11);not null;index:teacher_id;"`           // 教师ID
+	Classroom    Classroom      `gorm:"ForeignKey:ClassroomID;"`                                             // 教室外键
+	ClassroomID  int            `json:"classroom_id" gorm:"type:int(11);index:classroom_id;"`                // 教室号
+	MaxChooseNum int            `json:"max_choose_num" gorm:"type:int(11);not null;"`                        // 最大可选课人数
+	SelectedNum  int            `json:"selected_num" gorm:"type:int(11);default:0;"`                         // 已选人数
+	StartTime    int            `json:"start_time" gorm:"type:int(11);"`                                     // 开始节数
+	EndTime      int            `json:"end_time" gorm:"type:int(11);"`                                       // 结束节数
+	WeekTime     int            `json:"week_time" gorm:"type:int(2)"`                                        // 上课星期数
+	Faculty      Faculty        `gorm:"ForeignKey:FacultyID;"`                                               // 上课学生所属学院
+	FacultyID    int            `json:"faculty_id" gorm:"type:int(11)"`                                      // 学院ID
+	Direction    Direction      `gorm:"ForeignKey:DirectionID;"`                                             // 方向外键
+	DirectionID  int            `json:"direction_id" gorm:"default:0;index:direction_id;type:int(11)"`       // 上课学生所属方向
+	StartWeek    int            `json:"start_week" gorm:"type:int(11);"`                                     // 起始周数
+	EndWeek      int            `json:"end_week" gorm:"type:int(11);"`                                       // 结束周数
+	CopyFlag     bool           `json:"copy_flag"`
+}
+
+type ApplyForCourseChange struct {
 	MyModel
-	CourseName   string    `json:"course_name" gorm:"type:varchar(60);not null;"`                 // 课程名
-	Credit       string    `json:"credit" gorm:"type:varchar(50);"`                               // 学分
-	Teacher      Teacher   `gorm:"ForeignKey:TeacherID;"`                                         // 教师外键
-	TeacherID    int       `json:"teacher_id" gorm:"type:int(11);not null;index:teacher_id;"`     // 教师ID
-	Classroom    Classroom `gorm:"ForeignKey:ClassroomID;"`                                       // 教室外键
-	ClassroomID  int       `json:"classroom_id" gorm:"type:int(11);index:classroom_id;"`          // 教室号
-	MaxChooseNum int       `json:"max_choose_num" gorm:"type:int(11);not null;"`                  // 最大可选课人数
-	SelectedNum  int       `json:"selected_num" gorm:"type:int(11);default:0;"`                   // 已选人数
-	StartTime    int       `json:"start_time" gorm:"type:int(11);"`                               // 开始节数
-	EndTime      int       `json:"end_time" gorm:"type:int(11);"`                                 // 结束节数
-	WeekTime     int       `json:"week_time" gorm:"type:int(2)"`                                  // 上课星期数
-	Faculty      Faculty   `gorm:"ForeignKey:FacultyID;"`                                         // 上课学生所属学院
-	FacultyID    int       `json:"faculty_id" gorm:"type:int(11)"`                                // 学院ID
-	Direction    Direction `gorm:"ForeignKey:DirectionID;"`                                       // 方向外键
-	DirectionID  int       `json:"direction_id" gorm:"default:0;index:direction_id;type:int(11)"` // 上课学生所属方向
-	StartWeek    int       `json:"start_week" gorm:"type:int(11);"`                               // 起始周数
-	EndWeek      int       `json:"end_week" gorm:"type:int(11);"`                                 // 结束周数
+	Course            Course  `gorm:"ForeignKey:CourseID;"`                                               // 课程外键
+	CourseID          int     `json:"course_id" gorm:"type:int(11)" sql:"type:INT(11) NOT NULL"`          // 课程号
+	Teacher           Teacher `gorm:"ForeignKey:TeacherID;"`                                              // 教师外键
+	TeacherID         int     `json:"teacher_id" gorm:"type:int(11);not null;index:teacher_id;"`          // 教师ID
+	Reason            string  `json:"reason" gorm:"varchar(60)"`                                          // 申请更改的理由
+	BeforeClassroomID int     `json:"before_classroom_id" gorm:"type:int(11);index:before_classroom_id;"` // 教室号
+	AfterClassroomID  int     `json:"after_classroom_id" gorm:"type:int(11);index:after_classroom_id;"`   // 教室号
+	BeforeStartTime   int     `json:"before_start_time" gorm:"type:int(11);"`                             // 开始节数
+	AfterStartTime    int     `json:"after_start_time" gorm:"type:int(11);"`                              // 开始节数
+	BeforeEndTime     int     `json:"before_end_time" gorm:"type:int(11);"`                               // 结束节数
+	AfterEndTime      int     `json:"after_end_time" gorm:"type:int(11);"`                                // 结束节数
+	BeforeWeekTime    int     `json:"before_week_time" gorm:"type:int(2)"`                                // 上课星期数
+	AfterWeekTime     int     `json:"after_week_time" gorm:"type:int(2)"`                                 // 上课星期数
+	BeforeStartWeek   int     `json:"before_start_week" gorm:"type:int(11);"`                             // 起始周数
+	AfterStartWeek    int     `json:"after_start_week" gorm:"type:int(11);"`                              // 起始周数
+	BeforeEndWeek     int     `json:"before_end_week" gorm:"type:int(11);"`                               // 结束周数
+	AfterEndWeek      int     `json:"after_end_week" gorm:"type:int(11);"`                                // 结束周数
+	Result            int     `json:"result" gorm:"type:int(2);default:0"`                                // 审批结果
 }
 
 //学生表
@@ -186,6 +213,7 @@ type HomeworkForSelect struct {
 }
 
 type CourseForSelect struct {
+	RecordID     int    `json:"record_id" gorm:"primary_key"` // 记录id
 	ID           int    `json:"course_id" gorm:"primary_key;"`
 	CourseName   string `json:"course_name" gorm:"type:varchar(60);not null;"`                 // 课程名
 	Credit       string `json:"credit" gorm:"type:varchar(50);"`                               // 学分
@@ -201,6 +229,7 @@ type CourseForSelect struct {
 	StartWeek    int    `json:"start_week" gorm:"type:int(11);"`                               // 起始周数
 	EndWeek      int    `json:"end_week" gorm:"type:int(11);"`                                 // 结束周数
 	DirectionID  int    `json:"direction_id" gorm:"default:0;index:direction_id;type:int(11)"` // 上课学生所属方向
+	CopyFlag     bool   `json:"copy_flag"`
 }
 
 type QuestionForSelect struct {
@@ -276,21 +305,5 @@ type DirectionForSelects []DirectionForSelect
 type ClassroomForSelects []ClassroomForSelect
 
 func CreateDatabase(db *gorm.DB) {
-	//db.AutoMigrate(&Direction{})
-	db.AutoMigrate(&Title{}, &Faculty{}, &Teacher{}, &Course{}, &Elective{}, &Admin{}, &Classroom{}, &Direction{}, &Student{}, &HomeworkUploadRecord{}, &Homework{}, &Question{}, &Student2Course{})
-	//db.Model(&Teacher{}).AddForeignKey("title_id", "titles(id)", "no action", "no action")
-	//db.Model(&Teacher{}).AddForeignKey("faculty_id", "faculties(id)", "cascade", "no action")
-	//db.Model(&Course{}).AddForeignKey("teacher_id", "teachers(id)", "cascade", "no action")
-	//db.Model(&Course{}).AddForeignKey("classroom_id", "classrooms(id)", "no action", "no action")
-	//db.Model(&Student{}).AddForeignKey("faculty_id", "faculties(id)", "cascade", "no action")
-	//db.Model(&Elective{}).AddForeignKey("student_id", "students(id)", "cascade", "no action")
-	//db.Model(&Elective{}).AddForeignKey("course_id", "courses(id)", "cascade", "no action")
-	//db.Model(&Elective{}).AddForeignKey("course_id", "courses(id)", "cascade", "no action")
-	//db.Model(&HomeworkUploadRecord{}).AddForeignKey("homework_id", "homeworks(id)", "no action", "no action")
-	//db.Model(&HomeworkUploadRecord{}).AddForeignKey("question_id", "questions(id)", "no action", "no action")
-	//db.Model(&HomeworkUploadRecord{}).AddForeignKey("student_id", "students(id)", "no action", "no action")
-	//db.Model(&Homework{}).AddForeignKey("question_id", "questions(id)", "no action", "no action")
-	//db.Model(&Homework{}).AddForeignKey("course_id", "courses(id)", "no action", "no action")
-	//db.Model(&Student2Course{}).AddForeignKey("course_id", "courses(id)", "no action", "no action")
-	//db.Model(&Student2Course{}).AddForeignKey("student_id", "students(id)", "no action", "no action")
+	db.AutoMigrate(&Title{}, &Faculty{}, &Teacher{}, &Course{}, &Elective{}, &Admin{}, &Classroom{}, &Direction{}, &Student{}, &HomeworkUploadRecord{}, &Homework{}, &Question{}, &Student2Course{}, &ApplyForCourseChange{})
 }

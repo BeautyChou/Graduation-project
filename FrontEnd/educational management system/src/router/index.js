@@ -9,6 +9,7 @@ import SelectHomework from "../components/SelectHomework";
 import AddHomework from "../components/AddHomework";
 import SubmitHomework from "../components/SubmitHomework";
 import CheckReview from "../components/CheckReview";
+import Apply from "../components/Apply";
 
 Vue.use(Router)
 
@@ -67,6 +68,10 @@ export default new Router({
       name:'CheckReview',
       component:CheckReview,
     },
-
+    {
+      path:'/Apply',
+      name:'Apply',
+      component:Apply,
+    }
   ]
 })

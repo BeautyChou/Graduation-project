@@ -117,7 +117,7 @@ func GetCourseList(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var teacherId = c.Query("teacher_id")
 		var courses Model.CourseForSelects
-		db.Raw("Select courses.id,course_name,credit,teacher_id,classroom_id,max_choose_num,selected_num,start_time,end_time,name from courses right join teachers on courses.teacher_id = teachers.id where teacher_id = ? AND courses.deleted_at is NULL AND teachers.deleted_at is null", teacherId).Scan(&courses)
+		db.Model(&Model.Course{}).Select("courses.id,course_name,credit,teacher_id,classroom_id,max_choose_num,selected_num,start_time,end_time,name").Joins("right join teachers on courses.teacher_id = teachers.id").Where("teacher_id = ?",teacherId).Group("course_name").Scan(&courses)
 		c.JSON(http.StatusOK, gin.H{
 			"courses": courses,
 		})
@@ -128,7 +128,7 @@ func GetHomeworkList(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var courseId = c.Query("course_id")
 		var homeworks Model.HomeworkForSelects
-		db.Model(&[]Model.Homework{}).Where("course_id = ?",courseId).Group("id").Scan(&homeworks)
+		db.Model(&[]Model.Homework{}).Where("course_id = ?", courseId).Group("id").Scan(&homeworks)
 		//db.Raw("Select * from homeworks where course_id = ? AND deleted_at is NULL GROUP BY id", courseId).Scan(&homeworks)
 		c.JSON(http.StatusOK, gin.H{
 			"homeworks": homeworks,
@@ -286,7 +286,7 @@ func GetClassesList(db *gorm.DB) func(c *gin.Context) {
 			tId := c.Query("teacher_id")
 			db.Find("teacher_id = ?", tId, &Model.Course{}).Scan(&classes)
 			c.JSON(http.StatusOK, gin.H{
-				"classes":  classes,
+				"classes": classes,
 			})
 		} else {
 			db.Debug().Find(&[]Model.Teacher{}).Scan(&teachers)
@@ -294,14 +294,14 @@ func GetClassesList(db *gorm.DB) func(c *gin.Context) {
 			db.Find(&[]Model.Faculty{}).Scan(&faculties)
 			db.Find(&[]Model.Direction{}).Scan(&directions)
 			db.Find(&[]Model.Classroom{}).Scan(&classrooms)
-			for _,v := range directions{
-				sourceMap[v.FacultyID] = append(sourceMap[v.FacultyID],v)
+			for _, v := range directions {
+				sourceMap[v.FacultyID] = append(sourceMap[v.FacultyID], v)
 			}
 			fmt.Println(teachers)
 			c.JSON(http.StatusOK, gin.H{
-				"teachers": teachers,
-				"classes":  classes,
-				"faculties" : faculties,
+				"teachers":   teachers,
+				"classes":    classes,
+				"faculties":  faculties,
 				"directions": sourceMap,
 				"classrooms": classrooms,
 			})
@@ -309,41 +309,99 @@ func GetClassesList(db *gorm.DB) func(c *gin.Context) {
 	}
 }
 
-func PostNewClass(db *gorm.DB) func(c *gin.Context){
+func PostNewClass(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		course := &Model.Course{}
-		course.FacultyID,_ = strconv.Atoi(c.PostForm("faculty_id"))
+		courseTemp := &Model.Course{}
+		course.FacultyID, _ = strconv.Atoi(c.PostForm("faculty_id"))
 		course.CourseName = c.PostForm("name")
 		course.Credit = c.PostForm("credit")
-		course.MaxChooseNum,_ = strconv.Atoi(c.PostForm("max_choose_num"))
-		course.WeekTime,_= strconv.Atoi(c.PostForm("week_time"))
-		course.StartTime,_ = strconv.Atoi(c.PostForm("start_time"))
-		course.EndTime,_ = strconv.Atoi(c.PostForm("end_time"))
-		course.TeacherID,_ = strconv.Atoi(c.PostForm("teacher_id"))
-		course.StartWeek,_ =strconv.Atoi(c.PostForm("start_week"))
-		course.DirectionID,_ = strconv.Atoi(c.PostForm("direction_id"))
-		course.EndWeek,_ = strconv.Atoi(c.PostForm("end_week"))
-		course.ClassroomID,_=strconv.Atoi(c.PostForm("classroom_id"))
+		course.MaxChooseNum, _ = strconv.Atoi(c.PostForm("max_choose_num"))
+		course.WeekTime, _ = strconv.Atoi(c.PostForm("week_time"))
+		course.StartTime, _ = strconv.Atoi(c.PostForm("start_time"))
+		course.EndTime, _ = strconv.Atoi(c.PostForm("end_time"))
+		course.TeacherID, _ = strconv.Atoi(c.PostForm("teacher_id"))
+		course.StartWeek, _ = strconv.Atoi(c.PostForm("start_week"))
+		course.DirectionID, _ = strconv.Atoi(c.PostForm("direction_id"))
+		course.EndWeek, _ = strconv.Atoi(c.PostForm("end_week"))
+		course.ClassroomID, _ = strconv.Atoi(c.PostForm("classroom_id"))
+		flag := c.PostForm("flag")
+		if flag=="copy"{
+			course.CopyFlag = true
+			db.Select("id").Where("course_name = ?",course.CourseName).Last(&courseTemp)
+		}else{
+			course.CopyFlag = false
+			db.Debug().Select("id").Order("id desc").Limit(1).Find(&courseTemp)
+			courseTemp.ID++
+		}
+		db.Debug().Select("record_id").Order("record_id desc").Limit(1).Find(&course)
+		course.RecordID++
+		course.ID = courseTemp.ID
 		fmt.Println(course)
 		db.Create(&course)
-		c.JSON(http.StatusOK,gin.H{
+		c.JSON(http.StatusOK, gin.H{
 			"snackbar": "setSuccess",
-			"msg":"添加课程成功",
+			"msg":      "添加课程成功",
 		})
 
 		//db.Create(&course)
 	}
 }
 
-func DeleteClass(db *gorm.DB) func(c *gin.Context){
+func DeleteClass(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var id = c.Query("course_id")
 		result := db.Where("id = ?", id).Delete(&Model.Course{})
 		fmt.Println(result.RowsAffected)
 		c.JSON(http.StatusOK, gin.H{
+			"snackbar": "setSuccess",
+			"msg":      "删除课程成功！",
+			"id":       id,
+		})
+	}
+}
+
+func UploadClass(db *gorm.DB) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		classes := Model.CourseForSelects{}
+		err := c.ShouldBindJSON(&classes)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"snackbar": "setError",
+				"msg":      err,
+			})
+			return
+		}
+		for _, v := range classes {
+			fmt.Println(v)
+			db.Debug().Updates(&Model.Course{
+				ID:           v.ID,
+				CourseName:   v.CourseName,
+				Credit:       v.Credit,
+				TeacherID:    v.TeacherID,
+				ClassroomID:  v.ClassroomID,
+				MaxChooseNum: v.MaxChooseNum,
+				SelectedNum:  v.SelectedNum,
+				StartTime:    v.StartTime,
+				EndTime:      v.EndTime,
+				WeekTime:     v.WeekTime,
+				FacultyID:    v.FacultyID,
+				DirectionID:  v.DirectionID,
+				StartWeek:    v.StartWeek,
+				EndWeek:      v.EndWeek,
+			})
+		}
+	}
+}
+
+func PostApply(db *gorm.DB)  func(c *gin.Context) {
+	return func(c *gin.Context) {
+		apply := &Model.ApplyForCourseChange{}
+		c.ShouldBindJSON(&apply)
+		db.Create(&apply)
+		c.JSON(http.StatusOK,gin.H{
 			"snackbar":"setSuccess",
-			"msg":"删除课程成功！",
-			"id": id,
+			"msg":"提交请求成功！",
 		})
 	}
 }

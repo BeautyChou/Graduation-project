@@ -44,5 +44,7 @@ func main(){
 	r.POST("/postNewClass",Controller.PostNewClass(db))
 	r.DELETE("/deleteClass",Controller.DeleteClass(db))
 	r.OPTIONS("/deleteClass",Controller.ReturnOK)
+	r.POST("/uploadClass",Controller.UploadClass(db))
+	r.POST("/postApply",Controller.PostApply(db))
 	r.Run(":9000")
 }
