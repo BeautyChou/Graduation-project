@@ -56,7 +56,6 @@
             @change="pushing(item)"></v-text-field>
         </template>
         <template v-slot:item.credit="{ item }">
-          <span>{{item.copyFlag}}</span>
           <v-text-field
             :value="item.credit"
             @change="pushing(item)"></v-text-field>

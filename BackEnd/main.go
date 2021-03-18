@@ -46,5 +46,8 @@ func main(){
 	r.OPTIONS("/deleteClass",Controller.ReturnOK)
 	r.POST("/uploadClass",Controller.UploadClass(db))
 	r.POST("/postApply",Controller.PostApply(db))
+	r.GET("/getApply",Controller.GetApply(db))
+	r.POST("/operateApply",Controller.OperateApply(db))
+	r.POST("/validClassrooms",Controller.ValidClassrooms(db))
 	r.Run(":9000")
 }

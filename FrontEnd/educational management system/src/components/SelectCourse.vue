@@ -58,8 +58,10 @@
               label="结束节次"
               class="col-4"></v-select>
             <v-select
+              :disabled="apply.before_end_time==null||apply.before_week_time==null||apply.before_start_time==null||apply.before_start_week==null||apply.before_end_week==null"
+              @click="validBeforeClassrooms()"
               v-model="apply.before_classroom_id"
-              :items="classrooms"
+              :items="before_classrooms"
               item-text="name"
               item-value="value"
               outlined
@@ -109,9 +111,11 @@
               item-value="value"
               label="结束节次"></v-select>
             <v-select
+              :disabled="apply.after_end_time==null||apply.after_week_time==null||apply.after_start_time==null||apply.after_start_week==null||apply.after_end_week==null"
+              @click="validAfterClassrooms()"
               class="col-4"
               v-model="apply.after_classroom_id"
-              :items="classrooms"
+              :items="after_classrooms"
               item-text="name"
               item-value="value"
               outlined
@@ -146,6 +150,7 @@
             color="green darken-1"
             text
             @click="submitApplyForClassChange()"
+            :disabled="apply.before_classroom_id==null||apply.after_classroom_id==null||apply.reason==null"
           >
             提交
           </v-btn>
@@ -237,7 +242,8 @@ export default {
         {name: "星期日", value: 7},
       ],
       teachers: [],
-      classrooms: [],
+      before_classrooms: [],
+      after_classrooms:[],
       faculties: [],
       directions: [],
       apply: {},
@@ -290,6 +296,7 @@ export default {
       }).then((response)=>{
         this.$store.commit(response.data.snackbar,response.data.msg)
         this.changeClass = false
+        this.apply = {}
         console.log(response)
       })
     },
@@ -303,7 +310,51 @@ export default {
       }).then((response) => {
         this.classrooms = response.data.classrooms
       })
-    }
+    },
+    validBeforeClassrooms(){
+      const formdata = new FormData
+      formdata.append('course_id',this.selectId)
+      formdata.append('week_time',this.apply.before_week_time)
+      formdata.append('start_time',this.apply.before_start_time)
+      formdata.append('end_time',this.apply.before_end_time)
+      formdata.append('start_week',this.apply.before_start_week)
+      formdata.append('end_week',this.apply.before_end_week)
+      formdata.append('classroom_id',this.apply.before_classroom_id)
+      formdata.append('time',"before")
+      this.$axios({
+          method:"post",
+          url:"http://127.0.0.1:9000/validClassrooms",
+          data:formdata,
+          headers:{
+            "Content-Type": "multipart/form-data"
+          }
+        }).then((response)=>{
+          this.before_classrooms = response.data.classrooms
+          console.log(response)
+      })
+    },
+    validAfterClassrooms(){
+      const formdata = new FormData
+      formdata.append('course_id',this.selectId)
+      formdata.append('week_time',this.apply.before_week_time)
+      formdata.append('start_time',this.apply.before_start_time)
+      formdata.append('end_time',this.apply.before_end_time)
+      formdata.append('start_week',this.apply.before_start_week)
+      formdata.append('end_week',this.apply.before_end_week)
+      formdata.append('classroom_id',this.apply.before_classroom_id)
+      formdata.append('time',"after")
+      this.$axios({
+        method:"post",
+        url:"http://127.0.0.1:9000/validClassrooms",
+        data:formdata,
+        headers:{
+          "Content-Type": "multipart/form-data"
+        }
+      }).then((response)=>{
+        this.after_classrooms = response.data.classrooms
+        console.log(response)
+      })
+    },
   }
 }
 </script>

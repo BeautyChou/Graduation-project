@@ -117,7 +117,7 @@ func GetCourseList(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var teacherId = c.Query("teacher_id")
 		var courses Model.CourseForSelects
-		db.Model(&Model.Course{}).Select("courses.id,course_name,credit,teacher_id,classroom_id,max_choose_num,selected_num,start_time,end_time,name").Joins("right join teachers on courses.teacher_id = teachers.id").Where("teacher_id = ?",teacherId).Group("course_name").Scan(&courses)
+		db.Model(&Model.Course{}).Select("courses.id,course_name,credit,teacher_id,classroom_id,max_choose_num,selected_num,start_time,end_time,name").Joins("right join teachers on courses.teacher_id = teachers.id").Where("teacher_id = ?", teacherId).Group("course_name").Scan(&courses)
 		c.JSON(http.StatusOK, gin.H{
 			"courses": courses,
 		})
@@ -326,15 +326,15 @@ func PostNewClass(db *gorm.DB) func(c *gin.Context) {
 		course.EndWeek, _ = strconv.Atoi(c.PostForm("end_week"))
 		course.ClassroomID, _ = strconv.Atoi(c.PostForm("classroom_id"))
 		flag := c.PostForm("flag")
-		if flag=="copy"{
+		if flag == "copy" {
 			course.CopyFlag = true
-			db.Select("id").Where("course_name = ?",course.CourseName).Last(&courseTemp)
-		}else{
+			db.Select("id").Where("course_name = ?", course.CourseName).Last(&courseTemp)
+		} else {
 			course.CopyFlag = false
-			db.Debug().Select("id").Order("id desc").Limit(1).Find(&courseTemp)
+			db.Debug().Unscoped().Select("id").Order("id desc").Limit(1).Find(&courseTemp)
 			courseTemp.ID++
 		}
-		db.Debug().Select("record_id").Order("record_id desc").Limit(1).Find(&course)
+		db.Debug().Unscoped().Select("record_id").Order("record_id desc").Limit(1).Find(&course)
 		course.RecordID++
 		course.ID = courseTemp.ID
 		fmt.Println(course)
@@ -394,15 +394,104 @@ func UploadClass(db *gorm.DB) func(c *gin.Context) {
 	}
 }
 
-func PostApply(db *gorm.DB)  func(c *gin.Context) {
+func PostApply(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		apply := &Model.ApplyForCourseChange{}
 		c.ShouldBindJSON(&apply)
 		db.Create(&apply)
-		c.JSON(http.StatusOK,gin.H{
-			"snackbar":"setSuccess",
-			"msg":"提交请求成功！",
+		c.JSON(http.StatusOK, gin.H{
+			"snackbar": "setSuccess",
+			"msg":      "提交请求成功！",
 		})
+	}
+}
+
+func GetApply(db *gorm.DB) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		level, _ := strconv.Atoi(c.Query("level"))
+		classrooms := &Model.ClassroomForSelects{}
+		db.Find(&[]Model.Classroom{}).Scan(&classrooms)
+		applies := &Model.Applies{}
+		if level < 3 {
+			teacher_id := c.Query("teacher_id")
+			db.Model(&Model.ApplyForCourseChange{}).Select("apply_for_course_changes.*,t.name,c2.course_name").Joins("left join teachers t on t.id = apply_for_course_changes.teacher_id left join courses c2 on apply_for_course_changes.course_id = c2.id ").Where("c2.copy_flag = 0 AND c.teacher_id = ?", teacher_id).Scan(&applies)
+		} else {
+			db.Model(&Model.ApplyForCourseChange{}).Select("apply_for_course_changes.*,t.name,c2.course_name").Joins("left join teachers t on t.id = apply_for_course_changes.teacher_id left join courses c2 on apply_for_course_changes.course_id = c2.id ").Where("copy_flag = 0").Scan(&applies)
+		}
+		c.JSON(http.StatusOK, gin.H{
+			"applies":    applies,
+			"classrooms": classrooms,
+		})
+	}
+}
+
+func OperateApply(db *gorm.DB) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		result, _ := strconv.Atoi(c.PostForm("result"))
+		id := c.PostForm("id")
+		db.Debug().Model(&Model.ApplyForCourseChange{}).Where("id = ?", id).Update("result", result)
+		if result == 1 {
+			apply := &Model.ApplyForCourseChange{}
+			course := &Model.Course{}
+			tempCourse :=&Model.Course{}
+			db.Where("id = ?", id).Find(&apply)
+			db.Where("id = ? AND week_time = ? AND ( IF(start_time > ? ,start_time,?)<=IF(end_time<?,end_time,?) )", apply.CourseID, apply.BeforeWeekTime, apply.BeforeStartTime, apply.BeforeStartTime, apply.BeforeEndTime, apply.BeforeEndTime).Find(&course)
+			if course.StartWeek == apply.BeforeStartWeek || course.EndWeek == apply.BeforeEndWeek {
+				if course.StartWeek == apply.BeforeStartWeek {
+					db.Debug().Model(&Model.Course{}).Where("record_id = ?", course.RecordID).Update("start_week", apply.BeforeEndWeek+1)
+				} else {
+					db.Debug().Model(&Model.Course{}).Where("record_id = ?", course.RecordID).Update("end_week", apply.BeforeStartWeek-1)
+				}
+			} else {
+				fmt.Println(course)
+				courseOBJ1 := course
+				courseOBJ1.StartWeek = apply.BeforeEndWeek + 1
+				courseOBJ1.EndWeek = course.EndWeek
+				courseOBJ1.CopyFlag = true
+				db.Debug().Unscoped().Select("record_id").Order("record_id desc").Limit(1).Find(&tempCourse)
+				db.Debug().Model(&Model.Course{}).Where("record_id = ?", course.RecordID).Update("end_week", apply.BeforeStartWeek-1)
+				courseOBJ1.RecordID = tempCourse.RecordID + 1
+				db.Create(&courseOBJ1)
+			}
+			courseOBJ2 := course
+			courseOBJ2.StartWeek = apply.AfterStartWeek
+			courseOBJ2.EndWeek = apply.AfterEndWeek
+			courseOBJ2.CopyFlag = true
+			courseOBJ2.WeekTime = apply.AfterWeekTime
+			courseOBJ2.StartTime = apply.AfterStartTime
+			courseOBJ2.EndTime = apply.AfterEndTime
+			course = &Model.Course{}
+			db.Debug().Unscoped().Select("record_id").Order("record_id desc").Limit(1).Find(&course)
+			courseOBJ2.RecordID = course.RecordID + 1
+			db.Create(courseOBJ2)
+		}
+		c.JSON(http.StatusOK, 0)
+	}
+}
+
+func ValidClassrooms(db *gorm.DB) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		course := &Model.Course{}
+		tempCourse := &Model.Course{}
+		classrooms := &Model.ClassroomForSelects{}
+		course.ID,_ = strconv.Atoi(c.PostForm("course_id"))
+		course.WeekTime, _ = strconv.Atoi(c.PostForm("week_time"))
+		course.StartTime, _ = strconv.Atoi(c.PostForm("start_time"))
+		course.EndTime, _ = strconv.Atoi(c.PostForm("end_time"))
+		course.StartWeek, _ = strconv.Atoi(c.PostForm("start_week"))
+		course.EndWeek, _ = strconv.Atoi(c.PostForm("end_week"))
+		course.ClassroomID, _ = strconv.Atoi(c.PostForm("classroom_id"))
+		timeNode := c.PostForm("time")
+		if timeNode == "after" {
+			db.Debug().Model(&Model.Course{}).Select("faculty_id,direction_id").Where("id = ?",course.ID).Scan(&tempCourse)
+			db.Model(&Model.Course{}).Select("courses.classroom_id as id,c.name").Joins("left join classrooms c on c.id = courses.classroom_id").Where("courses.id = ? AND (IF(start_time > ? ,start_time,?)<=IF(end_time<?,end_time,?)) AND (IF(start_week > ? ,start_week,?)<=IF(end_week<?,end_week,?)) AND week_time = ? AND faculty_id = ? AND (direction_id = ? or direction_id = 0)",course.ID,course.StartTime,course.StartTime,course.EndTime,course.EndTime,course.StartWeek,course.StartWeek,course.EndWeek,course.EndWeek,course.WeekTime,tempCourse.FacultyID,tempCourse.DirectionID).Scan(&classrooms)
+		}else{
+			db.Debug().Model(&Model.Course{}).Select("courses.classroom_id as id,c.name").Joins("left join classrooms c on c.id = courses.classroom_id").Where(" courses.id = ? AND start_time = ? and end_time = ? AND (IF(start_week > ? ,start_week,?)<=IF(end_week<?,end_week,?)) AND week_time = ?",course.ID,course.StartTime,course.EndTime,course.StartWeek,course.StartWeek,course.EndWeek,course.EndWeek,course.WeekTime).Scan(&classrooms)
+		}
+		c.JSON(http.StatusOK,gin.H{
+			"classrooms":classrooms,
+		})
+		fmt.Println(course)
 	}
 }
 

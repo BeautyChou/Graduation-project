@@ -290,6 +290,25 @@ type ClassroomForSelect struct {
 	Name string `json:"name" gorm:"size:30;not null;uniqueIndex:name;"` // 教室名
 }
 
+type Apply struct {
+	ID                int    `json:"id"`
+	CourseName        string `json:"course_name" gorm:"type:varchar(60);not null;"`                      // 课程名
+	Name              string `json:"name" gorm:"size:50;not null"`                                       // 教师姓名
+	Reason            string `json:"reason"`                                                             // 申请更改的理由
+	BeforeClassroomID int    `json:"before_classroom_id" gorm:"type:int(11);index:before_classroom_id;"` // 教室号
+	AfterClassroomID  int    `json:"after_classroom_id" gorm:"type:int(11);index:after_classroom_id;"`   // 教室号
+	BeforeStartTime   int    `json:"before_start_time" gorm:"type:int(11);"`                             // 开始节数
+	AfterStartTime    int    `json:"after_start_time" gorm:"type:int(11);"`                              // 开始节数
+	BeforeEndTime     int    `json:"before_end_time" gorm:"type:int(11);"`                               // 结束节数
+	AfterEndTime      int    `json:"after_end_time" gorm:"type:int(11);"`                                // 结束节数
+	BeforeWeekTime    int    `json:"before_week_time" gorm:"type:int(2)"`                                // 上课星期数
+	AfterWeekTime     int    `json:"after_week_time" gorm:"type:int(2)"`                                 // 上课星期数
+	BeforeStartWeek   int    `json:"before_start_week" gorm:"type:int(11);"`                             // 起始周数
+	AfterStartWeek    int    `json:"after_start_week" gorm:"type:int(11);"`                              // 起始周数
+	BeforeEndWeek     int    `json:"before_end_week" gorm:"type:int(11);"`                               // 结束周数
+	AfterEndWeek      int    `json:"after_end_week" gorm:"type:int(11);"`                                // 结束周数
+	Result            int    `json:"result" gorm:"type:int(2);default:0"`                                // 审批结果
+}
 type HomeworkUploadRecordsForSelects []HomeworkUploadRecordsForSelect
 type HomeworkUploadRecords []HomeworkUploadRecord
 type HomeworkForSelects []HomeworkForSelect
@@ -303,6 +322,7 @@ type TeacherForSelects []TeacherForSelect
 type Faculties []Faculty
 type DirectionForSelects []DirectionForSelect
 type ClassroomForSelects []ClassroomForSelect
+type Applies []Apply
 
 func CreateDatabase(db *gorm.DB) {
 	db.AutoMigrate(&Title{}, &Faculty{}, &Teacher{}, &Course{}, &Elective{}, &Admin{}, &Classroom{}, &Direction{}, &Student{}, &HomeworkUploadRecord{}, &Homework{}, &Question{}, &Student2Course{}, &ApplyForCourseChange{})
