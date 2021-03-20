@@ -35,6 +35,7 @@
           <v-row class="mt-4">
             <v-select
               v-model="apply.before_week_time"
+              @change="validBeforeClassrooms"
               :items="week_time"
               item-text="name"
               item-value="value"
@@ -43,6 +44,7 @@
               class="col-4"></v-select>
             <v-select
               outlined
+              @change="validBeforeClassrooms"
               v-model="apply.before_start_time"
               :items="start_time"
               item-text="name"
@@ -51,6 +53,7 @@
               class="col-4"></v-select>
             <v-select
               outlined
+              @change="validBeforeClassrooms"
               v-model="apply.before_end_time"
               :items="end_time"
               item-text="name"
@@ -69,6 +72,7 @@
               class="col-4"></v-select>
             <v-select
               outlined
+              @change="validBeforeClassrooms"
               v-model="apply.before_start_week"
               :items="weeks"
               item-text="name"
@@ -77,6 +81,7 @@
               class="col-4"></v-select>
             <v-select
               outlined
+              @change="validBeforeClassrooms"
               v-model="apply.before_end_week"
               :items="weeks"
               item-text="name"
@@ -88,6 +93,7 @@
           <v-row>
             <v-select
               v-model="apply.after_week_time"
+              @change="validAfterClassrooms()"
               :items="week_time"
               item-text="name"
               item-value="value"
@@ -96,6 +102,7 @@
               class="col-4"></v-select>
             <v-select
               class="col-4"
+              @change="validAfterClassrooms()"
               outlined
               v-model="apply.after_start_time"
               :items="start_time"
@@ -123,6 +130,7 @@
             ></v-select>
             <v-select
               class="col-4"
+              @change="validAfterClassrooms()"
               outlined
               v-model="apply.after_start_week"
               :items="weeks"
@@ -131,6 +139,7 @@
               label="开始周"></v-select>
             <v-select
               class="col-4"
+              @change="validAfterClassrooms()"
               outlined
               v-model="apply.after_end_week"
               :items="weeks"
@@ -150,7 +159,7 @@
             color="green darken-1"
             text
             @click="submitApplyForClassChange()"
-            :disabled="apply.before_classroom_id==null||apply.after_classroom_id==null||apply.reason==null"
+            :disabled="this.apply.before_classroom_id==null||this.apply.after_classroom_id==null||this.apply.reason==null"
           >
             提交
           </v-btn>
@@ -196,6 +205,9 @@ export default {
         {name: "第九节", value: 9},
         {name: "第十节", value: 10},
         {name: "第十一节", value: 11},
+        {name: "第十二节", value: 12},
+        {name: "第十三节", value: 13},
+        {name: "第十四节", value: 14},
       ],
       end_time: [
         {name: "第一节", value: 1},
@@ -209,6 +221,9 @@ export default {
         {name: "第九节", value: 9},
         {name: "第十节", value: 10},
         {name: "第十一节", value: 11},
+        {name: "第十二节", value: 12},
+        {name: "第十三节", value: 13},
+        {name: "第十四节", value: 14},
       ],
       weeks: [
         {name: "第一周", value: 1},
@@ -243,13 +258,17 @@ export default {
       ],
       teachers: [],
       before_classrooms: [],
-      after_classrooms:[],
+      after_classrooms: [],
       faculties: [],
       directions: [],
-      apply: {},
+      apply: {
+        'before_classroom_id':null,
+        'after_classroom_id':null,
+      },
       beforeClass: {},
       afterClass: {},
       selectId: null,
+      submitFlag1: false,
     }
   },
   created() {
@@ -293,8 +312,8 @@ export default {
         headers: {
           "Content-Type": "multipart/form-data"
         }
-      }).then((response)=>{
-        this.$store.commit(response.data.snackbar,response.data.msg)
+      }).then((response) => {
+        this.$store.commit(response.data.snackbar, response.data.msg)
         this.changeClass = false
         this.apply = {}
         console.log(response)
@@ -311,51 +330,55 @@ export default {
         this.classrooms = response.data.classrooms
       })
     },
-    validBeforeClassrooms(){
+    validBeforeClassrooms() {
+      if (this.apply.before_week_time == null || this.apply.before_start_time == null || this.apply.before_end_time == null || this.apply.before_start_week == null || this.apply.before_end_week == null) return
       const formdata = new FormData
-      formdata.append('course_id',this.selectId)
-      formdata.append('week_time',this.apply.before_week_time)
-      formdata.append('start_time',this.apply.before_start_time)
-      formdata.append('end_time',this.apply.before_end_time)
-      formdata.append('start_week',this.apply.before_start_week)
-      formdata.append('end_week',this.apply.before_end_week)
-      formdata.append('classroom_id',this.apply.before_classroom_id)
-      formdata.append('time',"before")
+      formdata.append('course_id', this.selectId)
+      formdata.append('week_time', this.apply.before_week_time)
+      formdata.append('start_time', this.apply.before_start_time)
+      formdata.append('end_time', this.apply.before_end_time)
+      formdata.append('start_week', this.apply.before_start_week)
+      formdata.append('end_week', this.apply.before_end_week)
+      formdata.append('classroom_id', this.apply.before_classroom_id)
+      formdata.append('time', "before")
       this.$axios({
-          method:"post",
-          url:"http://127.0.0.1:9000/validClassrooms",
-          data:formdata,
-          headers:{
-            "Content-Type": "multipart/form-data"
-          }
-        }).then((response)=>{
-          this.before_classrooms = response.data.classrooms
-          console.log(response)
-      })
-    },
-    validAfterClassrooms(){
-      const formdata = new FormData
-      formdata.append('course_id',this.selectId)
-      formdata.append('week_time',this.apply.before_week_time)
-      formdata.append('start_time',this.apply.before_start_time)
-      formdata.append('end_time',this.apply.before_end_time)
-      formdata.append('start_week',this.apply.before_start_week)
-      formdata.append('end_week',this.apply.before_end_week)
-      formdata.append('classroom_id',this.apply.before_classroom_id)
-      formdata.append('time',"after")
-      this.$axios({
-        method:"post",
-        url:"http://127.0.0.1:9000/validClassrooms",
-        data:formdata,
-        headers:{
+        method: "post",
+        url: "http://127.0.0.1:9000/validClassrooms",
+        data: formdata,
+        headers: {
           "Content-Type": "multipart/form-data"
         }
-      }).then((response)=>{
-        this.after_classrooms = response.data.classrooms
+      }).then((response) => {
+        this.before_classrooms = response.data.classrooms
+        if (this.before_classrooms.length === 0) this.$set(this.apply, 'before_classroom_id', null)
         console.log(response)
       })
     },
-  }
+    validAfterClassrooms() {
+      if (this.apply.after_week_time == null || this.apply.after_start_time == null || this.apply.after_end_time == null || this.apply.after_start_week == null || this.apply.after_end_week == null) return
+      const formdata = new FormData
+      formdata.append('course_id', this.selectId)
+      formdata.append('week_time', this.apply.after_week_time)
+      formdata.append('start_time', this.apply.after_start_time)
+      formdata.append('end_time', this.apply.after_end_time)
+      formdata.append('start_week', this.apply.after_start_week)
+      formdata.append('end_week', this.apply.after_end_week)
+      formdata.append('classroom_id', this.apply.after_classroom_id)
+      formdata.append('time', "after")
+      this.$axios({
+        method: "post",
+        url: "http://127.0.0.1:9000/validClassrooms",
+        data: formdata,
+        headers: {
+          "Content-Type": "multipart/form-data"
+        }
+      }).then((response) => {
+        this.after_classrooms = response.data.classrooms
+        if (this.after_classrooms.length === 0) this.$set(this.apply, 'after_classroom_id', null)
+        console.log(response)
+      })
+    },
+  },
 }
 </script>
 

@@ -2,7 +2,7 @@ import Vue from 'vue'
 import Router from 'vue-router'
 import HelloWorld from '../components/HelloWorld'
 import canvas from '../components/Canvas'
-import ClassSheet from "../components/ClassSheet";
+import SetClass from "../components/SetClass";
 import canvastest from "../components/canvastest";
 import SelectCourse from "../components/SelectCourse";
 import SelectHomework from "../components/SelectHomework";
@@ -10,6 +10,7 @@ import AddHomework from "../components/AddHomework";
 import SubmitHomework from "../components/SubmitHomework";
 import CheckReview from "../components/CheckReview";
 import Apply from "../components/Apply";
+import ClassSheet from "../components/ClassSheet";
 
 Vue.use(Router)
 
@@ -31,9 +32,9 @@ export default new Router({
       component: canvastest,
     },
     {
-      path: '/ClassSheet',
-      name:'ClassSheet',
-      component:ClassSheet,
+      path: '/SetClass',
+      name:'SetClass',
+      component:SetClass,
 
     },
     {
@@ -72,6 +73,11 @@ export default new Router({
       path:'/Apply',
       name:'Apply',
       component:Apply,
-    }
+    },
+    {
+      path:'/ClassSheet',
+      name:'ClassSheet',
+      component:ClassSheet,
+    },
   ]
 })

@@ -309,6 +309,18 @@ type Apply struct {
 	AfterEndWeek      int    `json:"after_end_week" gorm:"type:int(11);"`                                // 结束周数
 	Result            int    `json:"result" gorm:"type:int(2);default:0"`                                // 审批结果
 }
+
+type ClassSheet struct {
+	CourseName    string `json:"course_name" gorm:"type:varchar(60);not null;"`            // 课程名
+	TeacherName   string `json:"teacher_name" gorm:"size:30;not null;uniqueIndex:name;"`   // 教室名
+	ClassroomName string `json:"classroom_name" gorm:"size:30;not null;uniqueIndex:name;"` // 教室名
+	StartTime     int    `json:"start_time" gorm:"type:datetime;"`                         // 开始时间
+	EndTime       int    `json:"end_time" gorm:"type:datetime;"`                           // 结束时间
+	Name          string `json:"name" gorm:"size:50;not null"`                             // 教师姓名
+	WeekTime      int    `json:"week_time" gorm:"type:int(2)"`                             // 上课星期数
+	StartWeek     int    `json:"start_week" gorm:"type:int(11);"`                          // 起始周数
+	EndWeek       int    `json:"end_week" gorm:"type:int(11);"`                            // 结束周数
+}
 type HomeworkUploadRecordsForSelects []HomeworkUploadRecordsForSelect
 type HomeworkUploadRecords []HomeworkUploadRecord
 type HomeworkForSelects []HomeworkForSelect
@@ -323,6 +335,7 @@ type Faculties []Faculty
 type DirectionForSelects []DirectionForSelect
 type ClassroomForSelects []ClassroomForSelect
 type Applies []Apply
+type ClassSheets []ClassSheet
 
 func CreateDatabase(db *gorm.DB) {
 	db.AutoMigrate(&Title{}, &Faculty{}, &Teacher{}, &Course{}, &Elective{}, &Admin{}, &Classroom{}, &Direction{}, &Student{}, &HomeworkUploadRecord{}, &Homework{}, &Question{}, &Student2Course{}, &ApplyForCourseChange{})

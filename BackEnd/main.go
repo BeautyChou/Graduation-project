@@ -49,5 +49,6 @@ func main(){
 	r.GET("/getApply",Controller.GetApply(db))
 	r.POST("/operateApply",Controller.OperateApply(db))
 	r.POST("/validClassrooms",Controller.ValidClassrooms(db))
+	r.GET("/getClassSheet",Controller.GetClassSheet(db))
 	r.Run(":9000")
 }

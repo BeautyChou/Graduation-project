@@ -290,7 +290,7 @@ func GetClassesList(db *gorm.DB) func(c *gin.Context) {
 			})
 		} else {
 			db.Debug().Find(&[]Model.Teacher{}).Scan(&teachers)
-			db.Find(&[]Model.Course{}).Scan(&classes)
+			db.Find(&[]Model.Course{}).Order("id asc").Scan(&classes)
 			db.Find(&[]Model.Faculty{}).Scan(&faculties)
 			db.Find(&[]Model.Direction{}).Scan(&directions)
 			db.Find(&[]Model.Classroom{}).Scan(&classrooms)
@@ -472,7 +472,7 @@ func OperateApply(db *gorm.DB) func(c *gin.Context) {
 func ValidClassrooms(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		course := &Model.Course{}
-		tempCourse := &Model.Course{}
+		tempClassrooms := &Model.ClassroomForSelects{}
 		classrooms := &Model.ClassroomForSelects{}
 		course.ID,_ = strconv.Atoi(c.PostForm("course_id"))
 		course.WeekTime, _ = strconv.Atoi(c.PostForm("week_time"))
@@ -483,15 +483,38 @@ func ValidClassrooms(db *gorm.DB) func(c *gin.Context) {
 		course.ClassroomID, _ = strconv.Atoi(c.PostForm("classroom_id"))
 		timeNode := c.PostForm("time")
 		if timeNode == "after" {
-			db.Debug().Model(&Model.Course{}).Select("faculty_id,direction_id").Where("id = ?",course.ID).Scan(&tempCourse)
-			db.Model(&Model.Course{}).Select("courses.classroom_id as id,c.name").Joins("left join classrooms c on c.id = courses.classroom_id").Where("courses.id = ? AND (IF(start_time > ? ,start_time,?)<=IF(end_time<?,end_time,?)) AND (IF(start_week > ? ,start_week,?)<=IF(end_week<?,end_week,?)) AND week_time = ? AND faculty_id = ? AND (direction_id = ? or direction_id = 0)",course.ID,course.StartTime,course.StartTime,course.EndTime,course.EndTime,course.StartWeek,course.StartWeek,course.EndWeek,course.EndWeek,course.WeekTime,tempCourse.FacultyID,tempCourse.DirectionID).Scan(&classrooms)
+			db.Debug().Model(&Model.Course{}).Select("courses.classroom_id as id,c.name").Joins("left join classrooms c on c.id = courses.classroom_id").Where("(IF(start_time > ? ,start_time,?)<=IF(end_time<?,end_time,?)) AND (IF(start_week > ? ,start_week,?)<=IF(end_week<?,end_week,?)) AND week_time = ?",course.StartTime,course.StartTime,course.EndTime,course.EndTime,course.StartWeek,course.StartWeek,course.EndWeek,course.EndWeek,course.WeekTime).Group("c.name").Scan(&tempClassrooms)
+			db.Debug().Model(&Model.Classroom{}).Not(tempClassrooms).Scan(&classrooms)
 		}else{
-			db.Debug().Model(&Model.Course{}).Select("courses.classroom_id as id,c.name").Joins("left join classrooms c on c.id = courses.classroom_id").Where(" courses.id = ? AND start_time = ? and end_time = ? AND (IF(start_week > ? ,start_week,?)<=IF(end_week<?,end_week,?)) AND week_time = ?",course.ID,course.StartTime,course.EndTime,course.StartWeek,course.StartWeek,course.EndWeek,course.EndWeek,course.WeekTime).Scan(&classrooms)
+			db.Debug().Model(&Model.Course{}).Select("courses.classroom_id as id,c.name").Joins("left join classrooms c on c.id = courses.classroom_id").Where(" courses.id = ? AND start_time = ? and end_time = ? AND (IF(start_week > ? ,start_week,?)<=IF(end_week<?,end_week,?)) AND week_time = ?",course.ID,course.StartTime,course.EndTime,course.StartWeek,course.StartWeek,course.EndWeek,course.EndWeek,course.WeekTime).Group("c.name").Scan(&classrooms)
 		}
 		c.JSON(http.StatusOK,gin.H{
 			"classrooms":classrooms,
 		})
-		fmt.Println(course)
+	}
+}
+
+func GetClassSheet (db *gorm.DB) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		var classSheet [7][14]string
+		courses:= Model.ClassSheets{}
+		teacher_id := c.Query("teacher_id")
+		week := c.Query("week")
+		db.Debug().Model(&Model.Course{}).Select("courses.*,t.name as teacher_name,c.name as classroom_name").Joins("left join teachers t on t.id = courses.teacher_id").Joins("left join classrooms c on c.id = courses.classroom_id ").Where("teacher_id = ? AND start_week <= ? AND end_week >= ?",teacher_id,week,week).Scan(&courses)
+		for _,v:=range courses{
+			for i:= v.StartTime;i<=v.EndTime;i++ {
+				week_time := v.WeekTime
+				course_name := v.CourseName
+				course_classroom := v.ClassroomName
+				teacher_name := v.TeacherName
+				start_week := utils.ToString(v.StartWeek)
+				end_week := utils.ToString(v.EndWeek)
+				classSheet[week_time-1][i-1] = course_name+"\n教师："+teacher_name+"\n教室："+course_classroom+"\n第"+start_week+"周-第"+end_week+"周"
+			}
+		}
+		c.JSON(http.StatusOK,gin.H{
+			"classSheet":classSheet,
+		})
 	}
 }
 

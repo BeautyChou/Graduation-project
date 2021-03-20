@@ -50,7 +50,7 @@
 
           <v-list-item>
             <v-list-item-content>
-              <router-link to="/ClassSheet">
+              <router-link to="/SetClass">
                 <v-list-item-title>安排课程</v-list-item-title>
               </router-link>
             </v-list-item-content>
@@ -60,6 +60,14 @@
             <v-list-item-content>
               <router-link to="/Apply">
                 <v-list-item-title>修改课程申请</v-list-item-title>
+              </router-link>
+            </v-list-item-content>
+          </v-list-item>
+
+          <v-list-item>
+            <v-list-item-content>
+              <router-link to="/ClassSheet">
+                <v-list-item-title>查看课表</v-list-item-title>
               </router-link>
             </v-list-item-content>
           </v-list-item>
@@ -92,7 +100,7 @@
 <script>
 import HelloWorld from './components/HelloWorld';
 import Canvas from "./components/Canvas";
-import ClassSheet from "./components/ClassSheet";
+import ClassSheet from "./components/SetClass";
 import SelectCourse from "./components/SelectCourse";
 import SelectHomework from "./components/SelectHomework";
 

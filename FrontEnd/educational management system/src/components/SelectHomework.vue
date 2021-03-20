@@ -1,15 +1,10 @@
 <template>
   <v-card>
-
-
     <v-card-title>
-
       <v-btn icon to="/SelectCourse" @click.native="$store.commit('previousPage');">
         <v-icon>mdi-arrow-left-bold</v-icon>
         <span>返回</span>
       </v-btn>
-
-
       <div class="mx-8">
         选择作业
       </div>
