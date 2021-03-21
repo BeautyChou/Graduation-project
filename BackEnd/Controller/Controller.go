@@ -278,9 +278,11 @@ func GetClassesList(db *gorm.DB) func(c *gin.Context) {
 		classes := &Model.CourseForSelects{}
 		teachers := &Model.TeacherForSelects{}
 		faculties := Model.Faculties{}
-		directions := Model.DirectionForSelects{}
+		specialties := Model.DirectionToSpecialtyForSelects{}
+		directions := Model.DirectionToSpecialtyForSelects{}
 		classrooms := &Model.ClassroomForSelects{}
-		sourceMap := make(map[int]Model.DirectionForSelects)
+		facultyToSpecialty := make(map[int]Model.DirectionToSpecialtyForSelects)
+		SpecialtyToDirection := make(map[int]Model.DirectionToSpecialtyForSelects)
 		fmt.Println(level)
 		if level == "2" {
 			tId := c.Query("teacher_id")
@@ -292,18 +294,23 @@ func GetClassesList(db *gorm.DB) func(c *gin.Context) {
 			db.Debug().Find(&[]Model.Teacher{}).Scan(&teachers)
 			db.Find(&[]Model.Course{}).Order("id asc").Scan(&classes)
 			db.Find(&[]Model.Faculty{}).Scan(&faculties)
-			db.Find(&[]Model.Direction{}).Scan(&directions)
+			db.Find(&[]Model.DirectionToSpecialty{}).Scan(&specialties)
+			db.Find(&[]Model.DirectionToSpecialty{}).Scan(&directions)
 			db.Find(&[]Model.Classroom{}).Scan(&classrooms)
+			for _, v := range specialties {
+				facultyToSpecialty[v.FacultyID] = append(facultyToSpecialty[v.FacultyID], v)
+			}
 			for _, v := range directions {
-				sourceMap[v.FacultyID] = append(sourceMap[v.FacultyID], v)
+				SpecialtyToDirection[v.SpecialtyID] = append(SpecialtyToDirection[v.SpecialtyID], v)
 			}
 			fmt.Println(teachers)
 			c.JSON(http.StatusOK, gin.H{
-				"teachers":   teachers,
-				"classes":    classes,
-				"faculties":  faculties,
-				"directions": sourceMap,
-				"classrooms": classrooms,
+				"teachers":    teachers,
+				"classes":     classes,
+				"faculties":   faculties,
+				"specialties": facultyToSpecialty,
+				"directions":  SpecialtyToDirection,
+				"classrooms":  classrooms,
 			})
 		}
 	}
@@ -323,14 +330,14 @@ func PostNewClass(db *gorm.DB) func(c *gin.Context) {
 		course.TeacherID, _ = strconv.Atoi(c.PostForm("teacher_id"))
 		course.StartWeek, _ = strconv.Atoi(c.PostForm("start_week"))
 		course.DirectionID, _ = strconv.Atoi(c.PostForm("direction_id"))
+		course.SpecialtyID, _ = strconv.Atoi(c.PostForm("specialty_id"))
 		course.EndWeek, _ = strconv.Atoi(c.PostForm("end_week"))
 		course.ClassroomID, _ = strconv.Atoi(c.PostForm("classroom_id"))
+		course.CopyFlag, _ = strconv.Atoi(c.PostForm("copy_flag"))
 		flag := c.PostForm("flag")
-		if flag == "copy" {
-			course.CopyFlag = true
+		if flag == "copy" || flag == "course" {
 			db.Select("id").Where("course_name = ?", course.CourseName).Last(&courseTemp)
 		} else {
-			course.CopyFlag = false
 			db.Debug().Unscoped().Select("id").Order("id desc").Limit(1).Find(&courseTemp)
 			courseTemp.ID++
 		}
@@ -350,8 +357,8 @@ func PostNewClass(db *gorm.DB) func(c *gin.Context) {
 
 func DeleteClass(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		var id = c.Query("course_id")
-		result := db.Where("id = ?", id).Delete(&Model.Course{})
+		var id = c.Query("record_id")
+		result := db.Where("record_id = ? OR copy_flag = ?", id, id).Delete(&Model.Course{})
 		fmt.Println(result.RowsAffected)
 		c.JSON(http.StatusOK, gin.H{
 			"snackbar": "setSuccess",
@@ -374,8 +381,7 @@ func UploadClass(db *gorm.DB) func(c *gin.Context) {
 		}
 		for _, v := range classes {
 			fmt.Println(v)
-			db.Debug().Updates(&Model.Course{
-				ID:           v.ID,
+			db.Debug().Where("record_id = ?",v.RecordID).Updates(&Model.Course{
 				CourseName:   v.CourseName,
 				Credit:       v.Credit,
 				TeacherID:    v.TeacherID,
@@ -386,6 +392,7 @@ func UploadClass(db *gorm.DB) func(c *gin.Context) {
 				EndTime:      v.EndTime,
 				WeekTime:     v.WeekTime,
 				FacultyID:    v.FacultyID,
+				SpecialtyID:  v.SpecialtyID,
 				DirectionID:  v.DirectionID,
 				StartWeek:    v.StartWeek,
 				EndWeek:      v.EndWeek,
@@ -433,7 +440,7 @@ func OperateApply(db *gorm.DB) func(c *gin.Context) {
 		if result == 1 {
 			apply := &Model.ApplyForCourseChange{}
 			course := &Model.Course{}
-			tempCourse :=&Model.Course{}
+			tempCourse := &Model.Course{}
 			db.Where("id = ?", id).Find(&apply)
 			db.Where("id = ? AND week_time = ? AND ( IF(start_time > ? ,start_time,?)<=IF(end_time<?,end_time,?) )", apply.CourseID, apply.BeforeWeekTime, apply.BeforeStartTime, apply.BeforeStartTime, apply.BeforeEndTime, apply.BeforeEndTime).Find(&course)
 			if course.StartWeek == apply.BeforeStartWeek || course.EndWeek == apply.BeforeEndWeek {
@@ -447,7 +454,7 @@ func OperateApply(db *gorm.DB) func(c *gin.Context) {
 				courseOBJ1 := course
 				courseOBJ1.StartWeek = apply.BeforeEndWeek + 1
 				courseOBJ1.EndWeek = course.EndWeek
-				courseOBJ1.CopyFlag = true
+				courseOBJ1.CopyFlag = course.RecordID
 				db.Debug().Unscoped().Select("record_id").Order("record_id desc").Limit(1).Find(&tempCourse)
 				db.Debug().Model(&Model.Course{}).Where("record_id = ?", course.RecordID).Update("end_week", apply.BeforeStartWeek-1)
 				courseOBJ1.RecordID = tempCourse.RecordID + 1
@@ -456,7 +463,7 @@ func OperateApply(db *gorm.DB) func(c *gin.Context) {
 			courseOBJ2 := course
 			courseOBJ2.StartWeek = apply.AfterStartWeek
 			courseOBJ2.EndWeek = apply.AfterEndWeek
-			courseOBJ2.CopyFlag = true
+			courseOBJ2.CopyFlag = course.RecordID
 			courseOBJ2.WeekTime = apply.AfterWeekTime
 			courseOBJ2.StartTime = apply.AfterStartTime
 			courseOBJ2.EndTime = apply.AfterEndTime
@@ -472,48 +479,62 @@ func OperateApply(db *gorm.DB) func(c *gin.Context) {
 func ValidClassrooms(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		course := &Model.Course{}
-		tempClassrooms := &Model.ClassroomForSelects{}
+		tempClassrooms1 := &Model.ClassroomForSelects{}
+		tempClassrooms2 := &Model.ClassroomForSelects{}
 		classrooms := &Model.ClassroomForSelects{}
-		course.ID,_ = strconv.Atoi(c.PostForm("course_id"))
+		course.ID, _ = strconv.Atoi(c.PostForm("course_id"))
 		course.WeekTime, _ = strconv.Atoi(c.PostForm("week_time"))
 		course.StartTime, _ = strconv.Atoi(c.PostForm("start_time"))
 		course.EndTime, _ = strconv.Atoi(c.PostForm("end_time"))
 		course.StartWeek, _ = strconv.Atoi(c.PostForm("start_week"))
 		course.EndWeek, _ = strconv.Atoi(c.PostForm("end_week"))
 		course.ClassroomID, _ = strconv.Atoi(c.PostForm("classroom_id"))
+		course.TeacherID, _ = strconv.Atoi(c.PostForm("teacher_id"))
+		course.FacultyID, _ = strconv.Atoi(c.PostForm("faculty_id"))
+		course.SpecialtyID, _ = strconv.Atoi(c.PostForm("specialty_id"))
+		course.DirectionID, _ = strconv.Atoi(c.PostForm("direction_id"))
 		timeNode := c.PostForm("time")
 		if timeNode == "after" {
-			db.Debug().Model(&Model.Course{}).Select("courses.classroom_id as id,c.name").Joins("left join classrooms c on c.id = courses.classroom_id").Where("(IF(start_time > ? ,start_time,?)<=IF(end_time<?,end_time,?)) AND (IF(start_week > ? ,start_week,?)<=IF(end_week<?,end_week,?)) AND week_time = ?",course.StartTime,course.StartTime,course.EndTime,course.EndTime,course.StartWeek,course.StartWeek,course.EndWeek,course.EndWeek,course.WeekTime).Group("c.name").Scan(&tempClassrooms)
-			db.Debug().Model(&Model.Classroom{}).Not(tempClassrooms).Scan(&classrooms)
-		}else{
-			db.Debug().Model(&Model.Course{}).Select("courses.classroom_id as id,c.name").Joins("left join classrooms c on c.id = courses.classroom_id").Where(" courses.id = ? AND start_time = ? and end_time = ? AND (IF(start_week > ? ,start_week,?)<=IF(end_week<?,end_week,?)) AND week_time = ?",course.ID,course.StartTime,course.EndTime,course.StartWeek,course.StartWeek,course.EndWeek,course.EndWeek,course.WeekTime).Group("c.name").Scan(&classrooms)
+			if course.DirectionID == 0 && course.SpecialtyID == 0 {
+				db.Debug().Model(&Model.Classroom{}).Where("(select count(1) from courses where (IF(start_time > ? ,start_time,?)<=IF(end_time<?,end_time,?)) AND (IF(start_week > ? ,start_week,?)<=IF(end_week<?,end_week,?)) AND week_time = ? AND (teacher_id = ? OR(faculty_id = ? AND (specialty_id = 0) AND (direction_id = 0)))) > 0", course.StartTime, course.StartTime, course.EndTime, course.EndTime, course.StartWeek, course.StartWeek, course.EndWeek, course.EndWeek, course.WeekTime, course.TeacherID, course.FacultyID).Scan(&tempClassrooms1)
+			} else if course.DirectionID == 0 {
+				db.Debug().Model(&Model.Classroom{}).Where("(select count(1) from courses where (IF(start_time > ? ,start_time,?)<=IF(end_time<?,end_time,?)) AND (IF(start_week > ? ,start_week,?)<=IF(end_week<?,end_week,?)) AND week_time = ? AND (teacher_id = ? OR(faculty_id = ? AND (specialty_id = ? OR specialty_id = 0) AND (direction_id = 0)))) > 0", course.StartTime, course.StartTime, course.EndTime, course.EndTime, course.StartWeek, course.StartWeek, course.EndWeek, course.EndWeek, course.WeekTime, course.TeacherID, course.FacultyID, course.SpecialtyID).Scan(&tempClassrooms1)
+			} else if course.SpecialtyID == 0 {
+				db.Debug().Model(&Model.Classroom{}).Where("(select count(1) from courses where (IF(start_time > ? ,start_time,?)<=IF(end_time<?,end_time,?)) AND (IF(start_week > ? ,start_week,?)<=IF(end_week<?,end_week,?)) AND week_time = ? AND (teacher_id = ? OR(faculty_id = ? AND (specialty_id = 0) AND (direction_id = ? OR direction_id = 0)))) > 0", course.StartTime, course.StartTime, course.EndTime, course.EndTime, course.StartWeek, course.StartWeek, course.EndWeek, course.EndWeek, course.WeekTime, course.TeacherID, course.FacultyID, course.DirectionID).Scan(&tempClassrooms1)
+			} else {
+				db.Debug().Model(&Model.Classroom{}).Where("(select count(1) from courses where (IF(start_time > ? ,start_time,?)<=IF(end_time<?,end_time,?)) AND (IF(start_week > ? ,start_week,?)<=IF(end_week<?,end_week,?)) AND week_time = ? AND (teacher_id = ? OR(faculty_id = ? AND (specialty_id = ? OR specialty_id = 0) AND (direction_id = ? OR direction_id = 0)))) > 0", course.StartTime, course.StartTime, course.EndTime, course.EndTime, course.StartWeek, course.StartWeek, course.EndWeek, course.EndWeek, course.WeekTime, course.TeacherID, course.FacultyID, course.SpecialtyID, course.DirectionID).Scan(&tempClassrooms1)
+			}
+			db.Debug().Model(&Model.Course{}).Select("courses.classroom_id as id,c.name").Joins("left join classrooms c on c.id = courses.classroom_id").Where("(IF(start_time > ? ,start_time,?)<=IF(end_time<?,end_time,?)) AND (IF(start_week > ? ,start_week,?)<=IF(end_week<?,end_week,?)) AND week_time = ?", course.StartTime, course.StartTime, course.EndTime, course.EndTime, course.StartWeek, course.StartWeek, course.EndWeek, course.EndWeek, course.WeekTime).Group("c.name").Scan(&tempClassrooms2)
+			db.Debug().Model(&Model.Classroom{}).Not(tempClassrooms1, tempClassrooms2).Scan(&classrooms)
+		} else {
+			db.Debug().Model(&Model.Course{}).Select("courses.classroom_id as id,c.name").Joins("left join classrooms c on c.id = courses.classroom_id").Where(" courses.id = ? AND start_time = ? and end_time = ? AND (IF(start_week > ? ,start_week,?)<=IF(end_week<?,end_week,?)) AND week_time = ?", course.ID, course.StartTime, course.EndTime, course.StartWeek, course.StartWeek, course.EndWeek, course.EndWeek, course.WeekTime).Group("c.name").Scan(&classrooms)
 		}
-		c.JSON(http.StatusOK,gin.H{
-			"classrooms":classrooms,
+		c.JSON(http.StatusOK, gin.H{
+			"classrooms": classrooms,
 		})
 	}
 }
 
-func GetClassSheet (db *gorm.DB) func(c *gin.Context) {
+func GetClassSheet(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var classSheet [7][14]string
-		courses:= Model.ClassSheets{}
+		courses := Model.ClassSheets{}
 		teacher_id := c.Query("teacher_id")
 		week := c.Query("week")
-		db.Debug().Model(&Model.Course{}).Select("courses.*,t.name as teacher_name,c.name as classroom_name").Joins("left join teachers t on t.id = courses.teacher_id").Joins("left join classrooms c on c.id = courses.classroom_id ").Where("teacher_id = ? AND start_week <= ? AND end_week >= ?",teacher_id,week,week).Scan(&courses)
-		for _,v:=range courses{
-			for i:= v.StartTime;i<=v.EndTime;i++ {
+		db.Debug().Model(&Model.Course{}).Select("courses.*,t.name as teacher_name,c.name as classroom_name").Joins("left join teachers t on t.id = courses.teacher_id").Joins("left join classrooms c on c.id = courses.classroom_id ").Where("teacher_id = ? AND start_week <= ? AND end_week >= ?", teacher_id, week, week).Scan(&courses)
+		for _, v := range courses {
+			for i := v.StartTime; i <= v.EndTime; i++ {
 				week_time := v.WeekTime
 				course_name := v.CourseName
 				course_classroom := v.ClassroomName
 				teacher_name := v.TeacherName
 				start_week := utils.ToString(v.StartWeek)
 				end_week := utils.ToString(v.EndWeek)
-				classSheet[week_time-1][i-1] = course_name+"\n教师："+teacher_name+"\n教室："+course_classroom+"\n第"+start_week+"周-第"+end_week+"周"
+				classSheet[week_time-1][i-1] = course_name + "\n教师：" + teacher_name + "\n教室：" + course_classroom + "\n第" + start_week + "周-第" + end_week + "周"
 			}
 		}
-		c.JSON(http.StatusOK,gin.H{
-			"classSheet":classSheet,
+		c.JSON(http.StatusOK, gin.H{
+			"classSheet": classSheet,
 		})
 	}
 }

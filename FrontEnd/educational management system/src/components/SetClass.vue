@@ -58,7 +58,7 @@
         <template v-slot:item.credit="{ item }">
           <v-text-field
             v-model="item.credit"
-            :disabled="item.copy_flag"
+            :disabled="item.copy_flag > 0"
             :value="item.credit"
             @change="pushing(item)"></v-text-field>
         </template>
@@ -95,15 +95,24 @@
             :items="faculties"
             item-text="name"
             item-value="id"
+            @change="pushing(item,'')"
+          ></v-select>
+        </template>
+        <template v-slot:item.specialties="{ item }">
+          <v-select
+            v-model="item.specialty_id"
+            :items="specialties[item.faculty_id]"
+            item-text="specialty_name"
+            item-value="specialty_id"
             @change="pushing(item)"
           ></v-select>
         </template>
         <template v-slot:item.directions="{ item }">
           <v-select
             v-model="item.direction_id"
-            :items="directions[item.faculty_id]"
-            item-text="name"
-            item-value="value"
+            :items="directions[item.specialty_id]"
+            item-text="direction_name"
+            item-value="direction_id"
             @change="pushing(item)"
           ></v-select>
         </template>
@@ -128,23 +137,54 @@
         <template v-slot:item.operation="{ item }">
           <v-tooltip v-if="$store.state.level===2||true" bottom>
             <template v-slot:activator="{ on,attrs }">
-              <v-btn icon color="error" v-bind="attrs" v-on="on" x-large @click="dialog = true ;selectId = item.course_id;" :disabled="item.copy_flag">
+              <v-btn
+                icon
+                color="error"
+                v-bind="attrs"
+                v-on="on"
+                x-large
+                @click="dialog = true ;selectRecordID = item.record_id;"
+                :disabled="item.copy_flag > 0">
                 <v-icon>
                   mdi-delete
                 </v-icon>
               </v-btn>
             </template>
-            <span>删除作业</span>
+            <span>删除课程</span>
           </v-tooltip>
           <v-tooltip v-if="$store.state.level===2||true" bottom>
             <template v-slot:activator="{ on,attrs }">
-              <v-btn icon color="primary" v-bind="attrs" v-on="on" x-large @click="copyClass(item)" :disabled="item.copy_flag">
+              <v-btn
+                icon
+                color="primary"
+                v-bind="attrs"
+                v-on="on"
+                x-large
+                @click="copyClass(item)"
+                :disabled="item.copy_flag > 0">
                 <v-icon>
                   mdi-plus-thick
                 </v-icon>
               </v-btn>
             </template>
             <span>添加当周课程</span>
+          </v-tooltip>
+          <v-tooltip v-if="$store.state.level===2||true" bottom>
+            <template v-slot:activator="{ on,attrs }">
+              <v-btn
+                icon
+                color="primary"
+                v-bind="attrs"
+                v-on="on"
+                x-large
+                @click="copyCourse(item)"
+                :disabled="item.copy_flag > 0">
+                <v-icon>
+                  mdi-plus-thick
+                </v-icon>
+              </v-btn>
+            </template>
+            <span>添加班级</span>
           </v-tooltip>
         </template>
       </v-data-table>
@@ -162,7 +202,7 @@
               class="font-weight-bold"
               color="green darken-1"
               text
-              @click="deleteClass(selectId)"
+              @click="deleteClass(selectRecordID)"
             >
               是
             </v-btn>
@@ -185,24 +225,35 @@
           </v-card-title>
           <v-card-text class="font-weight-bold">
             <v-row class="mt-2">
+              <v-select
+                :disabled="newClass.week_time == null || newClass.start_time == null || newClass.end_time == null || newClass.start_week == null || newClass.end_week == null||newClass.faculty_id == null|| newClass.specialty_id == null||newClass.direction_id == null"
+                @click="validClassrooms()"
+                class="col-12"
+                v-model="newClass.classroom_id"
+                :items="valClassrooms"
+                item-text="name"
+                item-value="value"
+                outlined
+                label="上课教室"
+              ></v-select>
               <v-text-field
                 outlined
                 label="科目名称"
                 v-model="newClass.course_name"
-                :disabled="copyFlag"
+                :disabled="copyFlag||copyCourseFlag"
                 class="col-4"></v-text-field>
               <v-text-field
                 class="col-4"
                 outlined
                 label="学分"
                 v-model="newClass.credit"
-                :disabled="copyFlag"></v-text-field>
+                :disabled="copyFlag||copyCourseFlag"></v-text-field>
               <v-text-field
                 class="col-4"
                 outlined
                 label="最大人数"
                 v-model="newClass.max_choose_num"
-                :disabled="copyFlag"></v-text-field>
+                :disabled="copyFlag||copyCourseFlag"></v-text-field>
               <v-select
                 @change="valClassrooms"
                 class="col-4"
@@ -240,17 +291,6 @@
                 label="教师"
                 :disabled="copyFlag"></v-select>
               <v-select
-                :disabled="this.newClass.week_time == null || this.newClass.start_time == null || this.newClass.end_time == null || this.newClass.start_week == null || this.newClass.end_week == null"
-                @click="validClassrooms()"
-                class="col-4"
-                v-model="newClass.classroom_id"
-                :items="valClassrooms"
-                item-text="name"
-                item-value="value"
-                outlined
-                label="上课教室"
-              ></v-select>
-              <v-select
                 @change="valClassrooms"
                 class="col-4"
                 outlined
@@ -276,16 +316,26 @@
                 item-text="name"
                 item-value="id"
                 label="学生所属学院"
-                :disabled="copyFlag"></v-select>
+                :disabled="copyFlag||copyCourseFlag"></v-select>
+              <v-select
+                class="col-4"
+                outlined
+                v-model="newClass.specialty_id"
+                :items="specialties[newClass.faculty_id]"
+                item-text="specialty_name"
+                item-value="specialty_id"
+                label="学生所属专业"
+                :disabled="copyFlag||copyCourseFlag||newClass.faculty_id ==  null"></v-select>
               <v-select
                 class="col-4"
                 outlined
                 v-model="newClass.direction_id"
-                :items="directions[newClass.faculty_id]"
-                item-text="name"
-                item-value="value"
+                :items="directions[newClass.specialty_id]"
+                item-text="direction_name"
+                item-value="direction_id"
                 label="学生所属方向"
-                :disabled="copyFlag"></v-select>
+                :disabled="copyFlag||copyCourseFlag||newClass.faculty_id == null|| newClass.specialty_id == null"></v-select>
+
             </v-row>
           </v-card-text>
           <v-card-actions>
@@ -303,7 +353,7 @@
               class="font-weight-bold"
               color="green darken-1"
               text
-              @click="addClass = false"
+              @click="addClass = false;copyCourseFlag = false;copyFlag = false;newClass = {}"
             >
               取消
             </v-btn>
@@ -332,6 +382,7 @@ export default {
         {text: '开始周', sortable: false, value: 'startWeek'},
         {text: '结束周', sortable: false, value: 'endWeek'},
         {text: '学生所属学院', sortable: false, value: 'faculties'},
+        {text: '学生所属专业', sortable: false, value: 'specialties'},
         {text: '学生所属方向', sortable: false, value: 'directions'},
         {text: '操作', sortable: false,value: 'operation'}
       ],
@@ -404,6 +455,7 @@ export default {
       classrooms: [],
       valClassrooms:[],
       faculties: [],
+      specialties:[],
       directions: [],
       addClass: false,
       newClass: {},
@@ -413,6 +465,8 @@ export default {
       uploadFlag:true,
       copyFlag:false,
       str:'',
+      copyCourseFlag:false,
+      selectRecordID:null,
     }
   },
   created() {
@@ -427,6 +481,7 @@ export default {
       this.classes = response.data.classes
       this.teachers = response.data.teachers
       this.classrooms = response.data.classrooms
+      this.specialties = response.data.specialties
       this.directions = response.data.directions
       this.faculties = response.data.faculties
       console.log(response)
@@ -434,20 +489,36 @@ export default {
   },
   components: {},
   methods: {
-    copyClass(classOBJ){
-      this.copyFlag = true
+    copyCourse(classOBJ){ //复制班级
+      this.copyCourseFlag = true
       this.addClass = true
       this.selectId = classOBJ.course_id
       this.newClass.course_name = classOBJ.course_name
       this.newClass.credit = classOBJ.credit
       this.newClass.max_choose_num = classOBJ.max_choose_num
+      this.newClass.faculty_id = classOBJ.faculty_id
+      this.newClass.specialty_id = classOBJ.specialty_id
+      this.newClass.direction_id = classOBJ.direction_id
+      this.str = 'course'
+    },
+    copyClass(classOBJ){
+      this.copyFlag = true
+      this.addClass = true
+      this.selectId = classOBJ.course_id
+      this.selectRecordID = classOBJ.record_id
+      this.newClass.course_name = classOBJ.course_name
+      this.newClass.credit = classOBJ.credit
+      this.newClass.max_choose_num = classOBJ.max_choose_num
       this.newClass.teacher_id = classOBJ.teacher_id
       this.newClass.faculty_id = classOBJ.faculty_id
+      this.newClass.specialty_id = classOBJ.specialty_id
       this.newClass.direction_id = classOBJ.direction_id
       this.str = 'copy'
     },
     submitNewClass(){
       const formData = new FormData()
+      if(this.str === 'copy') {this.$set(this.newClass,"copy_flag",this.selectRecordID);}
+      else this.$set(this.newClass,"copy_flag",0);
       formData.append("name",this.newClass.course_name)
       formData.append("credit",this.newClass.credit)
       formData.append("max_choose_num",this.newClass.max_choose_num)
@@ -459,9 +530,10 @@ export default {
       formData.append("end_week",this.newClass.end_week)
       formData.append("faculty_id",this.newClass.faculty_id)
       formData.append("classroom_id",this.newClass.classroom_id)
+      formData.append("specialty_id",this.newClass.specialty_id)
       formData.append("direction_id",this.newClass.direction_id)
+      formData.append("copy_flag",this.newClass.copy_flag)
       formData.append("flag",this.str)
-      if(this.str === 'copy') this.$set(this.newClass,"copy_flag",true);
       this.str = ''
       this.$axios({
         method:"post",
@@ -475,24 +547,25 @@ export default {
         this.$store.commit(response.data.snackbar,response.data.msg)
         this.addClass = false
         this.copyFlag = false
+        this.copyCourseFlag = false
         if (response.data.snackbar === 'setSuccess') {this.classes.push(this.newClass);this.newClass = {};console.log(this.classes)}
       })
     },
-    deleteClass(id){
+    deleteClass(RecordID){
       this.dialog = false
       this.$axios({
         method: "DELETE",
-        url: "http://127.0.0.1:9000/deleteClass?course_id=" + id,
+        url: "http://127.0.0.1:9000/deleteClass?record_id=" + RecordID,
       }).then((response) => {
         for (let i = 0 ;i<this.changedClasses.length;i++){
-          if(this.changedClasses[i].course_id === id ) {
+          if(this.changedClasses[i].record_id === RecordID || this.changedClasses[i].copy_flag === RecordID) {
             this.changedClasses.splice(i,1);
             i--
           }
         }
         if (this.changedClasses.length === 0) this.uploadFlag = true
         for (let i = 0 ;i<this.classes.length;i++){
-          if(this.classes[i].course_id === id ) {
+          if(this.classes[i].record_id === RecordID || this.classes[i].copy_flag === RecordID) {
             this.classes.splice(i,1);
             i--
           }
@@ -512,7 +585,7 @@ export default {
       })
       console.log(this.classes)
     },
-    pushing(classOBJ){
+    pushing(classOBJ,str){
       var flag = true
       this.changedClasses.some((item,i)=>{
         if(item.record_id === classOBJ.record_id){
@@ -520,16 +593,19 @@ export default {
           this.changedClasses.splice(i,1,item)
         }
       })
-      this.classes.forEach((item,i)=>{
-        if(item.course_id === classOBJ.course_id){
-          if (item.credit !== classOBJ.credit){
-            item.credit = classOBJ.credit
-            this.changedClasses.push(item)
+      if(str !== 'recursion'){
+        this.classes.forEach((item,i)=>{
+          if(item.copy_flag === classOBJ.record_id){
+            if (item.credit !== classOBJ.credit){
+              item.credit = classOBJ.credit
+              this.pushing(item,'recursion')
+            }
           }
-        }
-      })
+        })
+      }
       if (flag) this.changedClasses.push(classOBJ)
       this.uploadFlag = false
+      console.log(this.changedClasses)
     },
     validClassrooms(){
       if (this.newClass.week_time == null || this.newClass.start_time == null || this.newClass.end_time == null || this.newClass.start_week == null || this.newClass.end_week == null) return
@@ -541,6 +617,10 @@ export default {
       formdata.append('start_week', this.newClass.start_week)
       formdata.append('end_week', this.newClass.end_week)
       formdata.append('classroom_id', this.newClass.classroom_id)
+      formdata.append('teacher_id', this.newClass.teacher_id)
+      formdata.append('faculty_id',this.newClass.faculty_id)
+      formdata.append('direction_id',this.newClass.direction_id)
+      formdata.append('specialty_id',this.newClass.specialty_id)
       formdata.append('time', "after")
       this.$axios({
         method: "post",
