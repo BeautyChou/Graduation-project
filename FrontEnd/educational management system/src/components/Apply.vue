@@ -189,6 +189,9 @@ export default {
         {name: "第九节", value: 9},
         {name: "第十节", value: 10},
         {name: "第十一节", value: 11},
+        {name: "第十二节", value: 12},
+        {name: "第十三节", value: 13},
+        {name: "第十四节", value: 14},
       ],
       end_time: [
         {name: "第一节", value: 1},
@@ -202,6 +205,9 @@ export default {
         {name: "第九节", value: 9},
         {name: "第十节", value: 10},
         {name: "第十一节", value: 11},
+        {name: "第十二节", value: 12},
+        {name: "第十三节", value: 13},
+        {name: "第十四节", value: 14},
       ],
       weeks: [
         {name: "第一周", value: 1},
@@ -283,6 +289,7 @@ export default {
     }).then((response) => {
       this.classrooms = response.data.classrooms
       this.applies = response.data.applies
+      console.log(response)
     })
   }
 }

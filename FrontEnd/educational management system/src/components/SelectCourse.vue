@@ -50,7 +50,8 @@
               item-text="name"
               item-value="value"
               label="起始节次"
-              class="col-4"></v-select>
+              class="col-4"
+              prop="start_time"></v-select>
             <v-select
               outlined
               @change="validBeforeClassrooms"
@@ -159,7 +160,7 @@
             color="green darken-1"
             text
             @click="submitApplyForClassChange()"
-            :disabled="this.apply.before_classroom_id==null||this.apply.after_classroom_id==null||this.apply.reason==null"
+            :disabled="(this.apply.before_classroom_id==null||this.apply.after_classroom_id==null||this.apply.reason==null)&&!(this.apply.before_end_time-this.apply.before_start_time === this.apply.after_end_time-this.apply.after_start_time)&&!(this.apply.before_end_week-this.apply.before_start_week === this.apply.after_end_week-this.apply.after_start_week)"
           >
             提交
           </v-btn>
@@ -262,8 +263,18 @@ export default {
       faculties: [],
       directions: [],
       apply: {
-        'before_classroom_id':null,
-        'after_classroom_id':null,
+        'after_end_time':null,
+        'after_end_week':null,
+        'after_start_week':null,
+        'after_start_time':null,
+        'after_week_time':null,
+        'before_end_week':null,
+        'before_start_week':null,
+        'before_end_time':null,
+        'before_start_time':null,
+        'before_week_time':null,
+        'before_classroom_id': null,
+        'after_classroom_id': null,
       },
       beforeClass: {},
       afterClass: {},
@@ -364,8 +375,10 @@ export default {
       formdata.append('start_week', this.apply.after_start_week)
       formdata.append('end_week', this.apply.after_end_week)
       formdata.append('classroom_id', this.apply.after_classroom_id)
-      formdata.append('time', "after")
-      this.$axios({
+      formdata.append('time', "applyAfter")
+      console.log(this.apply.before_week_time, this.apply.after_week_time , this.apply.before_start_time, this.apply.after_start_time)
+      if (this.apply.before_week_time === this.apply.after_week_time && this.apply.before_start_week< this.apply.after_start_week) formdata.append('flag',"not")
+        this.$axios({
         method: "post",
         url: "http://127.0.0.1:9000/validClassrooms",
         data: formdata,

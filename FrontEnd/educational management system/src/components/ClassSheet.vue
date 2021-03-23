@@ -1,7 +1,40 @@
 <template>
   <div>
     <v-card>
-      <v-card-title>选择课程</v-card-title>
+      <v-card-title>课程表</v-card-title>
+
+      <v-slide-group
+        v-model="weekNum"
+        class="pa-4"
+        center-active
+        show-arrows
+        mandatory
+        @change="refreshClassSheet"
+      >
+        <v-slide-item
+          v-for="n in 20"
+          :key="n"
+          v-slot="{ active, toggle }"
+        >
+          <v-card
+            :color="active ? 'green lighten-1' : 'grey lighten-1'"
+            class="ma-4 "
+            height="75"
+            width="100"
+            @click="toggle"
+          >
+            <v-row
+              class="my-auto"
+              align="center"
+              justify="center"
+            >
+              <v-card-title >第{{n}}周</v-card-title>
+
+            </v-row>
+          </v-card>
+        </v-slide-item>
+      </v-slide-group>
+
       <div id="coursesTable" class="text-center font-weight-bold"></div>
       <v-dialog v-model="classInfo" width="500">
         <v-card>
@@ -26,7 +59,7 @@ export default {
   mounted() {
     this.$axios({
       method:"GET",
-      url:"http://127.0.0.1:9000/getClassSheet?teacher_id="+2+"&week="+5
+      url:"http://127.0.0.1:9000/getClassSheet?teacher_id="+this.$store.state.teacherId+"&week="+this.weekNum +1
     }).then((response)=>{
       this.timetables = response.data.classSheet
       this.timetable = new Timetables({
@@ -74,8 +107,31 @@ export default {
         Gheight: 50,
         leftHandWidth: 50,
       },
+      weekNum:null,
     }
   },
+  methods:{
+    refreshClassSheet(){
+      this.$axios({
+        method:"GET",
+        url:"http://127.0.0.1:9000/getClassSheet?teacher_id="+this.$store.state.teacherId+"&week="+(this.weekNum+1)
+      }).then((response)=>{
+        this.timetables = response.data.classSheet
+        this.timetable.setOption({
+          timetables:this.timetables,
+          week:this.week,
+          timetableType: this.timetableType,
+          gridOnClick:  (e)=> {
+            this.classInfo = true
+            var reg = new RegExp("\n", "g")
+            e.name = e.name.replace(reg, "<br/>")
+            console.log(e.name)
+            this.msg = e.name + '<br/>' + e.week + '<br/> 第' + e.index + '节课<br/> 课长' + e.length + '节'
+          },
+        })
+      })
+    }
+  }
 }
 </script>
 
