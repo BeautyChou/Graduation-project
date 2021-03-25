@@ -19,8 +19,24 @@ export default new Vuex.Store({
     errorMsg: null,
     modifyHomeworkFlag: false,
     refreshFlag: 0,
+    recordId:null,
+    facultyId:1,
+    specialtyId:1,
+    directionId:0,
   },
   mutations: {
+    setFacultyId(state,facultyID){
+      state.facultyId = facultyID
+    },
+    setSpecialtyId(state,specialtyID){
+      state.specialtyId = specialtyID
+    },
+    setDirectionId(state,directionID){
+      state.directionId = directionID
+    },
+    setRecordId(state,recordId){
+      state.recordId = recordId
+    },
     setJwt(state, str) {
       state.Jwt = str
     },
@@ -62,7 +78,7 @@ export default new Vuex.Store({
       state.refreshFlag++
     },
     nextPage(state) {
-      state.refreshFlag = 0
+      state.refreshFlag = 1
     },
     setLevel(state,level) {
       if (state.level === level) ++state.refreshFlag

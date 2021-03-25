@@ -117,7 +117,7 @@ func GetCourseList(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var teacherId = c.Query("teacher_id")
 		var courses Model.CourseForSelects
-		db.Model(&Model.Course{}).Select("courses.id,course_name,credit,teacher_id,classroom_id,max_choose_num,selected_num,start_time,end_time,name").Joins("right join teachers on courses.teacher_id = teachers.id").Where("teacher_id = ?", teacherId).Group("course_name").Scan(&courses)
+		db.Model(&Model.Course{}).Select("courses.id,course_name,credit,teacher_id,classroom_id,max_choose_num,selected_num,start_time,end_time,name,courses.record_id").Joins("right join teachers on courses.teacher_id = teachers.id").Where("teacher_id = ?", teacherId).Group("course_name").Scan(&courses)
 		c.JSON(http.StatusOK, gin.H{
 			"courses": courses,
 		})
@@ -420,8 +420,8 @@ func GetApply(db *gorm.DB) func(c *gin.Context) {
 		db.Find(&[]Model.Classroom{}).Scan(&classrooms)
 		applies := &Model.Applies{}
 		if level < 3 {
-			teacher_id := c.Query("teacher_id")
-			db.Model(&Model.ApplyForCourseChange{}).Select("apply_for_course_changes.*,t.name,c2.course_name").Joins("left join teachers t on t.id = apply_for_course_changes.teacher_id left join courses c2 on apply_for_course_changes.course_id = c2.id ").Where("c2.copy_flag = 0 AND c.teacher_id = ?", teacher_id).Scan(&applies)
+			teacherId := c.Query("teacher_id")
+			db.Model(&Model.ApplyForCourseChange{}).Select("apply_for_course_changes.*,t.name,c2.course_name").Joins("left join teachers t on t.id = apply_for_course_changes.teacher_id left join courses c2 on apply_for_course_changes.course_id = c2.id ").Where("c2.copy_flag = 0 AND c.teacher_id = ?", teacherId).Scan(&applies)
 		} else {
 			db.Model(&Model.ApplyForCourseChange{}).Select("apply_for_course_changes.*,t.name,c2.course_name").Joins("left join teachers t on t.id = apply_for_course_changes.teacher_id left join courses c2 on apply_for_course_changes.course_id = c2.id ").Where("copy_flag = 0").Group("apply_for_course_changes.id").Scan(&applies)
 		}
@@ -555,22 +555,44 @@ func GetClassSheet(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var classSheet [7][14]string
 		courses := Model.ClassSheets{}
-		teacher_id := c.Query("teacher_id")
+		teacherId := c.Query("teacher_id")
 		week := c.Query("week")
-		db.Debug().Model(&Model.Course{}).Select("courses.*,t.name as teacher_name,c.name as classroom_name").Joins("left join teachers t on t.id = courses.teacher_id").Joins("left join classrooms c on c.id = courses.classroom_id ").Where("teacher_id = ? AND start_week <= ? AND end_week >= ?", teacher_id, week, week).Scan(&courses)
+		db.Debug().Model(&Model.Course{}).Select("courses.*,t.name as teacher_name,c.name as classroom_name").Joins("left join teachers t on t.id = courses.teacher_id").Joins("left join classrooms c on c.id = courses.classroom_id ").Where("teacher_id = ? AND start_week <= ? AND end_week >= ?", teacherId, week, week).Scan(&courses)
 		for _, v := range courses {
 			for i := v.StartTime; i <= v.EndTime; i++ {
-				week_time := v.WeekTime
-				course_name := v.CourseName
-				course_classroom := v.ClassroomName
-				teacher_name := v.TeacherName
-				start_week := utils.ToString(v.StartWeek)
-				end_week := utils.ToString(v.EndWeek)
-				classSheet[week_time-1][i-1] = course_name + "\n教师：" + teacher_name + "\n教室：" + course_classroom + "\n第" + start_week + "周-第" + end_week + "周"
+				weekTime := v.WeekTime
+				courseName := v.CourseName
+				courseClassroom := v.ClassroomName
+				teacherName := v.TeacherName
+				startWeek := utils.ToString(v.StartWeek)
+				endWeek := utils.ToString(v.EndWeek)
+				classSheet[weekTime-1][i-1] = courseName + "\n教师：" + teacherName + "\n教室：" + courseClassroom + "\n第" + startWeek + "周-第" + endWeek + "周"
 			}
 		}
 		c.JSON(http.StatusOK, gin.H{
 			"classSheet": classSheet,
+		})
+	}
+}
+
+func GetAvailableCourses(db *gorm.DB) func(c *gin.Context){
+	return func(c *gin.Context) {
+		studentId := c.Query("student_id")
+		facultyId := c.Query("faculty_id")
+		directionId:= c.Query("direction_id")
+		specialtyId := c.Query("specialty_id")
+		courses := &Model.CourseForChooses{}
+		tempCourses := &Model.CourseForSelects{}
+		db.Model(&Model.Student2Course{}).Select("course_id").Where("student_id = ?", studentId).Scan(&tempCourses)
+		if directionId == "0" {
+			db.Debug().Table("(?) as F",db.Model(&Model.Student2Course{}).Select("student2_courses.record_id,count(student2_courses.record_id) as selected_num").Group("record_id")).Select("F.*,c.*,t.*,F.selected_num selected_num").Joins("left join courses c on c.record_id = F.record_id").Joins("left join teachers t on t.id = c.teacher_id").Where("c.deleted_at is null AND (c.faculty_id = ? OR c.faculty_id = 0) AND (c.direction_id = 0) AND (c.specialty_id = ? OR c.specialty_id = 0) AND copy_flag = 0",facultyId,specialtyId).Not(tempCourses).Scan(&courses)
+			//db.Debug().Raw("select * from (select student2_courses.record_id,count(student2_courses.record_id) from student2_courses group by record_id) F left join courses c on c.record_id = F.record_id where deleted_at is null AND (faculty_id = ? OR faculty_id = 0) AND (direction_id = 0) AND (specialty_id = ? OR specialty_id = 0) AND copy_flag = 0",facultyId,specialtyId).Joins("left join teachers on teachers.teacher_id = courses.teacher_id").Joins("left join teachers on teachers.teacher_id = courses.teacher_id").Not(tempCourses).Scan(&courses)
+		}else {
+			db.Debug().Table("(?) as F",db.Model(&Model.Student2Course{}).Select("student2_courses.record_id,count(student2_courses.record_id) as selected_num").Group("record_id")).Select("F.*,c.*,t.*,F.selected_num selected_num").Joins("left join courses c on c.record_id = F.record_id").Joins("left join teachers t on t.id = c.teacher_id").Where("c.deleted_at is null AND (c.faculty_id = ? OR c.faculty_id = 0) AND (c.direction_id = 0 OR direction_id = ? ) AND (c.specialty_id = ? OR c.specialty_id = 0) AND copy_flag = 0",facultyId,directionId,specialtyId).Not(tempCourses).Scan(&courses)
+			//db.Debug().Raw("select * from (select student2_courses.record_id,count(student2_courses.record_id) from student2_courses group by record_id) F left join courses c on c.record_id = F.record_id where deleted_at is null AND (faculty_id = ? OR faculty_id = 0) AND (direction_id = 0 OR direction_id = ? ) AND (specialty_id = ? OR direction_id = 0) AND copy_flag = 0",facultyId,directionId,specialtyId).Joins("left join teachers on teachers.teacher_id = courses.teacher_id").Not(tempCourses).Scan(&courses)
+		}
+		c.JSON(http.StatusOK,gin.H{
+			"courses":courses,
 		})
 	}
 }

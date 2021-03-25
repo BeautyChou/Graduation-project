@@ -71,6 +71,13 @@
               </router-link>
             </v-list-item-content>
           </v-list-item>
+          <v-list-item>
+            <v-list-item-content>
+              <router-link to="/ChooseCourse">
+                <v-list-item-title>选课</v-list-item-title>
+              </router-link>
+            </v-list-item-content>
+          </v-list-item>
 
         </v-list>
       </v-navigation-drawer>
@@ -103,6 +110,7 @@ import Canvas from "./components/Canvas";
 import ClassSheet from "./components/SetClass";
 import SelectCourse from "./components/SelectCourse";
 import SelectHomework from "./components/SelectHomework";
+import ChooseCourse from "./components/ChooseCourse";
 
 export default {
   name: 'App',
@@ -112,8 +120,8 @@ export default {
     Canvas,
     ClassSheet,
     SelectCourse,
-    SelectHomework
-
+    SelectHomework,
+    ChooseCourse
   },
 
   data: () => ({

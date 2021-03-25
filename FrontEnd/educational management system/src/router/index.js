@@ -11,6 +11,7 @@ import SubmitHomework from "../components/SubmitHomework";
 import CheckReview from "../components/CheckReview";
 import Apply from "../components/Apply";
 import ClassSheet from "../components/ClassSheet";
+import ChooseCourse from "../components/ChooseCourse";
 
 Vue.use(Router)
 
@@ -78,6 +79,11 @@ export default new Router({
       path:'/ClassSheet',
       name:'ClassSheet',
       component:ClassSheet,
+    },
+    {
+      path:'/ChooseCourse',
+      name:'ChooseCourse',
+      component:ChooseCourse,
     },
   ]
 })

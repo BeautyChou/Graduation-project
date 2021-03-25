@@ -29,7 +29,7 @@
         </div>
       </template>
       <template v-slot:item.operation="{ item }">
-        <v-tooltip v-if="$store.state.level===2||true" bottom>
+        <v-tooltip v-if="($store.state.level===2||true)&&noHomeworkFlag" bottom>
           <template v-slot:activator="{ on,attrs }">
             <v-btn
               icon
@@ -38,7 +38,7 @@
               v-on="on"
               to="/canvas"
               @click.native="$store.commit('setHomeworkId',item.id)"
-              :disabled=" time < item.DeadLine && false"
+              :disabled=" time < item.DeadLine "
               x-large>
               <v-icon>
                 mdi-check-bold
@@ -47,9 +47,17 @@
           </template>
           <span>批改作业</span>
         </v-tooltip>
-        <v-tooltip v-if="$store.state.level===2||true" bottom>
+        <v-tooltip v-if="($store.state.level===2||true)&&noHomeworkFlag" bottom>
           <template v-slot:activator="{ on,attrs }">
-            <v-btn icon color="primary" v-bind="attrs" v-on="on" x-large to="/AddHomework"  @click.native="$store.commit('setHomeworkId',item.id);$store.commit('modifyHomework')">
+            <v-btn
+              icon
+              color="primary"
+              v-bind="attrs"
+              v-on="on"
+              x-large
+              to="/AddHomework"
+              @click.native="$store.commit('setHomeworkId',item.id);$store.commit('modifyHomework')"
+            >
               <v-icon>
                 mdi-text-box-search-outline
               </v-icon>
@@ -58,7 +66,7 @@
           <span>查看作业内容</span>
         </v-tooltip>
 
-        <v-tooltip v-if="$store.state.level===2||true" bottom>
+        <v-tooltip v-if="($store.state.level===2||true)&&noHomeworkFlag" bottom>
           <template v-slot:activator="{ on,attrs }">
             <v-btn icon color="error" v-bind="attrs" v-on="on" x-large @click="dialog=true;selectId = item.id">
               <v-icon>
@@ -68,7 +76,7 @@
           </template>
           <span>删除作业</span>
         </v-tooltip>
-        <v-dialog v-if="$store.state.level===2||true" v-model="dialog" width="500" persistent>
+        <v-dialog v-if="($store.state.level===2||true)&&noHomeworkFlag" v-model="dialog" width="500" persistent>
           <v-card>
             <v-card-title class="headline font-weight-bold">
               警告!
@@ -99,7 +107,7 @@
 
         </v-dialog>
 
-        <v-tooltip v-if="$store.state.level===1||true" bottom>
+        <v-tooltip v-if="($store.state.level===1||true)&&noHomeworkFlag" bottom>
           <template v-slot:activator="{ on,attrs }">
             <v-btn
               icon
@@ -117,7 +125,7 @@
           </template>
           <span>写作业</span>
         </v-tooltip>
-        <v-tooltip v-if="$store.state.level===1||true" bottom>
+        <v-tooltip v-if="($store.state.level===1||true)&&noHomeworkFlag" bottom>
           <template v-slot:activator="{ on,attrs }">
             <v-btn
               icon
@@ -149,7 +157,8 @@ export default {
       alert: false,
       dialog: false,
       time: null,
-      homeworks: [],
+      homeworkBackup:[{'homework_title':'暂时还没有布置作业'}],
+      homeworks: [{}],
       headers: [
         {text: '作业名', align: 'start', sortable: false, value: 'homework_title'},
         {text: '截止时间', sortable: false, value: 'DeadLine'},
@@ -157,6 +166,7 @@ export default {
         {text: '操作', sortable: false, value: 'operation'},
       ],
       loadingFlag: true,
+      noHomeworkFlag:true,
     }
   },
   methods: {
@@ -185,7 +195,11 @@ export default {
             'course_id': newValue,
           }
         }).then((response) => {
-          this.homeworks = response.data.homeworks
+          if (response.data.homeworks === null) {
+            this.homeworks = this.homeworkBackup
+            this.noHomeworkFlag = false
+          }
+          else this.homeworks = response.data.homeworks
           this.time = response.data.time
           this.loadingFlag = false
           console.log('1',response)
@@ -203,7 +217,12 @@ export default {
               'course_id': this.$store.state.courseId,
             }
           }).then((response) => {
-            this.homeworks = response.data.homeworks
+            if (response.data.homeworks === null) {
+              this.homeworks = this.homeworkBackup
+              this.noHomeworkFlag = false
+            }
+            else this.homeworks = response.data.homeworks
+
             this.time = response.data.time
             this.loadingFlag = false
             this.$store.commit('nextPage')

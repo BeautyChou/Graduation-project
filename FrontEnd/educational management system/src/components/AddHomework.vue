@@ -272,6 +272,7 @@ export default {
           this.questions[i].deadline = this.deadlineDate + 'T' + this.deadlineTime + ':00+08:00'
           this.questions[i].homework_title = this.homeworkTitle
           this.questions[i].course_id = this.$store.state.courseId
+          this.questions[i].record_id = this.$store.state.recordId
         }
         var questions = JSON.stringify(this.questions)
         this.$axios({

@@ -8,7 +8,7 @@
       class="elevation-1"
     >
       <template v-slot:item.course_name="{ item }">
-        <router-link to="/SelectHomework" @click.native="$store.commit('setCourseId',item.course_id)">
+        <router-link to="/SelectHomework" @click.native="$store.commit('setCourseId',item.course_id);$store.commit('setRecordId',item.record_id)">
           {{ item.course_name }}
         </router-link>
       </template>

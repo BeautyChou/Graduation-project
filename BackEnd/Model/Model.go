@@ -154,6 +154,7 @@ type HomeworkUploadRecord struct {
 	Homework   Homework       `gorm:"ForeignKey:HomeworkID;-"`
 	HomeworkID int            `json:"homework_id" gorm:"primary_Key;" sql:"type:INT(11) NOT NULL"` // 课程号
 	QuestionID int            `json:"question_id" gorm:"primary_Key;" sql:"type:INT(11) NOT NULL"` // 课程号
+	RecordID   int            `json:"record_id" gorm:"primary_key"`                                // 记录id
 	Question   Question       `gorm:"ForeignKey:QuestionID;-"`
 	StudentID  int            `json:"student_id" gorm:"primary_Key;" sql:"type:INT(11) NOT NULL"`
 	Student    Student        `gorm:"ForeignKey:StudentNumber;-"`
@@ -174,6 +175,7 @@ type Homework struct {
 	CourseID         int            `json:"course_id" gorm:"primary_Key;" sql:"type:INT(11) NOT NULL"`
 	Course           Course         `gorm:"ForeignKey:CourseID;-"`
 	HomeworkTitle    string         `json:"homework_title" gorm:"size:190"`
+	RecordID         int            `json:"record_id" gorm:"primary_key"` // 记录id
 }
 
 type Question struct {
@@ -205,6 +207,7 @@ type HomeworkUploadRecordsForSelect struct {
 	Content          string `json:"content" gorm:"primary_Key;uniqueIndex:content;"`
 	QuestionMaxScore int    `json:"question_max_score" gorm:"uniqueIndex:question_max_score;" sql:"type:INT(11) NOT NULL"`
 	HomeworkTitle    string `json:"homework_title" gorm:"uniqueIndex:homework_title"`
+	RecordID         int    `json:"record_id" gorm:"primary_key"` // 记录id
 }
 
 type HomeworkForSelect struct {
@@ -214,27 +217,28 @@ type HomeworkForSelect struct {
 	DeadLine         time.Time
 	CourseID         int    `json:"course_id" gorm:"primary_Key;uniqueIndex:question_id;" sql:"type:INT(11) NOT NULL"`
 	HomeworkTitle    string `json:"homework_title" gorm:"uniqueIndex:homework_title"`
+	RecordID         int    `json:"record_id" gorm:"primary_key"` // 记录id
 }
 
 type CourseForSelect struct {
-	RecordID     int                  `json:"record_id" gorm:"primary_key"` // 记录id
-	ID           int                  `json:"course_id" gorm:"primary_key;"`
-	CourseName   string               `json:"course_name" gorm:"type:varchar(60);not null;"`             // 课程名
-	Credit       string               `json:"credit" gorm:"type:varchar(50);"`                           // 学分
-	TeacherID    int                  `json:"teacher_id" gorm:"type:int(11);not null;index:teacher_id;"` // 教师ID
-	ClassroomID  int                  `json:"classroom_id" gorm:"type:int(11);index:classroom_id;"`      // 教室号
-	MaxChooseNum int                  `json:"max_choose_num" gorm:"type:int(11);not null;"`              // 最大可选课人数
-	SelectedNum  int                  `json:"selected_num" gorm:"type:int(11);default:0;"`               // 已选人数
-	StartTime    int                  `json:"start_time" gorm:"type:datetime;"`                          // 开始时间
-	EndTime      int                  `json:"end_time" gorm:"type:datetime;"`                            // 结束时间
-	Name         string               `json:"name" gorm:"size:50;not null"`                              // 教师姓名
-	WeekTime     int                  `json:"week_time" gorm:"type:int(2)"`                              // 上课星期数
-	FacultyID    int                  `json:"faculty_id" gorm:"type:int(11)"`                            // 学院ID
-	StartWeek    int                  `json:"start_week" gorm:"type:int(11);"`                           // 起始周数
-	EndWeek      int                  `json:"end_week" gorm:"type:int(11);"`                             // 结束周数
-	DirectionID  int                  `json:"direction_id" gorm:"index:direction_id;type:int(11)"`       // 学生所属方向
-	SpecialtyID  int                  `json:"specialty_id" gorm:"index:special_id;type:int(11)"`         // 学生所属专业
-	CopyFlag     int                 `json:"copy_flag"`
+	RecordID     int    `json:"record_id" gorm:"primary_key"` // 记录id
+	ID           int    `json:"course_id" gorm:"primary_key;"`
+	CourseName   string `json:"course_name" gorm:"type:varchar(60);not null;"`             // 课程名
+	Credit       string `json:"credit" gorm:"type:varchar(50);"`                           // 学分
+	TeacherID    int    `json:"teacher_id" gorm:"type:int(11);not null;index:teacher_id;"` // 教师ID
+	ClassroomID  int    `json:"classroom_id" gorm:"type:int(11);index:classroom_id;"`      // 教室号
+	MaxChooseNum int    `json:"max_choose_num" gorm:"type:int(11);not null;"`              // 最大可选课人数
+	SelectedNum  int    `json:"selected_num" gorm:"type:int(11);default:0;"`               // 已选人数
+	StartTime    int    `json:"start_time" gorm:"type:datetime;"`                          // 开始时间
+	EndTime      int    `json:"end_time" gorm:"type:datetime;"`                            // 结束时间
+	Name         string `json:"name" gorm:"size:50;not null"`                              // 教师姓名
+	WeekTime     int    `json:"week_time" gorm:"type:int(2)"`                              // 上课星期数
+	FacultyID    int    `json:"faculty_id" gorm:"type:int(11)"`                            // 学院ID
+	StartWeek    int    `json:"start_week" gorm:"type:int(11);"`                           // 起始周数
+	EndWeek      int    `json:"end_week" gorm:"type:int(11);"`                             // 结束周数
+	DirectionID  int    `json:"direction_id" gorm:"index:direction_id;type:int(11)"`       // 学生所属方向
+	SpecialtyID  int    `json:"specialty_id" gorm:"index:special_id;type:int(11)"`         // 学生所属专业
+	CopyFlag     int    `json:"copy_flag"`
 }
 
 type QuestionForSelect struct {
@@ -249,6 +253,7 @@ type HomeworkForCreate struct {
 	DeadLine         time.Time `json:"deadline"`
 	CourseID         int       `json:"course_id" gorm:"primary_Key;uniqueIndex:question_id;" sql:"type:INT(11) NOT NULL"`
 	HomeworkTitle    string    `json:"homework_title" gorm:"uniqueIndex:homework_title"`
+	RecordID         int       `json:"record_id" gorm:"primary_key"` // 记录id
 }
 
 type QuestionForCheck struct {
@@ -330,6 +335,29 @@ type ClassSheet struct {
 	EndWeek       int    `json:"end_week" gorm:"type:int(11);"`                            // 结束周数
 }
 
+type CourseForChoose struct {
+	RecordID     int    `json:"record_id" gorm:"primary_key"` // 记录id
+	ID           int    `json:"course_id" gorm:"primary_key;"`
+	CourseName   string `json:"course_name" gorm:"type:varchar(60);not null;"`             // 课程名
+	Credit       string `json:"credit" gorm:"type:varchar(50);"`                           // 学分
+	TeacherID    int    `json:"teacher_id" gorm:"type:int(11);not null;index:teacher_id;"` // 教师ID
+	TeacherName  string `json:"teacher_name"`
+	ClassroomID  int    `json:"classroom_id" gorm:"type:int(11);index:classroom_id;"` // 教室号
+	MaxChooseNum int    `json:"max_choose_num" gorm:"type:int(11);not null;"`         // 最大可选课人数
+	SelectedNum  int    `json:"selected_num" gorm:"column:selected_num"`          // 已选人数
+	StartTime    int    `json:"start_time" gorm:"type:datetime;"`                     // 开始时间
+	EndTime      int    `json:"end_time" gorm:"type:datetime;"`                       // 结束时间
+	Name         string `json:"name" gorm:"size:50;not null"`                         // 教师姓名
+	WeekTime     int    `json:"week_time" gorm:"type:int(2)"`                         // 上课星期数
+	FacultyID    int    `json:"faculty_id" gorm:"type:int(11)"`                       // 学院ID
+	StartWeek    int    `json:"start_week" gorm:"type:int(11);"`                      // 起始周数
+	EndWeek      int    `json:"end_week" gorm:"type:int(11);"`                        // 结束周数
+	DirectionID  int    `json:"direction_id" gorm:"index:direction_id;type:int(11)"`  // 学生所属方向
+	SpecialtyID  int    `json:"specialty_id" gorm:"index:special_id;type:int(11)"`    // 学生所属专业
+	CopyFlag     int    `json:"copy_flag"`
+}
+
+type CourseForChooses []CourseForChoose
 type HomeworkUploadRecordsForSelects []HomeworkUploadRecordsForSelect
 type HomeworkUploadRecords []HomeworkUploadRecord
 type HomeworkForSelects []HomeworkForSelect
@@ -347,5 +375,5 @@ type Applies []Apply
 type ClassSheets []ClassSheet
 
 func CreateDatabase(db *gorm.DB) {
-	db.AutoMigrate(&Title{}, &Faculty{}, &Teacher{}, &Elective{}, &Admin{}, &Classroom{}, &DirectionToSpecialty{}, &Course{}, &Student{}, &HomeworkUploadRecord{}, &Homework{}, &Question{}, &Student2Course{}, &ApplyForCourseChange{})
+	//db.AutoMigrate(&Title{}, &Faculty{}, &Teacher{}, &Elective{}, &Admin{}, &Classroom{}, &DirectionToSpecialty{}, &Course{}, &Student{}, &HomeworkUploadRecord{}, &Homework{}, &Question{}, &Student2Course{}, &ApplyForCourseChange{})
 }
