@@ -8,7 +8,7 @@ export default new Vuex.Store({
     homeworkId: null,
     courseId: null,
     Jwt: null,
-    teacherId: 1,
+    teacherId: null,
     studentId: 171020101,
     homeworkFlag: false,
     courseFlag: false,

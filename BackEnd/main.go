@@ -51,5 +51,9 @@ func main(){
 	r.POST("/validClassrooms",Controller.ValidClassrooms(db))
 	r.GET("/getClassSheet",Controller.GetClassSheet(db))
 	r.GET("/getAvailableCourses",Controller.GetAvailableCourses(db))
+	r.POST("/chooseCourse",Controller.ChooseCourse(db))
+	r.GET("/getChosenCourse",Controller.GetChosenCourse(db))
+	r.OPTIONS("/quitCourse",Controller.ReturnOK)
+	r.DELETE("/quitCourse",Controller.QuitCourse(db))
 	r.Run(":9000")
 }

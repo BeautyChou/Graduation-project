@@ -344,7 +344,7 @@ type CourseForChoose struct {
 	TeacherName  string `json:"teacher_name"`
 	ClassroomID  int    `json:"classroom_id" gorm:"type:int(11);index:classroom_id;"` // 教室号
 	MaxChooseNum int    `json:"max_choose_num" gorm:"type:int(11);not null;"`         // 最大可选课人数
-	SelectedNum  int    `json:"selected_num" gorm:"column:selected_num"`          // 已选人数
+	Selected     int    `json:"selected" gorm:"column:selected"`                  // 已选人数
 	StartTime    int    `json:"start_time" gorm:"type:datetime;"`                     // 开始时间
 	EndTime      int    `json:"end_time" gorm:"type:datetime;"`                       // 结束时间
 	Name         string `json:"name" gorm:"size:50;not null"`                         // 教师姓名
@@ -357,6 +357,14 @@ type CourseForChoose struct {
 	CopyFlag     int    `json:"copy_flag"`
 }
 
+type Student2CourseForChoose struct {
+	StudentID int `json:"student_id" gorm:"primary_Key;" sql:"type:INT(11) NOT NULL"` // 学生ID
+	CourseID  int `json:"course_id" gorm:"primary_Key;" sql:"type:INT(11) NOT NULL"`  //课程ID
+	RecordID  int `json:"record_id" sql:"type:INT(11) NOT NULL"`                      // 课程列表号
+}
+type SelectedCourseID struct {
+	ID int
+}
 type CourseForChooses []CourseForChoose
 type HomeworkUploadRecordsForSelects []HomeworkUploadRecordsForSelect
 type HomeworkUploadRecords []HomeworkUploadRecord
@@ -373,6 +381,8 @@ type DirectionToSpecialtyForSelects []DirectionToSpecialtyForSelect
 type ClassroomForSelects []ClassroomForSelect
 type Applies []Apply
 type ClassSheets []ClassSheet
+type Student2CourseForChooses []Student2CourseForChoose
+type SelectedCourseIDs []SelectedCourseID
 
 func CreateDatabase(db *gorm.DB) {
 	//db.AutoMigrate(&Title{}, &Faculty{}, &Teacher{}, &Elective{}, &Admin{}, &Classroom{}, &DirectionToSpecialty{}, &Course{}, &Student{}, &HomeworkUploadRecord{}, &Homework{}, &Question{}, &Student2Course{}, &ApplyForCourseChange{})

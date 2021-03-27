@@ -59,7 +59,12 @@ export default {
   mounted() {
     this.$axios({
       method:"GET",
-      url:"http://127.0.0.1:9000/getClassSheet?teacher_id="+this.$store.state.teacherId+"&week="+this.weekNum +1
+      url:"http://127.0.0.1:9000/getClassSheet",
+      params:{
+        teacher_id:this.$store.state.teacherId,
+        week:(this.weekNum+1),
+        student_id:this.$store.state.studentId,
+      }
     }).then((response)=>{
       this.timetables = response.data.classSheet
       this.timetable = new Timetables({
@@ -114,7 +119,12 @@ export default {
     refreshClassSheet(){
       this.$axios({
         method:"GET",
-        url:"http://127.0.0.1:9000/getClassSheet?teacher_id="+this.$store.state.teacherId+"&week="+(this.weekNum+1)
+        url:"http://127.0.0.1:9000/getClassSheet",
+        params:{
+          teacher_id:this.$store.state.teacherId,
+          week:(this.weekNum+1),
+          student_id:this.$store.state.studentId,
+        }
       }).then((response)=>{
         this.timetables = response.data.classSheet
         this.timetable.setOption({

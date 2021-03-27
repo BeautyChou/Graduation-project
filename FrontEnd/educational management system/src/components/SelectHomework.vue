@@ -193,6 +193,7 @@ export default {
           url: 'http://127.0.0.1:9000/getHomeworkList',
           params: {
             'course_id': newValue,
+            'record_id': this.$store.state.recordId,
           }
         }).then((response) => {
           if (response.data.homeworks === null) {
@@ -215,6 +216,7 @@ export default {
             url: 'http://127.0.0.1:9000/getHomeworkList',
             params: {
               'course_id': this.$store.state.courseId,
+              'record_id': this.$store.state.recordId,
             }
           }).then((response) => {
             if (response.data.homeworks === null) {

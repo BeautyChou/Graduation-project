@@ -8,7 +8,7 @@
       class="elevation-1"
     >
       <template v-slot:item.course_name="{ item }">
-        <router-link to="/SelectHomework" @click.native="$store.commit('setCourseId',item.course_id);$store.commit('setRecordId',item.record_id)">
+        <router-link to="/SelectHomework" @click.native="$store.commit('setRecordId',item.record_id);$store.commit('setCourseId',item.course_id);">
           {{ item.course_name }}
         </router-link>
       </template>
@@ -16,7 +16,7 @@
         <v-tooltip v-if="$store.state.level===2||true" bottom>
           <template v-slot:activator="{ on,attrs }">
             <v-btn icon color="primary" v-bind="attrs" v-on="on" x-large
-                   @click="changeClass = true ;selectId = item.course_id;getInfo()">
+                   @click="changeClass = true ;selectId = item.course_id;selectRecordID = item.record_id;getInfo()">
               <v-icon>
                 mdi-lead-pencil
               </v-icon>
@@ -280,6 +280,7 @@ export default {
       afterClass: {},
       selectId: null,
       submitFlag1: false,
+      selectRecordID:null,
     }
   },
   created() {
@@ -344,6 +345,7 @@ export default {
     validBeforeClassrooms() {
       if (this.apply.before_week_time == null || this.apply.before_start_time == null || this.apply.before_end_time == null || this.apply.before_start_week == null || this.apply.before_end_week == null) return
       const formdata = new FormData
+      formdata.append('record_id',this.selectRecordID)
       formdata.append('course_id', this.selectId)
       formdata.append('week_time', this.apply.before_week_time)
       formdata.append('start_time', this.apply.before_start_time)

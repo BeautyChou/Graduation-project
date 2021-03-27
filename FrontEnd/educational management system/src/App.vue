@@ -78,6 +78,13 @@
               </router-link>
             </v-list-item-content>
           </v-list-item>
+          <v-list-item>
+            <v-list-item-content>
+              <router-link to="/ChosenCourse">
+                <v-list-item-title>查看已选课程/退课</v-list-item-title>
+              </router-link>
+            </v-list-item-content>
+          </v-list-item>
 
         </v-list>
       </v-navigation-drawer>
@@ -111,6 +118,7 @@ import ClassSheet from "./components/SetClass";
 import SelectCourse from "./components/SelectCourse";
 import SelectHomework from "./components/SelectHomework";
 import ChooseCourse from "./components/ChooseCourse";
+import ChosenCourse from "./components/ChosenCourse"
 
 export default {
   name: 'App',
@@ -121,7 +129,8 @@ export default {
     ClassSheet,
     SelectCourse,
     SelectHomework,
-    ChooseCourse
+    ChooseCourse,
+    ChosenCourse
   },
 
   data: () => ({
