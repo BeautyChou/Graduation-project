@@ -12,7 +12,8 @@ import CheckReview from "../components/CheckReview";
 import Apply from "../components/Apply";
 import ClassSheet from "../components/ClassSheet";
 import ChooseCourse from "../components/ChooseCourse";
-import ChosenCourse from "../components/ChosenCourse"
+import ChosenCourse from "../components/ChosenCourse";
+import RecordGrades from "../components/RecordGrades";
 
 Vue.use(Router)
 
@@ -91,5 +92,10 @@ export default new Router({
       name:'ChosenCourse',
       component:ChosenCourse,
     },
+    {
+      path:'/RecordGrades',
+      name:'RecordGrades',
+      component:RecordGrades
+    }
   ]
 })

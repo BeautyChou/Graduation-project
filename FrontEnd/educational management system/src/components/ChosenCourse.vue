@@ -39,7 +39,7 @@ name: "ChosenCourse",
         {text: '结束周', sortable: false, value: 'end_time'},
         {text: '操作', sortable: false, value: 'operation'}
       ],
-      courses:[{}],
+      courses:[],
     }
   },
   created() {

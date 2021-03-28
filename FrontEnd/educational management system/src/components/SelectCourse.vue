@@ -18,11 +18,23 @@
             <v-btn icon color="primary" v-bind="attrs" v-on="on" x-large
                    @click="changeClass = true ;selectId = item.course_id;selectRecordID = item.record_id;getInfo()">
               <v-icon>
-                mdi-lead-pencil
+                mdi-tools
               </v-icon>
             </v-btn>
           </template>
           <span>申请修改课程</span>
+
+        </v-tooltip>
+        <v-tooltip v-if="$store.state.level===2||true" bottom>
+          <template v-slot:activator="{ on,attrs }">
+            <v-btn to="/RecordGrades" icon color="primary" v-bind="attrs" v-on="on" x-large
+                   @click.native="$store.commit('setRecordId',item.record_id)">
+              <v-icon>
+                mdi-pencil-circle
+              </v-icon>
+            </v-btn>
+          </template>
+          <span>录入学生成绩</span>
         </v-tooltip>
       </template>
     </v-data-table>
@@ -288,7 +300,8 @@ export default {
       method: "get",
       url: 'http://127.0.0.1:9000/getCourseList',
       params: {
-        'teacher_id': this.$store.state.teacherId
+        'teacher_id': this.$store.state.teacherId,
+        'student_id': this.$store.state.studentId,
       }
     }).then((response) => {
       this.courses = response.data.courses

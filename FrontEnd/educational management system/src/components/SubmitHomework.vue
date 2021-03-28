@@ -46,6 +46,7 @@ export default {
       formData.append("student_id", this.$store.state.studentId);
       formData.append("homework_id", this.homeworkId);
       formData.append("question_id", this.questions[id].question_id);
+      formData.append("record_id", this.questions[id].record_id);
       this.$axios({
         method: "post",
         url: "http://127.0.0.1:9000/postHomework",

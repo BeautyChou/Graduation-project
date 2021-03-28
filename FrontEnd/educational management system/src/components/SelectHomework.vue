@@ -20,8 +20,6 @@
       :headers="headers"
       :items="homeworks"
       class="elevation-1"
-      :loading="loadingFlag"
-      loading-text="加载中... 请稍后"
     >
       <template v-slot:item.DeadLine="{ item }">
         <div v-if="item.DeadLine">
@@ -158,7 +156,7 @@ export default {
       dialog: false,
       time: null,
       homeworkBackup:[{'homework_title':'暂时还没有布置作业'}],
-      homeworks: [{}],
+      homeworks: [],
       headers: [
         {text: '作业名', align: 'start', sortable: false, value: 'homework_title'},
         {text: '截止时间', sortable: false, value: 'DeadLine'},

@@ -134,17 +134,19 @@ type Student struct {
 
 //学生成绩
 type Elective struct {
-	ID            int `json:"id" gorm:"primary_key;" sql:"type:INT(11) NOT NULL"`
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
-	DeletedAt     gorm.DeletedAt `sql:"index"`
-	Student       Student        `gorm:"ForeignKey:StudentID;"`                                                 // 学生外键
-	StudentID     int            `json:"student_id" gorm:"primary_Key:student_id;" sql:"type:INT(11) NOT NULL"` // 学号
-	Course        Course         `gorm:"ForeignKey:CourseID;"`                                                  // 课程外键
-	CourseID      int            `json:"course_id" gorm:"primary_Key:course_id;" sql:"type:INT(11) NOT NULL"`   // 课程号
-	TestScore     int            `json:"test_score" gorm:"size:3;"`                                             // 考试成绩
-	BehaviorScore int            `json:"behavior_score" gorm:"size:3;"`                                         // 平时成绩
-	Percentage    string         `json:"Percentage" gorm:"size:3"`                                              // 考试成绩所占比例
+	ID                 int `json:"id" gorm:"primary_key;" sql:"type:INT(11) NOT NULL"`
+	CreatedAt          time.Time
+	UpdatedAt          time.Time
+	DeletedAt          gorm.DeletedAt `sql:"index"`
+	Student            Student        `gorm:"ForeignKey:StudentID;"`                                                 // 学生外键
+	StudentID          int            `json:"student_id" gorm:"primary_Key:student_id;" sql:"type:INT(11) NOT NULL"` // 学号
+	Course             Course         `gorm:"ForeignKey:CourseID;"`                                                  // 课程外键
+	CourseID           int            `json:"course_id" gorm:"primary_Key:course_id;" sql:"type:INT(11) NOT NULL"`   // 课程号
+	HomeworkScore      int            `json:"homework_score" gorm:"size:3"`                                          // 作业成绩
+	TestScore          int            `json:"test_score" gorm:"size:3;"`                                             // 考试成绩
+	BehaviorScore      int            `json:"behavior_score" gorm:"size:3;"`                                         // 平时成绩
+	Percentage         int            `json:"percentage" gorm:"size:3"`                                              // 考试成绩所占比例
+	HomeworkPercentage int            `json:"homework_percentage" gorm:"size:3"`                                     // 作业分数占比
 }
 
 type HomeworkUploadRecord struct {
@@ -265,6 +267,7 @@ type QuestionForCheck struct {
 }
 
 type QuestionForStudent struct {
+	RecordID         int `json:"record_id" gorm:"primary_key"` // 记录id
 	QuestionMaxScore int `json:"question_max_score" gorm:"uniqueIndex:question_max_score;" sql:"type:INT(11) NOT NULL"`
 	DeadLine         time.Time
 	HomeworkTitle    string `json:"homework_title" gorm:"uniqueIndex:homework_title"`
@@ -344,7 +347,7 @@ type CourseForChoose struct {
 	TeacherName  string `json:"teacher_name"`
 	ClassroomID  int    `json:"classroom_id" gorm:"type:int(11);index:classroom_id;"` // 教室号
 	MaxChooseNum int    `json:"max_choose_num" gorm:"type:int(11);not null;"`         // 最大可选课人数
-	Selected     int    `json:"selected" gorm:"column:selected"`                  // 已选人数
+	Selected     int    `json:"selected" gorm:"column:selected"`                      // 已选人数
 	StartTime    int    `json:"start_time" gorm:"type:datetime;"`                     // 开始时间
 	EndTime      int    `json:"end_time" gorm:"type:datetime;"`                       // 结束时间
 	Name         string `json:"name" gorm:"size:50;not null"`                         // 教师姓名
@@ -365,6 +368,12 @@ type Student2CourseForChoose struct {
 type SelectedCourseID struct {
 	ID int
 }
+type StudentHomeworkScore struct {
+	Name          string `json:"student_name"`
+	StudentID     int    `json:"student_id"`
+	HomeworkScore int    `json:"homework_score"`
+}
+
 type CourseForChooses []CourseForChoose
 type HomeworkUploadRecordsForSelects []HomeworkUploadRecordsForSelect
 type HomeworkUploadRecords []HomeworkUploadRecord
@@ -383,7 +392,9 @@ type Applies []Apply
 type ClassSheets []ClassSheet
 type Student2CourseForChooses []Student2CourseForChoose
 type SelectedCourseIDs []SelectedCourseID
+type StudentHomeworkScores []StudentHomeworkScore
 
 func CreateDatabase(db *gorm.DB) {
+	db.AutoMigrate(&Elective{})
 	//db.AutoMigrate(&Title{}, &Faculty{}, &Teacher{}, &Elective{}, &Admin{}, &Classroom{}, &DirectionToSpecialty{}, &Course{}, &Student{}, &HomeworkUploadRecord{}, &Homework{}, &Question{}, &Student2Course{}, &ApplyForCourseChange{})
 }

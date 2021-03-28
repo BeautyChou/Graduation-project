@@ -3,7 +3,7 @@
 
 
     <v-card-title>
-      <v-btn icon to="/SelectHomework" @click.native="$store.commit('previousPage')">
+      <v-btn icon to="/SelectHomework" @click.native="$store.commit('previousPage');$store.commit('setHomeworkId',null)">
         <v-icon>mdi-arrow-left-bold</v-icon>
         <span>返回</span>
       </v-btn>
@@ -371,8 +371,8 @@ export default {
           }
         }).then((response) => {
           this.questions = response.data.questions
-          console.log(response)
-          this.deadlineTime = response.data.questions[0].DeadLine.substr(11, 19)
+          console.log(response,response.data.questions[0].DeadLine,this.deadlineTime)
+          this.deadlineTime = response.data.questions[0].DeadLine.substr(11, 5)
           this.deadlineDate = response.data.questions[0].DeadLine.substr(0, 10)
           this.homeworkTitle = response.data.questions[0].homework_title
         })
@@ -380,16 +380,17 @@ export default {
     },
     '$store.state.refreshFlag': {
       handler(newValue, oldValue) {
+        if (this.$store.state.modifyHomeworkFlag !== false) return
         if (newValue === 1)
           this.$axios({
             method: "get",
             url: 'http://127.0.0.1:9000/getQuestionList',
             params: {
-              'homework_id': $store.state.homeworkId,
+              'homework_id': this.$store.state.homeworkId,
             }
           }).then((response) => {
             this.questions = response.data.questions
-            console.log(response)
+            console.log(response,response.data.questions[0].DeadLine)
             this.deadlineTime = response.data.questions[0].DeadLine.substr(11, 19)
             this.deadlineDate = response.data.questions[0].DeadLine.substr(0, 10)
             this.homeworkTitle = response.data.questions[0].homework_title
