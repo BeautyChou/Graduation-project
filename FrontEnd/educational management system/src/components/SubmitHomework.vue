@@ -32,6 +32,23 @@
 <script>
 export default {
   name: "SubmitHomework",
+  created() {
+    this.$axios({
+      method: "get",
+      url: 'http://127.0.0.1:9000/getQuestionList',
+      params: {
+        'homework_id': this.$store.state.homeworkId,
+        'student_id': this.$store.state.studentId,
+      }
+    }).then((response) => {
+      this.questions = response.data.questions
+      this.uploaded = response.data.uploaded
+      console.log(response)
+      this.homeworkTitle = response.data.questions[0].homework_title
+      this.homeworkId = this.$store.state.homeworkId
+      this.$store.commit('nextPage')
+    })
+  },
   data() {
     return {
       questions:[],

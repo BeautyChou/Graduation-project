@@ -26,7 +26,7 @@
 
               </v-expansion-panel-header>
               <v-expansion-panel-content>
-                <v-img :src="'http://127.0.0.1:9000/imageTest?homework='+$store.state.homeworkId+'&question='+review.question_id+'&student='+$store.state.studentId" alt="老师还没有批改这道题"></v-img>
+                <v-img :src="'http://127.0.0.1:9000/image?homework='+$store.state.homeworkId+'&question='+review.question_id+'&student='+$store.state.studentId" alt="老师还没有批改这道题"></v-img>
               </v-expansion-panel-content>
             </v-expansion-panel>
           </v-expansion-panels>
@@ -55,6 +55,27 @@ export default {
       else if (r>=60) return 'yellow'
       else return 'red'
     }
+  },
+  created() {
+    this.$store.commit('nextPage')
+    this.$axios({
+      method: "get",
+      url: 'http://127.0.0.1:9000/getReviewList',
+      params: {
+        'homework_id': this.$store.state.homeworkId,
+        'student_id': this.$store.state.studentId,
+      }
+    }).then((response) => {
+      this.reviews = response.data.reviews
+      this.sum = 0
+      response.data.reviews.forEach((item,i)=>{
+        this.sum += item.score
+        if (item.is_scored === false) this.unReviewedFlag = true
+      })
+      console.log(response)
+      this.homeworkTitle = response.data.questions[0].homework_title
+      this.homeworkId = this.$store.state.homeworkId
+    })
   },
   watch: {
     '$store.state.homeworkId':{
@@ -99,7 +120,7 @@ export default {
             })
             console.log(response)
             this.homeworkTitle = response.data.questions[0].homework_title
-            this.homeworkId = newValue
+            this.homeworkId = this.$store.state.homeworkId
           })
         }else{return}
       },

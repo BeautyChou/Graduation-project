@@ -5,7 +5,9 @@
         <v-icon>mdi-arrow-left-bold</v-icon>
         <span>返回</span>
       </v-btn>
-      <div class="mx-8">录入成绩</div>
+      <div class="mx-8">录入成绩  (输入的所有数据仅限正整数!)</div>
+      <v-spacer></v-spacer>
+      <v-btn color="green" :disabled="uploadFlag()||scores.length===0" @click="postScore">上传成绩</v-btn>
     </v-card-title>
     <v-data-table
       :items="scores"
@@ -28,13 +30,13 @@
               <v-text-field dense v-model.number="percentage"></v-text-field>
             </v-col>
             <span>%)</span>
-          </th >
+          </th>
           <th rowspan="2" colspan="1" :style="{textAlign:'center',border:'thin solid rgba(0,0,0,.12)'}">
             <span>总分</span>
           </th>
         </tr>
         <tr>
-          <th :style="{textAlign:'center',border:'thin solid rgba(0,0,0,.12)'}" >
+          <th :style="{textAlign:'center',border:'thin solid rgba(0,0,0,.12)'}">
             <span>作业成绩 (占比:</span>
             <v-col
               cols="1"
@@ -49,30 +51,20 @@
         </thead>
         <tbody>
         <tr v-for="(item,v) in items" :key="v" class="font-weight-bold text-center">
-          <td >{{ item.student_name }}</td>
-          <td >{{ item.homework_score }}</td>
-          <td >
+          <td>{{ item.student_name }}</td>
+          <td>{{ item.homework_score }}</td>
+          <td>
             <v-text-field v-model.number="item.behavior_score"></v-text-field>
           </td>
-          <td >
+          <td>
             <v-text-field v-model.number="item.test_score"></v-text-field>
           </td>
-          <td >{{ totalScore(item) }}</td>
+          <td>
+            <v-text-field :disabled="true" v-model.number="item.total" :value="totalScore(item,v)"></v-text-field>
+
+          </td>
         </tr>
         </tbody>
-      </template>
-      <template v-slot:item.operation="{ item }">
-        <v-tooltip v-if="$store.state.level===2||true" bottom>
-          <template v-slot:activator="{ on,attrs }">
-            <v-btn icon color="red" v-bind="attrs" v-on="on" x-large
-                   @click="quitCourse(item)">
-              <v-icon>
-                mdi-exit-to-app
-              </v-icon>
-            </v-btn>
-          </template>
-          <span>退出课程</span>
-        </v-tooltip>
       </template>
     </v-data-table>
   </v-card>
@@ -98,15 +90,49 @@ export default {
       percentage: 0,
     }
   },
+  methods:{
+    postScore(){
+      this.scores.forEach((v,i)=>{
+        v.course_id = this.$store.state.courseId
+        v.percentage = this.percentage
+        v.homework_percentage = this.homework_percentage
+      })
+      let scores = JSON.stringify(this.scores)
+      this.$axios({
+        method:"post",
+        url:"http://127.0.0.1:9000/postScore",
+        data:scores,
+        headers:{
+          "Content-Type": "multipart/form-data"
+        }
+      }).then((response)=>{
+        this.$store.commit(response.data.snackbar,response.data.msg)
+      })
+    }
+  },
   computed: {
     totalScore() {
-      return function (obj) {
+      return function (obj,v) {
         let homework = obj.homework_score * this.homework_percentage * (100 - this.percentage) / 10000
         let behavior = obj.behavior_score * (100 - this.homework_percentage) * (100 - this.percentage) / 10000
         let test = obj.test_score * this.percentage / 100
+        this.$set(this.scores[v],'total',(homework + behavior + test).toFixed(2))
         return (homework + behavior + test).toFixed(2)
       }
     },
+    uploadFlag() {
+      return function () {
+        let flag = false
+        this.scores.some((v, i) => {
+          console.log(v.total,i)
+          if (isNaN(v.total)) {
+            flag = true
+          }
+        })
+        console.log(this.scores)
+        return flag
+      }
+    }
   },
   watch: {
     '$store.state.recordId': {
@@ -123,6 +149,22 @@ export default {
         })
       },
     },
+  },
+  created() {
+    this.$axios({
+      method: "get",
+      url: 'http://127.0.0.1:9000/getStudentScore',
+      params: {
+        'record_id': this.$store.state.recordId,
+      }
+    }).then((response) => {
+      this.scores = response.data.scores
+      console.log(response)
+    })
+  },
+  beforeRouteLeave(to,from,next) {
+    this.$store.commit('setRecordId', null);
+    next()
   },
 }
 </script>

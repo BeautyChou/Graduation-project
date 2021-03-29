@@ -221,6 +221,21 @@
 <script>
 export default {
   name: "AddHomework",
+  created() {
+    this.$axios({
+      method: "get",
+      url: 'http://127.0.0.1:9000/getQuestionList',
+      params: {
+        'homework_id': this.$store.state.homeworkId,
+      }
+    }).then((response) => {
+      this.questions = response.data.questions
+      console.log(response,response.data.questions[0].DeadLine,this.deadlineTime)
+      this.deadlineTime = response.data.questions[0].DeadLine.substr(11, 5)
+      this.deadlineDate = response.data.questions[0].DeadLine.substr(0, 10)
+      this.homeworkTitle = response.data.questions[0].homework_title
+    })
+  },
   data() {
     return {
       successText: null,
@@ -391,7 +406,7 @@ export default {
           }).then((response) => {
             this.questions = response.data.questions
             console.log(response,response.data.questions[0].DeadLine)
-            this.deadlineTime = response.data.questions[0].DeadLine.substr(11, 19)
+            this.deadlineTime = response.data.questions[0].DeadLine.substr(11, 5)
             this.deadlineDate = response.data.questions[0].DeadLine.substr(0, 10)
             this.homeworkTitle = response.data.questions[0].homework_title
             this.$store.commit('nextPage')

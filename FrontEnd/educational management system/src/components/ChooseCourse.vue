@@ -40,7 +40,7 @@ export default {
         {text: '结束周', sortable: false, value: 'end_time'},
         {text: '操作', sortable: false, value: 'operation'}
       ],
-      courses:[{}],
+      courses: [{}],
     }
   },
   created() {
@@ -53,26 +53,26 @@ export default {
         'direction_id': this.$store.state.directionId,
         'specialty_id': this.$store.state.specialtyId,
       }
-    }).then((response)=>{
+    }).then((response) => {
       this.courses = response.data.courses
       console.log(response)
     })
   },
-  methods:{
-    chooseCourse(courseOBJ){
-      const formData  = new FormData()
-      formData.append("student_id",this.$store.state.studentId)
-      formData.append("record_id",courseOBJ.record_id)
-      formData.append("course_id",courseOBJ.course_id)
+  methods: {
+    chooseCourse(courseOBJ) {
+      const formData = new FormData()
+      formData.append("student_id", this.$store.state.studentId)
+      formData.append("record_id", courseOBJ.record_id)
+      formData.append("course_id", courseOBJ.course_id)
       this.$axios({
-        method:"post",
-        url:"http://127.0.0.1:9000/chooseCourse",
-        data:formData,
-        headers:{
+        method: "post",
+        url: "http://127.0.0.1:9000/chooseCourse",
+        data: formData,
+        headers: {
           "Content-Type": "multipart/form-data"
         },
-      }).then((response)=>{
-        this.$store.commit(response.data.snackbar,response.data.msg)
+      }).then((response) => {
+        this.$store.commit(response.data.snackbar, response.data.msg)
         this.$axios({
           url: "http://127.0.0.1:9000/getAvailableCourses",
           method: "get",
@@ -82,12 +82,31 @@ export default {
             'direction_id': this.$store.state.directionId,
             'specialty_id': this.$store.state.specialtyId,
           }
-        }).then((response)=>{
+        }).then((response) => {
           this.courses = response.data.courses
           console.log(response)
         })
       })
     },
+  },
+  watch: {
+    "$route.path": {
+      handler(newVal, oldVal) {
+        this.$axios({
+          url: "http://127.0.0.1:9000/getAvailableCourses",
+          method: "get",
+          params: {
+            'student_id': this.$store.state.studentId,
+            'faculty_id': this.$store.state.facultyId,
+            'direction_id': this.$store.state.directionId,
+            'specialty_id': this.$store.state.specialtyId,
+          }
+        }).then((response) => {
+          this.courses = response.data.courses
+          console.log(response)
+        })
+      },
+    }
   }
 }
 </script>

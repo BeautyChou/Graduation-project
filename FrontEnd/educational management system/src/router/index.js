@@ -3,7 +3,6 @@ import Router from 'vue-router'
 import HelloWorld from '../components/HelloWorld'
 import canvas from '../components/Canvas'
 import SetClass from "../components/SetClass";
-import canvastest from "../components/canvastest";
 import SelectCourse from "../components/SelectCourse";
 import SelectHomework from "../components/SelectHomework";
 import AddHomework from "../components/AddHomework";
@@ -14,6 +13,7 @@ import ClassSheet from "../components/ClassSheet";
 import ChooseCourse from "../components/ChooseCourse";
 import ChosenCourse from "../components/ChosenCourse";
 import RecordGrades from "../components/RecordGrades";
+import QueryResults from "../components/QueryResults";
 
 Vue.use(Router)
 
@@ -28,11 +28,6 @@ export default new Router({
       path: '/canvas',
       name: 'canvas',
       component: canvas,
-    },
-    {
-      path: '/Canvastest',
-      name: 'Canvastest',
-      component: canvastest,
     },
     {
       path: '/SetClass',
@@ -96,6 +91,11 @@ export default new Router({
       path:'/RecordGrades',
       name:'RecordGrades',
       component:RecordGrades
-    }
+    },
+    {
+      path:'/QueryResults',
+      name:'QueryResults',
+      component:QueryResults
+    },
   ]
 })

@@ -3,6 +3,7 @@ package Controller
 import (
 	"BackEnd/Middleware"
 	"BackEnd/Model"
+	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -120,8 +121,8 @@ func GetCourseList(db *gorm.DB) func(c *gin.Context) {
 		var courses Model.CourseForSelects
 		if studentId == "" {
 			db.Debug().Model(&Model.Course{}).Select("courses.id,course_name,credit,teacher_id,classroom_id,max_choose_num,selected_num,start_time,end_time,name,courses.record_id").Joins("right join teachers on courses.teacher_id = teachers.id").Where("teacher_id = ? AND copy_flag = 0", teacherId).Group("record_id").Scan(&courses)
-		}else {
-			db.Debug().Model(&Model.Student2Course{}).Select("courses.id,course_name,credit,teacher_id,classroom_id,max_choose_num,selected_num,start_time,end_time,name,courses.record_id").Joins("left join courses on courses.record_id = student2_courses.record_id right join teachers on courses.teacher_id = teachers.id").Where("student_id = ?",studentId).Scan(&courses)
+		} else {
+			db.Debug().Model(&Model.Student2Course{}).Select("courses.id,course_name,credit,teacher_id,classroom_id,max_choose_num,selected_num,start_time,end_time,name,courses.record_id").Joins("left join courses on courses.record_id = student2_courses.record_id right join teachers on courses.teacher_id = teachers.id").Where("student_id = ?", studentId).Scan(&courses)
 		}
 		c.JSON(http.StatusOK, gin.H{
 			"courses": courses,
@@ -249,7 +250,7 @@ func PostHomework(db *gorm.DB) func(c *gin.Context) {
 		record.StudentID, err = strconv.Atoi(studentID)
 		record.HomeworkID, err = strconv.Atoi(homeworkID)
 		record.QuestionID, err = strconv.Atoi(questionID)
-		record.RecordID,err = strconv.Atoi(recordID)
+		record.RecordID, err = strconv.Atoi(recordID)
 		record.Score = 0
 		record.IsUpload = true
 		fmt.Println(record.StudentID)
@@ -569,7 +570,7 @@ func GetClassSheet(db *gorm.DB) func(c *gin.Context) {
 		studentId := c.Query("student_id")
 		week := c.Query("week")
 		if teacherId == "" {
-			db.Debug().Model(&Model.Student2Course{}).Select("courses.*,t.name as teacher_name,c.name as classroom_name").Joins("left join courses on courses.record_id = student2_Courses.record_id").Joins("left join teachers t on t.id = courses.teacher_id").Joins("left join classrooms c on c.id = courses.classroom_id ").Where("student_id = ? AND start_week <= ? AND end_week >= ?", studentId, week, week).Scan(&courses)
+			db.Debug().Model(&Model.Student2Course{}).Select("courses.*,t.name as teacher_name,c.name as classroom_name").Joins("left join courses on (courses.record_id = student2_Courses.record_id OR courses.copy_flag = student2_courses.record_id)").Joins("left join teachers t on t.id = courses.teacher_id").Joins("left join classrooms c on c.id = courses.classroom_id ").Where("student_id = ? AND start_week <= ? AND end_week >= ?", studentId, week, week).Scan(&courses)
 		} else {
 			db.Debug().Model(&Model.Course{}).Select("courses.*,t.name as teacher_name,c.name as classroom_name").Joins("left join teachers t on t.id = courses.teacher_id").Joins("left join classrooms c on c.id = courses.classroom_id ").Where("teacher_id = ? AND start_week <= ? AND end_week >= ?", teacherId, week, week).Scan(&courses)
 		}
@@ -671,16 +672,60 @@ func QuitCourse(db *gorm.DB) func(c *gin.Context) {
 	}
 }
 
-func GetStudentScore (db *gorm.DB) func(c *gin.Context) {
+func GetStudentScore(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var count int64
 		scores := &Model.StudentHomeworkScores{}
 		recordID := c.Query("record_id")
-		db.Model(&Model.Homework{}).Select("count(distinct id)").Where("record_id = ?",recordID).Count(&count)
+		db.Model(&Model.Homework{}).Select("count(distinct id)").Where("record_id = ?", recordID).Count(&count)
 		fmt.Println(count)
-		db.Debug().Table(" (?) as T",db.Model(&Model.Homework{}).Joins("left join homework_upload_records on homework_id = homeworks.id AND homeworks.question_id = homework_upload_records.question_id").Select("homework_upload_records.student_id,homework_upload_records.homework_id,sum(score) total_score ").Group("id")).Select("name,T.student_id,T.homework_id,round(sum(total_score)/?,0) homework_score",count).Joins("left join students on student_id = students.id").Group("student_id").Scan(&scores)
+		db.Debug().Table(" (?) as T", db.Model(&Model.Homework{}).Joins("left join homework_upload_records on homework_id = homeworks.id AND homeworks.question_id = homework_upload_records.question_id").Select("homework_upload_records.student_id,homework_upload_records.homework_id,sum(score) total_score,homeworks.record_id").Group("id")).Select("name,T.student_id,T.homework_id,round(sum(total_score)/?,0) homework_score", count).Joins("left join students on student_id = students.id").Where("record_id = ?", recordID).Group("student_id").Scan(&scores)
+		c.JSON(http.StatusOK, gin.H{
+			"scores": scores,
+		})
+	}
+}
+
+func PostScore(db *gorm.DB) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		var scores Model.Electives
+		temp := &Model.Elective{}
+		if err := c.ShouldBindJSON(&scores); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"snackbar": "setError",
+				"msg":      "上传分数失败，请稍后重试！",
+			})
+			return
+		}
+		if err := db.Where("course_id = ? AND student_id = ?", scores[0].CourseID, scores[0].StudentID).First(&temp).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				db.Debug().Create(&scores)
+			}
+		} else {
+			for _, v := range scores {
+				db.Debug().Model(&Model.Elective{}).Where("course_id = ? AND student_id = ?", v.CourseID, v.StudentID).Updates(map[string]interface{}{
+					"HomeworkScore":      v.HomeworkScore,
+					"TestScore":          v.TestScore,
+					"BehaviorScore":      v.BehaviorScore,
+					"Percentage":         v.Percentage,
+					"HomeworkPercentage": v.HomeworkPercentage,
+				})
+			}
+		}
+		c.JSON(http.StatusOK, gin.H{
+			"snackbar": "setSuccess",
+			"msg":      "上传分数成功!",
+		})
+	}
+}
+
+func GetScore(db *gorm.DB) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		studentId := c.Query("student_id")
+		electives := &Model.ElectiveForSelects{}
+		db.Debug().Model(&Model.Elective{}).Select("*").Joins("left join courses on courses.id = electives.course_id").Where("student_id = ?",studentId).Group("course_id").Scan(&electives)
 		c.JSON(http.StatusOK,gin.H{
-			"scores":scores,
+			"electives":electives,
 		})
 	}
 }

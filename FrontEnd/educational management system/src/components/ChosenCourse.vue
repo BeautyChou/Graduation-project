@@ -78,6 +78,22 @@ name: "ChosenCourse",
         })
       })
     },
+  },
+  watch: {
+    "$route.path": {
+      handler(newVal, oldVal) {
+        this.$axios({
+          url: "http://127.0.0.1:9000/getChosenCourse",
+          method: "get",
+          params: {
+            'student_id': this.$store.state.studentId,
+          }
+        }).then((response)=>{
+          this.courses = response.data.courses
+          console.log(response)
+        })
+      },
+    }
   }
 }
 </script>

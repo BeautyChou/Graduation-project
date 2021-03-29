@@ -56,5 +56,7 @@ func main(){
 	r.OPTIONS("/quitCourse",Controller.ReturnOK)
 	r.DELETE("/quitCourse",Controller.QuitCourse(db))
 	r.GET("/getStudentScore",Controller.GetStudentScore(db))
+	r.POST("/postScore",Controller.PostScore(db))
+	r.GET("/getScore",Controller.GetScore(db))
 	r.Run(":9000")
 }

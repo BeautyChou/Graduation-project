@@ -141,6 +141,38 @@ export default {
         })
       })
     }
+  },
+  watch: {
+    "$route.path": {
+      handler(newVal, oldVal) {
+        this.$axios({
+          method:"GET",
+          url:"http://127.0.0.1:9000/getClassSheet",
+          params:{
+            teacher_id:this.$store.state.teacherId,
+            week:(this.weekNum+1),
+            student_id:this.$store.state.studentId,
+          }
+        }).then((response)=>{
+          this.timetables = response.data.classSheet
+          this.timetable = new Timetables({
+            el: '#coursesTable',
+            timetables: this.timetables,
+            week: this.week,
+            timetableType: this.timetableType,
+            highlightWeek: this.highlightWeek,
+            gridOnClick:  (e)=> {
+              this.classInfo = true
+              var reg = new RegExp("\n", "g")
+              e.name = e.name.replace(reg, "<br/>")
+              console.log(e.name)
+              this.msg = e.name + '<br/>' + e.week + '<br/> 第' + e.index + '节课<br/> 课长' + e.length + '节'
+            },
+            styles: this.styles
+          });
+        })
+      },
+    }
   }
 }
 </script>

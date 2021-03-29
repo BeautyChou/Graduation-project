@@ -28,7 +28,7 @@
         <v-tooltip v-if="$store.state.level===2||true" bottom>
           <template v-slot:activator="{ on,attrs }">
             <v-btn to="/RecordGrades" icon color="primary" v-bind="attrs" v-on="on" x-large
-                   @click.native="$store.commit('setRecordId',item.record_id)">
+                   @click.native="$store.commit('setRecordId',item.record_id);$store.commit('setCourseId',item.course_id);">
               <v-icon>
                 mdi-pencil-circle
               </v-icon>

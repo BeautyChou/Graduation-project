@@ -365,13 +365,26 @@ type Student2CourseForChoose struct {
 	CourseID  int `json:"course_id" gorm:"primary_Key;" sql:"type:INT(11) NOT NULL"`  //课程ID
 	RecordID  int `json:"record_id" sql:"type:INT(11) NOT NULL"`                      // 课程列表号
 }
+
 type SelectedCourseID struct {
 	ID int
 }
+
 type StudentHomeworkScore struct {
 	Name          string `json:"student_name"`
 	StudentID     int    `json:"student_id"`
 	HomeworkScore int    `json:"homework_score"`
+}
+
+type ElectiveForSelect struct {
+	StudentID          int    `json:"student_id" gorm:"primary_Key:student_id;" sql:"type:INT(11) NOT NULL"` // 学号
+	CourseID           int    `json:"course_id" gorm:"primary_Key:course_id;" sql:"type:INT(11) NOT NULL"`   // 课程号
+	CourseName         string `json:"course_name" gorm:"type:varchar(60);not null;"`                         // 课程名
+	HomeworkScore      int    `json:"homework_score" gorm:"size:3"`                                          // 作业成绩
+	TestScore          int    `json:"test_score" gorm:"size:3;"`                                             // 考试成绩
+	BehaviorScore      int    `json:"behavior_score" gorm:"size:3;"`                                         // 平时成绩
+	Percentage         int    `json:"percentage" gorm:"size:3"`                                              // 考试成绩所占比例
+	HomeworkPercentage int    `json:"homework_percentage" gorm:"size:3"`                                     // 作业分数占比
 }
 
 type CourseForChooses []CourseForChoose
@@ -393,6 +406,8 @@ type ClassSheets []ClassSheet
 type Student2CourseForChooses []Student2CourseForChoose
 type SelectedCourseIDs []SelectedCourseID
 type StudentHomeworkScores []StudentHomeworkScore
+type Electives []Elective
+type ElectiveForSelects []ElectiveForSelect
 
 func CreateDatabase(db *gorm.DB) {
 	db.AutoMigrate(&Elective{})

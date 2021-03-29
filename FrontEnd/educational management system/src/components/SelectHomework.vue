@@ -183,6 +183,25 @@ export default {
       })
     }
   },
+  created() {
+    this.$axios({
+      method: "get",
+      url: 'http://127.0.0.1:9000/getHomeworkList',
+      params: {
+        'course_id': this.$store.state.courseId,
+        'record_id': this.$store.state.recordId,
+      }
+    }).then((response) => {
+      if (response.data.homeworks === null) {
+        this.homeworks = this.homeworkBackup
+        this.noHomeworkFlag = false
+      }
+      else this.homeworks = response.data.homeworks
+      this.time = response.data.time
+      this.loadingFlag = false
+      console.log('1',response)
+    })
+  },
   watch: {
     '$store.state.courseId': {
       handler(newValue, oldValue) {
