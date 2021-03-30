@@ -31,9 +31,15 @@
               v-model="selectedItem"
               color="primary"
             >
+              <v-list-item to="/UserInfo">
+                <v-list-item-content >
+                  <v-list-item-title>个人信息</v-list-item-title>
+                </v-list-item-content>
+              </v-list-item>
+
               <v-list-item to="/SelectCourse">
                 <v-list-item-content>
-                  <v-list-item-title>作业管理</v-list-item-title>
+                  <v-list-item-title>课程管理</v-list-item-title>
                 </v-list-item-content>
               </v-list-item>
 
@@ -98,13 +104,13 @@
         <router-view></router-view>
       </v-main>
     </v-app>
-    <v-app>
+    <div>
       <v-dialog
         persistent
         overlay-opacity="0.92"
         v-model="dialog"
         width="500"
-        transition="dialog-top-transition"
+        transition="slide-y-transition"
       >
 
         <v-card class="text-center">
@@ -136,7 +142,7 @@
         </v-card>
 
       </v-dialog>
-    </v-app>
+    </div>
   </v-app>
 </template>
 
@@ -148,6 +154,7 @@ import SelectCourse from "./components/SelectCourse";
 import SelectHomework from "./components/SelectHomework";
 import ChooseCourse from "./components/ChooseCourse";
 import ChosenCourse from "./components/ChosenCourse"
+import UserInfo from "./components/UserInfo";
 
 export default {
   name: 'App',
@@ -159,7 +166,8 @@ export default {
     SelectCourse,
     SelectHomework,
     ChooseCourse,
-    ChosenCourse
+    ChosenCourse,
+    UserInfo
   },
 
   data: () => ({

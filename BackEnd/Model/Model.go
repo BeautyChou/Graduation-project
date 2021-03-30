@@ -88,6 +88,7 @@ type Course struct {
 	StartWeek    int                  `json:"start_week" gorm:"type:int(11);"`                                     // 起始周数
 	EndWeek      int                  `json:"end_week" gorm:"type:int(11);"`                                       // 结束周数
 	CopyFlag     int                  `json:"copy_flag"`                                                           // 记录复制的Record_ID
+	Selectable   bool                 `json:"selectable"`                                                          //区分毕业设计与普通课程的标记
 }
 
 type ApplyForCourseChange struct {
@@ -115,21 +116,24 @@ type ApplyForCourseChange struct {
 //学生表
 type Student struct {
 	MyModel
-	Name         string               `json:"name" gorm:"type:varchar(50);not null;"`              // 学生姓名
-	Sex          string               `json:"sex" gorm:"type:varchar(10);"`                        // 性别
-	Password     string               `json:"password" gorm:"type:varchar(20);"`                   // 密码
-	Faculty      Faculty              `gorm:"ForeignKey:FacultyID;"`                               // 院系外键
-	FacultyID    int                  `json:"faculty_id" gorm:"index:faculty_id;"`                 // 所在院系
-	NativePlace  string               `json:"native_place" gorm:"type:varchar(60);"`               // 籍贯
-	Credit       float32              `json:"mark" gorm:"type:float(5,2);"`                        // 累计学分
-	Email        string               `json:"email" gorm:"type:varchar(50);"`                      // 电子邮件
-	Avatar       string               `json:"avatar" gorm:"type:varchar(50);"`                     // 头像
-	Phone        string               `json:"phone" gorm:"type:varchar(50);"`                      // 手机号码
-	MaxChooseNum int                  `json:"max_choose_num" gorm:"type:int(11);"`                 // 最大可选课数
-	Direction    DirectionToSpecialty `gorm:"references:DirectionID;"`                             // 方向外键
-	DirectionID  int                  `json:"direction_id" gorm:"index:direction_id;type:int(11)"` // 学生所属方向
-	SpecialtyID  int                  `json:"specialty_id" gorm:"index:special_id;type:int(11)"`   // 学生所属专业
-	Specialty    DirectionToSpecialty `gorm:"references:SpecialtyID;"`                             // 专业外键
+	Name         string               `json:"name" gorm:"type:varchar(50);not null;"`                    // 学生姓名
+	Sex          string               `json:"sex" gorm:"type:varchar(10);"`                              // 性别
+	Password     string               `json:"password" gorm:"type:varchar(20);"`                         // 密码
+	Faculty      Faculty              `gorm:"ForeignKey:FacultyID;"`                                     // 院系外键
+	FacultyID    int                  `json:"faculty_id" gorm:"index:faculty_id;"`                       // 所在院系
+	NativePlace  string               `json:"native_place" gorm:"type:varchar(60);"`                     // 籍贯
+	Credit       float32              `json:"mark" gorm:"type:float(5,2);"`                              // 累计学分
+	Email        string               `json:"email" gorm:"type:varchar(50);"`                            // 电子邮件
+	Avatar       string               `json:"avatar" gorm:"type:varchar(50);"`                           // 头像
+	Phone        string               `json:"phone" gorm:"type:varchar(50);"`                            // 手机号码
+	MaxChooseNum int                  `json:"max_choose_num" gorm:"type:int(11);"`                       // 最大可选课数
+	Direction    DirectionToSpecialty `gorm:"references:DirectionID;"`                                   // 方向外键
+	DirectionID  int                  `json:"direction_id" gorm:"index:direction_id;type:int(11)"`       // 学生所属方向
+	SpecialtyID  int                  `json:"specialty_id" gorm:"index:special_id;type:int(11)"`         // 学生所属专业
+	Specialty    DirectionToSpecialty `gorm:"references:SpecialtyID;"`                                   // 专业外键
+	Teacher      Teacher              `gorm:"references:ID;"`                                            //导师外键
+	TeacherID    int                  `json:"teacher_id" gorm:"type:int(11);not null;index:teacher_id;"` // 导师ID
+	Practice     int               `json:"practice"`                                                  //实习方式
 }
 
 //学生成绩
@@ -199,6 +203,23 @@ type Student2Course struct {
 	RecordID  int            `json:"record_id" sql:"type:INT(11) NOT NULL"`                     // 课程列表号
 }
 
+type IndependentPractice struct {
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+	DeletedAt      gorm.DeletedAt `sql:"index"`
+	StudentID      int            `json:"student_id" gorm:"primary_Key;" sql:"type:INT(11) NOT NULL"` // 学生ID
+	Student        Student        `gorm:"ForeignKey:StudentID;"`                                      // 学生外键
+	Phone          int            `json:"phone"`                                                      // 在外联系方式
+	StartTime      time.Time      `json:"start_time"`                                                 // 实习开始日期
+	EndTime        time.Time      `json:"end_time"`                                                   // 实习结束日期
+	Reason         string         `json:"reason" gorm:"varchar(60)"`                                  // 申请理由
+	CompanyName    string         `json:"company_name" gorm:"varchar(60)"`                            // 实习单位名称
+	CompanyAddress string         `json:"company_address" gorm:"varchar(60)"`                         // 实习单位地址
+	CompanyPerson  string         `json:"company_person" gorm:"varchar(60)"`                          // 实习单位联系人
+	CompanyPhone   int            `json:"company_phone" gorm:"int(13)"`                               // 实习单位电话
+	Address        string         `json:"address" gorm:"varchar(60)"`                                 // 在外住宿地址
+}
+
 type HomeworkUploadRecordsForSelect struct {
 	QuestionID       int    `json:"question_id" gorm:"primary_Key;uniqueIndex:homework_id;" sql:"type:INT(11) NOT NULL"` // 课程号
 	Name             string `json:"name" gorm:"type:varchar(50);not null;"`                                              // 学生姓名
@@ -241,6 +262,7 @@ type CourseForSelect struct {
 	DirectionID  int    `json:"direction_id" gorm:"index:direction_id;type:int(11)"`       // 学生所属方向
 	SpecialtyID  int    `json:"specialty_id" gorm:"index:special_id;type:int(11)"`         // 学生所属专业
 	CopyFlag     int    `json:"copy_flag"`
+	Selectable   bool   `json:"selectable"` //区分毕业设计与普通课程的标记
 }
 
 type QuestionForSelect struct {
@@ -387,6 +409,32 @@ type ElectiveForSelect struct {
 	HomeworkPercentage int    `json:"homework_percentage" gorm:"size:3"`                                     // 作业分数占比
 }
 
+type TeacherForUserInfo struct {
+	MyModel
+	Avatar      string `json:"avatar" gorm:"size:50"`         // 头像
+	Name        string `json:"name" gorm:"size:50;not null"`  // 教师姓名
+	Email       string `json:"email" gorm:"size:50;"`         // 邮箱
+	Phone       string `json:"phone" gorm:"size:50;"`         // 电话
+	Password    string `json:"password" gorm:"size:50"`       // 密码
+	FacultyID   int    `json:"faculty_id" gorm:"index:f_id;"` // 学院ID
+	FacultyName string `json:"faculty_name"`                  //学院名称
+	Title       Title  `gorm:"foreignKey:TitleID;"`           // 职称外键
+	TitleID     int    `json:"title_id" gorm:"index:t_id"`    // 职称ID
+}
+
+type StudentForUserInfo struct {
+	Created       time.Time `json:"created"`
+	Name          string    `json:"name" gorm:"type:varchar(50);not null;"`                    // 学生姓名
+	FacultyID     int       `json:"faculty_id" gorm:"index:faculty_id;"`                       // 所在院系
+	FacultyName   string    `json:"faculty_name"`                                              //学院名称
+	Credit        float32   `json:"mark" gorm:"type:float(5,2);"`                              // 累计学分
+	DirectionID   int       `json:"direction_id" gorm:"index:direction_id;type:int(11)"`       // 学生所属方向
+	SpecialtyID   int       `json:"specialty_id" gorm:"index:special_id;type:int(11)"`         // 学生所属专业
+	SpecialtyName string    `json:"specialty_name"`                                            //专业名称
+	TeacherID     int       `json:"teacher_id" gorm:"type:int(11);not null;index:teacher_id;"` // 导师ID
+	Practice      int       `json:"practice"`                                                  //实习方式
+}
+
 type CourseForChooses []CourseForChoose
 type HomeworkUploadRecordsForSelects []HomeworkUploadRecordsForSelect
 type HomeworkUploadRecords []HomeworkUploadRecord
@@ -410,6 +458,6 @@ type Electives []Elective
 type ElectiveForSelects []ElectiveForSelect
 
 func CreateDatabase(db *gorm.DB) {
-	db.AutoMigrate(&Elective{})
-	//db.AutoMigrate(&Title{}, &Faculty{}, &Teacher{}, &Elective{}, &Admin{}, &Classroom{}, &DirectionToSpecialty{}, &Course{}, &Student{}, &HomeworkUploadRecord{}, &Homework{}, &Question{}, &Student2Course{}, &ApplyForCourseChange{})
+	//db.AutoMigrate(&Elective{})
+	db.AutoMigrate(&Title{}, &Faculty{}, &Teacher{}, &Elective{}, &Admin{}, &Classroom{}, &DirectionToSpecialty{}, &Course{}, &Student{}, &HomeworkUploadRecord{}, &Homework{}, &Question{}, &Student2Course{}, &ApplyForCourseChange{}, &IndependentPractice{})
 }

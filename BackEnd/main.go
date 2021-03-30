@@ -58,5 +58,12 @@ func main(){
 	r.GET("/getStudentScore",Controller.GetStudentScore(db))
 	r.POST("/postScore",Controller.PostScore(db))
 	r.GET("/getScore",Controller.GetScore(db))
+	r.GET("/getUserInfo",Controller.GetUserInfo(db))
+	r.GET("/getDirectionList",Controller.GetDirectionList(db))
+	r.GET("/getTeacherList",Controller.GetTeacherList(db))
+	r.POST("/postDirection",Controller.PostDirection(db))
+	r.POST("/postTeacher",Controller.PostTeacher(db))
+	r.POST("/postPractice",Controller.PostPractice(db))
+	r.POST("/postIndependentPractice",Controller.PostIndependentPractice(db))
 	r.Run(":9000")
 }

@@ -301,9 +301,9 @@ func GetClassesList(db *gorm.DB) func(c *gin.Context) {
 				"classes": classes,
 			})
 		} else {
-			db.Debug().Find(&[]Model.Teacher{}).Scan(&teachers)
+			db.Debug().Find(&[]Model.Teacher{}).Where("title_id <> 0").Scan(&teachers)
 			db.Find(&[]Model.Course{}).Order("id asc").Scan(&classes)
-			db.Find(&[]Model.Faculty{}).Scan(&faculties)
+			db.Find(&[]Model.Faculty{}).Where("id <> 0").Scan(&faculties)
 			db.Find(&[]Model.DirectionToSpecialty{}).Scan(&specialties)
 			db.Find(&[]Model.DirectionToSpecialty{}).Scan(&directions)
 			db.Find(&[]Model.Classroom{}).Scan(&classrooms)
@@ -344,6 +344,7 @@ func PostNewClass(db *gorm.DB) func(c *gin.Context) {
 		course.EndWeek, _ = strconv.Atoi(c.PostForm("end_week"))
 		course.ClassroomID, _ = strconv.Atoi(c.PostForm("classroom_id"))
 		course.CopyFlag, _ = strconv.Atoi(c.PostForm("copy_flag"))
+		course.Selectable = c.PostForm("selectable")=="true"
 		flag := c.PostForm("flag")
 		if flag == "copy" || flag == "course" {
 			db.Select("id").Where("course_name = ?", course.CourseName).Last(&courseTemp)
@@ -606,10 +607,10 @@ func GetAvailableCourses(db *gorm.DB) func(c *gin.Context) {
 		}
 		fmt.Println(tempCourses)
 		if directionId == "0" {
-			db.Debug().Table("(?) as F", db.Model(&Model.Course{}).Select("courses.*,count(s2c.record_id) as selected").Joins("left join student2_courses s2c on courses.record_id = s2c.record_id").Where("courses.deleted_at is null AND (courses.faculty_id = ? OR courses.faculty_id = 0) AND (courses.direction_id = 0) AND (courses.specialty_id = ? OR courses.specialty_id = 0) AND copy_flag = 0", facultyId, specialtyId).Group("s2c.record_id")).Joins("left join teachers t on f.teacher_id = t.id").Where("F.selected_num <max_choose_num").Not(tempIDs).Scan(&courses)
+			db.Debug().Table("(?) as F", db.Model(&Model.Course{}).Select("courses.*,count(s2c.record_id) as selected").Joins("left join student2_courses s2c on courses.record_id = s2c.record_id").Where("courses.deleted_at is null AND (courses.faculty_id = ? OR courses.faculty_id = 0) AND (courses.direction_id = 0) AND (courses.specialty_id = ? OR courses.specialty_id = 0) AND copy_flag = 0 AND selectable = 1", facultyId, specialtyId).Group("s2c.record_id")).Joins("left join teachers t on f.teacher_id = t.id").Where("F.selected_num <max_choose_num").Not(tempIDs).Scan(&courses)
 			//db.Debug().Raw("select * from (select student2_courses.record_id,count(student2_courses.record_id) from student2_courses group by record_id) F left join courses c on c.record_id = F.record_id where deleted_at is null AND (faculty_id = ? OR faculty_id = 0) AND (direction_id = 0) AND (specialty_id = ? OR specialty_id = 0) AND copy_flag = 0",facultyId,specialtyId).Joins("left join teachers on teachers.teacher_id = courses.teacher_id").Joins("left join teachers on teachers.teacher_id = courses.teacher_id").Not(tempCourses).Scan(&courses)
 		} else {
-			db.Debug().Table("(?) as F", db.Model(&Model.Course{}).Select("courses.*,count(s2c.record_id) as selected").Joins("left join student2_courses s2c on courses.record_id = s2c.record_id").Where("courses.deleted_at is null AND (courses.faculty_id = ? OR courses.faculty_id = 0) AND (courses.direction_id = 0 OR direction_id = ? ) AND (courses.specialty_id = ? OR courses.specialty_id = 0) AND copy_flag = 0", facultyId, directionId, specialtyId).Group("s2c.record_id")).Joins("left join teachers t on f.teacher_id = t.id").Where("AND F.selected_num <max_choose_num").Not(tempIDs).Scan(&courses)
+			db.Debug().Table("(?) as F", db.Model(&Model.Course{}).Select("courses.*,count(s2c.record_id) as selected").Joins("left join student2_courses s2c on courses.record_id = s2c.record_id").Where("courses.deleted_at is null AND (courses.faculty_id = ? OR courses.faculty_id = 0) AND (courses.direction_id = 0 OR direction_id = ? ) AND (courses.specialty_id = ? OR courses.specialty_id = 0) AND copy_flag = 0 AND selectable = 1", facultyId, directionId, specialtyId).Group("s2c.record_id")).Joins("left join teachers t on f.teacher_id = t.id").Where("AND F.selected_num <max_choose_num").Not(tempIDs).Scan(&courses)
 			//db.Debug().Table("(?) as F",db.Model(&Model.Student2Course{}).Select("student2_courses.record_id,count(student2_courses.record_id) as selected_num").Group("record_id")).Select("F.*,c.*,t.*,F.selected_num selected_num").Joins("left join courses c on c.record_id = F.record_id").Joins("left join teachers t on t.id = c.teacher_id").Where("c.deleted_at is null AND (c.faculty_id = ? OR c.faculty_id = 0) AND (c.direction_id = 0 OR direction_id = ? ) AND (c.specialty_id = ? OR c.specialty_id = 0) AND copy_flag = 0 AND F.selected_num <c.max_choose_num",facultyId,directionId,specialtyId).Not(tempCourses).Scan(&courses)
 		}
 		c.JSON(http.StatusOK, gin.H{
@@ -729,6 +730,100 @@ func GetScore(db *gorm.DB) func(c *gin.Context) {
 		})
 	}
 }
+
+func GetUserInfo (db *gorm.DB) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		studentID := c.Query("student_id")
+		teacherID := c.Query("teacher_id")
+		student := &Model.StudentForUserInfo{}
+		teacher := &Model.TeacherForUserInfo{}
+		if studentID == "" {
+			db.Model(&Model.Teacher{}).Select("teachers.*,faculties.name faculty_name").Where("id = ?",teacherID).Joins("left join faculties on faculties.id = teachers.faculty_id").Find(&teacher)
+		}else{
+			db.Debug().Model(&Model.Student{}).Select("students.created_at created,faculties.name faculty_name,direction_to_specialties.*,students.*").Where("students.id = ?",studentID).Joins("left join faculties on faculties.id = students.faculty_id left join direction_to_specialties on direction_to_specialties.faculty_id = students.faculty_id AND direction_to_specialties.specialty_id = students.specialty_id AND direction_to_specialties.direction_id = students.direction_id").Find(&student)
+		}
+		c.JSON(http.StatusOK,gin.H{
+			"student":student,
+			"teacher":teacher,
+		})
+	}
+}
+
+func GetDirectionList(db *gorm.DB) func(c *gin.Context){
+	return func(c *gin.Context) {
+		facultyID := c.Query("faculty_id")
+		specialtyID := c.Query("specialty_id")
+		directions := &Model.DirectionToSpecialtyForSelects{}
+		db.Model(&Model.DirectionToSpecialty{}).Where("faculty_id = ? AND specialty_id = ? AND direction_id <> 0",facultyID,specialtyID).Scan(&directions)
+		c.JSON(http.StatusOK,gin.H{
+			"directions": directions,
+		})
+	}
+}
+
+func GetTeacherList(db *gorm.DB) func(c *gin.Context){
+	return func(c *gin.Context) {
+		facultyID := c.Query("faculty_id")
+		teachers := &Model.TeacherForSelects{}
+		db.Model(&Model.Teacher{}).Where("faculty_id = ?",facultyID).Scan(&teachers)
+		c.JSON(http.StatusOK,gin.H{
+			"teachers": teachers,
+		})
+	}
+}
+
+func PostDirection(db *gorm.DB) func(c *gin.Context){
+	return func(c *gin.Context) {
+		directionID,_ := strconv.Atoi(c.PostForm("direction_id"))
+		studentID := c.PostForm("student_id")
+		db.Model(&Model.Student{}).Where("id = ?",studentID).Updates(&Model.Student{
+			DirectionID: directionID,
+		})
+		c.JSON(http.StatusOK,gin.H{
+			"snackbar": "setSuccess",
+			"msg":      "修改方向成功!",
+		})
+	}
+}
+
+func PostTeacher(db *gorm.DB) func(c *gin.Context){
+	return func(c *gin.Context) {
+		teacherID,_ := strconv.Atoi(c.PostForm("teacher_id"))
+		studentID := c.PostForm("student_id")
+		db.Model(&Model.Student{}).Where("id = ?",studentID).Updates(&Model.Student{
+			TeacherID: teacherID,
+		})
+		c.JSON(http.StatusOK,gin.H{
+			"snackbar": "setSuccess",
+			"msg":      "导师修改成功!",
+		})
+	}
+}
+
+func PostPractice(db *gorm.DB) func(c *gin.Context){
+	return func(c *gin.Context) {
+		practice,_ := strconv.Atoi(c.PostForm("practice"))
+		studentID := c.PostForm("student_id")
+		db.Model(&Model.Student{}).Where("id = ?",studentID).Updates(&Model.Student{
+			Practice: practice,
+		})
+		c.JSON(http.StatusOK,gin.H{
+			"snackbar": "setSuccess",
+			"msg":      "实习方式修改成功!",
+		})
+	}
+}
+
+func PostIndependentPractice(db *gorm.DB) func(c *gin.Context){
+	return func(c *gin.Context) {
+		practice := c.PostForm("independent_practice")
+		studentID := c.PostForm("student_id")
+		fmt.Println(practice)
+		fmt.Println(studentID)
+
+	}
+}
+
 
 func ReturnOK(c *gin.Context) {
 	c.JSON(http.StatusOK, 0)

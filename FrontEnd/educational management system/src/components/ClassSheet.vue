@@ -18,19 +18,12 @@
         >
           <v-card
             :color="active ? 'green lighten-1' : 'grey lighten-1'"
-            class="ma-4 "
-            height="75"
-            width="100"
+            class="ma-2 text-center pa-2"
+            height="40"
+            width="80"
             @click="toggle"
           >
-            <v-row
-              class="my-auto"
-              align="center"
-              justify="center"
-            >
-              <v-card-title >第{{n}}周</v-card-title>
-
-            </v-row>
+            第{{n}}周
           </v-card>
         </v-slide-item>
       </v-slide-group>

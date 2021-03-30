@@ -228,13 +228,23 @@
               <v-select
                 :disabled="newClass.week_time == null || newClass.start_time == null || newClass.end_time == null || newClass.start_week == null || newClass.end_week == null||newClass.faculty_id == null|| newClass.specialty_id == null||newClass.direction_id == null"
                 @click="validClassrooms()"
-                class="col-12"
+                class="col-6"
                 v-model="newClass.classroom_id"
                 :items="valClassrooms"
                 item-text="name"
                 item-value="value"
                 outlined
                 label="上课教室"
+              ></v-select>
+              <v-select
+                class="col-6"
+                v-model="newClass.selectable"
+                :disabled="copyFlag||copyCourseFlag"
+                :items="selectable"
+                item-text="name"
+                item-value="value"
+                outlined
+                label="是否可被学生选择"
               ></v-select>
               <v-text-field
                 outlined
@@ -345,7 +355,7 @@
               color="green darken-1"
               text
               @click="submitNewClass()"
-              :disabled="newClass.course_name==null||newClass.credit==null||newClass.max_choose_num==null||newClass.week_time==null||newClass.start_time==null||newClass.end_time==null||newClass.teacher_id==null||newClass.classroom_id==null||newClass.start_week==null||newClass.end_week==null||newClass.faculty_id==null||newClass.direction_id==null"
+              :disabled="newClass.course_name==null||newClass.credit==null||newClass.max_choose_num==null||newClass.week_time==null||newClass.start_time==null||newClass.end_time==null||newClass.teacher_id==null||newClass.classroom_id==null||newClass.start_week==null||newClass.end_week==null||newClass.faculty_id==null||newClass.direction_id==null||newClass.selectable==null"
             >
               提交
             </v-btn>
@@ -388,6 +398,10 @@ export default {
       ],
       classes: [],
       drag: false,
+      selectable:[
+        {name: "是", value: true},
+        {name: "否", value: false},
+      ],
       start_time: [
         {name: "第一节", value: 1},
         {name: "第二节", value: 2},
@@ -489,7 +503,7 @@ export default {
   },
   components: {},
   methods: {
-    copyCourse(classOBJ){ //复制班级
+    copyCourse(classOBJ){ //复制班级(允许更多人上这门课)
       this.copyCourseFlag = true
       this.addClass = true
       this.selectId = classOBJ.course_id
@@ -499,6 +513,8 @@ export default {
       this.newClass.faculty_id = classOBJ.faculty_id
       this.newClass.specialty_id = classOBJ.specialty_id
       this.newClass.direction_id = classOBJ.direction_id
+      console.log(classOBJ.selectable)
+      this.newClass.selectable = classOBJ.selectable
       this.str = 'course'
     },
     copyClass(classOBJ){
@@ -513,6 +529,7 @@ export default {
       this.newClass.faculty_id = classOBJ.faculty_id
       this.newClass.specialty_id = classOBJ.specialty_id
       this.newClass.direction_id = classOBJ.direction_id
+      this.newClass.selectable = classOBJ.selectable
       this.str = 'copy'
     },
     submitNewClass(){
@@ -534,6 +551,7 @@ export default {
       formData.append("direction_id",this.newClass.direction_id)
       formData.append("copy_flag",this.newClass.copy_flag)
       formData.append("flag",this.str)
+      formData.append("selectable",this.newClass.selectable)
       this.str = ''
       this.$axios({
         method:"post",
