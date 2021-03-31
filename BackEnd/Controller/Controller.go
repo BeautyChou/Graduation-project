@@ -344,7 +344,7 @@ func PostNewClass(db *gorm.DB) func(c *gin.Context) {
 		course.EndWeek, _ = strconv.Atoi(c.PostForm("end_week"))
 		course.ClassroomID, _ = strconv.Atoi(c.PostForm("classroom_id"))
 		course.CopyFlag, _ = strconv.Atoi(c.PostForm("copy_flag"))
-		course.Selectable = c.PostForm("selectable")=="true"
+		course.Selectable = c.PostForm("selectable") == "true"
 		flag := c.PostForm("flag")
 		if flag == "copy" || flag == "course" {
 			db.Select("id").Where("course_name = ?", course.CourseName).Last(&courseTemp)
@@ -384,7 +384,7 @@ func UploadClass(db *gorm.DB) func(c *gin.Context) {
 		classes := Model.CourseForSelects{}
 		err := c.ShouldBindJSON(&classes)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
+			c.JSON(http.StatusOK, gin.H{
 				"snackbar": "setError",
 				"msg":      err,
 			})
@@ -643,7 +643,6 @@ func ChooseCourse(db *gorm.DB) func(c *gin.Context) {
 				"msg":      "添加课程失败!人数已满！",
 			})
 		}
-
 	}
 }
 
@@ -724,106 +723,165 @@ func GetScore(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		studentId := c.Query("student_id")
 		electives := &Model.ElectiveForSelects{}
-		db.Debug().Model(&Model.Elective{}).Select("*").Joins("left join courses on courses.id = electives.course_id").Where("student_id = ?",studentId).Group("course_id").Scan(&electives)
-		c.JSON(http.StatusOK,gin.H{
-			"electives":electives,
+		db.Debug().Model(&Model.Elective{}).Select("*").Joins("left join courses on courses.id = electives.course_id").Where("student_id = ?", studentId).Group("course_id").Scan(&electives)
+		c.JSON(http.StatusOK, gin.H{
+			"electives": electives,
 		})
 	}
 }
 
-func GetUserInfo (db *gorm.DB) func(c *gin.Context) {
+func GetUserInfo(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		studentID := c.Query("student_id")
 		teacherID := c.Query("teacher_id")
 		student := &Model.StudentForUserInfo{}
 		teacher := &Model.TeacherForUserInfo{}
+		students := &Model.StudentForSelects{}
+		currentTime := time.Now()
 		if studentID == "" {
-			db.Model(&Model.Teacher{}).Select("teachers.*,faculties.name faculty_name").Where("id = ?",teacherID).Joins("left join faculties on faculties.id = teachers.faculty_id").Find(&teacher)
-		}else{
-			db.Debug().Model(&Model.Student{}).Select("students.created_at created,faculties.name faculty_name,direction_to_specialties.*,students.*").Where("students.id = ?",studentID).Joins("left join faculties on faculties.id = students.faculty_id left join direction_to_specialties on direction_to_specialties.faculty_id = students.faculty_id AND direction_to_specialties.specialty_id = students.specialty_id AND direction_to_specialties.direction_id = students.direction_id").Find(&student)
+			bTime := time.Date(currentTime.Year()-4,6,1,0,0,0,00,time.Local)
+			tTime := time.Date(currentTime.Year()-4,8,31,23,59,59,99,time.Local)
+			db.Model(&Model.Teacher{}).Select("teachers.*,faculties.name faculty_name").Where("teachers.id = ?", teacherID).Joins("left join faculties on faculties.id = teachers.faculty_id").Find(&teacher)
+			db.Debug().Model(&Model.Student{}).Where("teacher_id = ? AND created_at >= ? AND created_at <= ?",teacherID,bTime,tTime).Scan(&students)
+		} else {
+			db.Debug().Model(&Model.Student{}).Select("students.created_at created,faculties.name faculty_name,direction_to_specialties.*,students.*").Where("students.id = ?", studentID).Joins("left join faculties on faculties.id = students.faculty_id left join direction_to_specialties on direction_to_specialties.faculty_id = students.faculty_id AND direction_to_specialties.specialty_id = students.specialty_id AND direction_to_specialties.direction_id = students.direction_id").Find(&student)
 		}
-		c.JSON(http.StatusOK,gin.H{
-			"student":student,
-			"teacher":teacher,
+		c.JSON(http.StatusOK, gin.H{
+			"student": student,
+			"teacher": teacher,
+			"current_time": currentTime,
+			"students":students,
 		})
 	}
 }
 
-func GetDirectionList(db *gorm.DB) func(c *gin.Context){
+func GetDirectionList(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		facultyID := c.Query("faculty_id")
 		specialtyID := c.Query("specialty_id")
 		directions := &Model.DirectionToSpecialtyForSelects{}
-		db.Model(&Model.DirectionToSpecialty{}).Where("faculty_id = ? AND specialty_id = ? AND direction_id <> 0",facultyID,specialtyID).Scan(&directions)
-		c.JSON(http.StatusOK,gin.H{
+		db.Model(&Model.DirectionToSpecialty{}).Where("faculty_id = ? AND specialty_id = ? AND direction_id <> 0", facultyID, specialtyID).Scan(&directions)
+		c.JSON(http.StatusOK, gin.H{
 			"directions": directions,
 		})
 	}
 }
 
-func GetTeacherList(db *gorm.DB) func(c *gin.Context){
+func GetTeacherList(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		facultyID := c.Query("faculty_id")
 		teachers := &Model.TeacherForSelects{}
-		db.Model(&Model.Teacher{}).Where("faculty_id = ?",facultyID).Scan(&teachers)
-		c.JSON(http.StatusOK,gin.H{
+		db.Model(&Model.Teacher{}).Where("faculty_id = ?", facultyID).Scan(&teachers)
+		c.JSON(http.StatusOK, gin.H{
 			"teachers": teachers,
 		})
 	}
 }
 
-func PostDirection(db *gorm.DB) func(c *gin.Context){
+func PostDirection(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		directionID,_ := strconv.Atoi(c.PostForm("direction_id"))
+		directionID, _ := strconv.Atoi(c.PostForm("direction_id"))
 		studentID := c.PostForm("student_id")
-		db.Model(&Model.Student{}).Where("id = ?",studentID).Updates(&Model.Student{
+		db.Model(&Model.Student{}).Where("id = ?", studentID).Updates(&Model.Student{
 			DirectionID: directionID,
 		})
-		c.JSON(http.StatusOK,gin.H{
+		c.JSON(http.StatusOK, gin.H{
 			"snackbar": "setSuccess",
 			"msg":      "修改方向成功!",
 		})
 	}
 }
 
-func PostTeacher(db *gorm.DB) func(c *gin.Context){
+func PostTeacher(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		teacherID,_ := strconv.Atoi(c.PostForm("teacher_id"))
+		teacherID, _ := strconv.Atoi(c.PostForm("teacher_id"))
 		studentID := c.PostForm("student_id")
-		db.Model(&Model.Student{}).Where("id = ?",studentID).Updates(&Model.Student{
+		db.Model(&Model.Student{}).Where("id = ?", studentID).Updates(&Model.Student{
 			TeacherID: teacherID,
 		})
-		c.JSON(http.StatusOK,gin.H{
+		c.JSON(http.StatusOK, gin.H{
 			"snackbar": "setSuccess",
 			"msg":      "导师修改成功!",
 		})
 	}
 }
 
-func PostPractice(db *gorm.DB) func(c *gin.Context){
+func PostPractice(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		practice,_ := strconv.Atoi(c.PostForm("practice"))
+		practice, _ := strconv.Atoi(c.PostForm("practice"))
 		studentID := c.PostForm("student_id")
-		db.Model(&Model.Student{}).Where("id = ?",studentID).Updates(&Model.Student{
+		db.Model(&Model.Student{}).Where("id = ?", studentID).Updates(&Model.Student{
 			Practice: practice,
 		})
-		c.JSON(http.StatusOK,gin.H{
+		c.JSON(http.StatusOK, gin.H{
 			"snackbar": "setSuccess",
 			"msg":      "实习方式修改成功!",
 		})
 	}
 }
 
-func PostIndependentPractice(db *gorm.DB) func(c *gin.Context){
+func PostIndependentPractice(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		practice := c.PostForm("independent_practice")
-		studentID := c.PostForm("student_id")
-		fmt.Println(practice)
-		fmt.Println(studentID)
-
+		practice := &Model.IndependentPractice{}
+		temp := &Model.IndependentPractice{}
+		if err := c.ShouldBindJSON(&practice); err != nil {
+			c.JSON(http.StatusOK, gin.H{
+				"snackbar": "setError",
+				"msg":      "申请表格式有错，请重新填写！",
+			})
+			return
+		}
+		if err := db.Where("student_id = ?", practice.StudentID).First(&temp).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				db.Debug().Model(&Model.IndependentPractice{}).Create(&practice)
+			}
+		} else {
+			db.Debug().Model(&Model.IndependentPractice{}).Where("student_id = ?", practice.StudentID).Updates(&practice)
+		}
+		c.JSON(http.StatusOK,gin.H{
+			"snackbar":"setSuccess",
+			"msg":"申请表上传成功！",
+		})
 	}
 }
 
+
+func ApplyTeacher(db *gorm.DB) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		studentID := c.PostForm("student_id")
+		teacherID := c.PostForm("teacher_id")
+		state := c.PostForm("operation")
+		if state == "pass"{
+			course := &Model.CourseForSelect{}
+			record := &Model.Student2Course{}
+			var count int64
+			db.Debug().Model(&Model.Course{}).Where("teacher_id = ? AND selectable = 0",teacherID).Order("record_id desc").Limit(1).Scan(&course)
+			record.StudentID,_ = strconv.Atoi(studentID)
+			record.CourseID = course.ID
+			record.RecordID = course.RecordID
+			db.Debug().Model(&Model.Course{}).Select("max_choose_num").Where("record_id = ?", course.RecordID).Scan(&course)
+			db.Debug().Create(&record)
+			db.Debug().Model(&Model.Student2Course{}).Select("count(1)").Where("record_id = ?", record.RecordID).Count(&count)
+			fmt.Println(count, int64(course.MaxChooseNum))
+			if count <= int64(course.MaxChooseNum) {
+				c.JSON(http.StatusOK, gin.H{
+					"snackbar": "setSuccess",
+					"msg":      "添加课程成功",
+				})
+				db.Model(&Model.Student{}).Where("id = ?",studentID).Update("teacher_flag",1)
+			} else {
+				db.Unscoped().Model(&Model.Student2Course{}).Delete(record)
+				c.JSON(http.StatusOK, gin.H{
+					"snackbar": "setError",
+					"msg":      "添加课程失败!人数已满！",
+				})
+				db.Model(&Model.Student{}).Where("id = ?",studentID).Update("teacher_id",0)
+			}
+		}else {
+			db.Model(&Model.Student{}).Where("id = ?",studentID).Update("teacher_id",0)
+		}
+	}
+}
 
 func ReturnOK(c *gin.Context) {
 	c.JSON(http.StatusOK, 0)

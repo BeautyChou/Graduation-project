@@ -65,5 +65,6 @@ func main(){
 	r.POST("/postTeacher",Controller.PostTeacher(db))
 	r.POST("/postPractice",Controller.PostPractice(db))
 	r.POST("/postIndependentPractice",Controller.PostIndependentPractice(db))
+	r.POST("/ApplyTeacher",Controller.ApplyTeacher(db))
 	r.Run(":9000")
 }

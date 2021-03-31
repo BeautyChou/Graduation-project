@@ -41,8 +41,8 @@
         <v-card>
           <v-card-title>选择导师</v-card-title>
           <v-select outlined :items="teachers" item-text="name" item-value="value" v-model="teacher_id"></v-select>
-          <v-btn block x-large class="ma-0" @click="postTeacher">提交</v-btn>
-          <v-overlay :absolute="true" :value="teacher_invalid">
+          <v-btn block x-large class="ma-0" @click="postTeacher" :disabled="(student.teacher_id!==0)">提交</v-btn>
+          <v-overlay :absolute="true" :value="teacher_invalid||teacher_flag">
             <v-card-title class="font-weight-bold">在第七学期9月开放</v-card-title>
           </v-overlay>
 
@@ -60,8 +60,72 @@
         </v-card>
       </v-col>
     </v-card>
+    <v-card>
+      <v-card-title>毕业设计学生申请</v-card-title>
+      <v-simple-table>
+        <template v-slot:default>
+          <thead>
+          <tr>
+            <th class="text-left">
+              学生姓名
+            </th>
+            <th class="text-left">
+              操作
+            </th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr
+            v-for="item in students"
+            :key="item.student_id"
+          >
+            <td>{{ item.name }}</td>
+            <td>
+              <v-tooltip v-if="$store.state.level===2||true" bottom>
+                <template v-slot:activator="{ on,attrs }">
+                  <v-btn
+                    icon
+                    color="green"
+                    v-bind="attrs"
+                    v-on="on"
+                    @click.native="pass(item)"
+                    small
+                    class="col-1">
+                    <v-icon>
+                      mdi-check-bold
+                    </v-icon>
+                  </v-btn>
+                </template>
+                <span>同意</span>
+              </v-tooltip>
+              <v-tooltip v-if="$store.state.level===2||true" bottom>
+                <template v-slot:activator="{ on,attrs }">
+                  <v-btn
+                    icon
+                    color="red"
+                    v-bind="attrs"
+                    v-on="on"
+                    @click.native="denied(item)"
+                    small
+                    class="col-1">
+                    <v-icon>
+                      mdi-close-thick
+                    </v-icon>
+                  </v-btn>
+                </template>
+                <span>不同意</span>
+              </v-tooltip>
+            </td>
+          </tr>
+          </tbody>
+        </template>
+      </v-simple-table>
 
+    </v-card>
     <v-card v-if="practice === 1 " class="d-flex flex-wrap">
+      <v-overlay :absolute="true" :value="teacher_invalid">
+        <v-card-title class="font-weight-bold">在第七学期9月开放</v-card-title>
+      </v-overlay>
       <v-col cols="12">
         <v-row>
           <v-card-title>自主实习申请表</v-card-title>
@@ -72,12 +136,12 @@
         </v-row>
       </v-col>
       <v-col cols="2">
-        <v-text-field label="在外联系方式" outlined v-model="phone"></v-text-field>
+        <v-text-field label="在外联系方式" outlined v-model.number="independent_practice.phone_number"></v-text-field>
       </v-col>
       <v-col cols="5">
         <v-menu
           ref="menu"
-          v-model="menu"
+          v-model="menu1"
           :close-on-content-click="false"
           transition="scale-transition"
           offset-y
@@ -102,7 +166,7 @@
       <v-col cols="5">
         <v-menu
           ref="menu"
-          v-model="independent_practice.menu"
+          v-model="menu2"
           :close-on-content-click="false"
           transition="scale-transition"
           offset-y
@@ -119,7 +183,7 @@
           </template>
           <v-date-picker
             v-model="independent_practice.end_time"
-            @input="menu1 = false"
+            @input="menu2 = false"
             color="green lighten-1"
           ></v-date-picker>
         </v-menu>
@@ -142,8 +206,9 @@
       <v-col cols="12">
         <v-text-field label="在外住宿地址" outlined v-model="independent_practice.address"></v-text-field>
       </v-col>
-
     </v-card>
+
+
   </v-card>
 </template>
 
@@ -152,15 +217,17 @@ export default {
   name: "UserInfo",
   data() {
     return {
+      menu1: false,
+      menu2: false,
       direction_id: null,
       teacher_id: null,
       directions: [],
       teachers: [],
       practice: 0,
       practices: [{value: 0, name: '统一实习'}, {value: 1, name: '自主实习'}],
-      direction_invalid: false,
-      teacher_invalid: false,
-      practice_invalid: false,
+      direction_invalid: true,
+      teacher_invalid: true,
+      practice_invalid: true,
       specialty_flag: true,
       student_year: null,
       teacher: {},
@@ -168,7 +235,10 @@ export default {
       name: null,
       faculty: null,
       specialty: null,
-      independent_practice:{}
+      independent_practice: {},
+      teacher_flag: null,
+      current_time: null,
+      students:[],
     }
   },
   created() {
@@ -188,36 +258,34 @@ export default {
         this.faculty = response.data.student.faculty_name
         this.specialty = response.data.student.specialty_name
         this.student_year = parseInt(response.data.student.created.substr(0, 4))
-        let d = new Date()
-        // d.setMonth(9)
-        // d.setFullYear(2020)
-        if (d.getFullYear() === this.student_year + 2 && d.getMonth() + 1 === 6) {
-          this.getDirectionList();
+        this.teacher_flag = response.data.student.teacher_flag
+        this.current_time = response.data.current_time
+        let year = this.current_time.substr(0,4)
+        let month = this.current_time.substr(5,2)
+        year = "2020"
+        month = "09"
+        this.getDirectionList();
+        this.getTeacherList();
+        if (year === (this.student_year + 2).toString() && month === "06") {
           this.direction_invalid = false
         }
-        if (d.getFullYear() === this.student_year + 3 && d.getMonth() + 1 === 9) {
-          this.getTeacherList();
+        if (year === (this.student_year + 3).toString() && month === "09") {
           this.teacher_invalid = false
         }
-        if ((d.getFullYear() === this.student_year + 3 && d.getMonth() + 1 >= 9 && d.getMonth() + 1 <= 12) || (d.getFullYear() === this.student_year + 4 && d.getMonth() + 1 === 1)) this.practice_invalid = false
-        if (response.data.student.direction_id !== 0) {
-          this.getDirectionList();
+        if ((year === (this.student_year + 3).toString() && month >= "09" && month <= 12 )||( year === (this.student_year + 4).toString() && month === "01")) {
+          this.practice_invalid = false
+        }
           this.direction_id = response.data.student.direction_id
-        }
-        if (response.data.student.teacher_id !== 0) {
-          this.getTeacherList();
           this.teacher_id = response.data.student.teacher_id
-        }
-        if (response.data.student.practice !== 0) {
           this.practice = parseInt(response.data.student.practice)
-          console.log(this.practice)
-        }
       } else {
         //老师查询
         this.specialty_flag = false
         this.teacher = response.data.teacher
         this.name = response.data.teacher.name
         this.faculty = response.data.teacher.faculty_name
+        this.students = response.data.students
+
       }
     })
   },
@@ -253,14 +321,14 @@ export default {
         url: "http://127.0.0.1:9000/postDirection",
         method: "post",
         data: formData,
-        headers:{
+        headers: {
           "Content-Type": "multipart/form-data"
         }
-      }).then((response)=>{
-        this.$store.commit(response.data.snackbar,response.data.msg)
+      }).then((response) => {
+        this.$store.commit(response.data.snackbar, response.data.msg)
       })
     },
-    postTeacher(){
+    postTeacher() {
       const formData = new FormData()
       formData.append("teacher_id", this.teacher_id)
       formData.append("student_id", this.$store.state.studentId)
@@ -268,41 +336,85 @@ export default {
         url: "http://127.0.0.1:9000/postTeacher",
         method: "post",
         data: formData,
-        headers:{
+        headers: {
           "Content-Type": "multipart/form-data"
         }
-      }).then((response)=>{
-        this.$store.commit(response.data.snackbar,response.data.msg)
+      }).then((response) => {
+        this.$store.commit(response.data.snackbar, response.data.msg)
+        this.student.teacher_id = this.teacher_id
       })
     },
-    postPractice(){
+    postPractice() {
       const formData = new FormData()
       formData.append("practice", this.practice)
       formData.append("student_id", this.$store.state.studentId)
       this.$axios({
-        url:"http://127.0.0.1:9000/postPractice",
+        url: "http://127.0.0.1:9000/postPractice",
+        method: "post",
+        data: formData,
+        headers: {
+          "Content-Type": "multipart/form-data"
+        }
+      }).then((response) => {
+        this.$store.commit(response.data.snackbar, response.data.msg)
+      })
+      if (this.practice === 1) {
+        this.independent_practice.student_id = this.$store.state.studentId
+        this.independent_practice.start_time = this.independent_practice.start_time + 'T00:00:00+08:00'
+        this.independent_practice.end_time = this.independent_practice.end_time + 'T00:00:00+08:00'
+        var p = JSON.stringify(this.independent_practice)
+        this.$axios({
+          url: "http://127.0.0.1:9000/postIndependentPractice",
+          method: "post",
+          data: p,
+          headers: {
+            "Content-Type": "multipart/form-data"
+          }
+        }).then((response) => {
+          this.$store.commit(response.data.snackbar, response.data.msg)
+          this.independent_practice = {}
+        })
+      }
+    },
+    pass(studentOBJ){
+      const formData = new FormData()
+      formData.append("student_id",studentOBJ.student_id)
+      formData.append("teacher_id",this.$store.state.teacherId)
+
+      formData.append("operation","pass")
+      this.$axios({
+        url:"http://127.0.0.1:9000/ApplyTeacher",
         method:"post",
         data:formData,
         headers:{
           "Content-Type": "multipart/form-data"
         }
       }).then((response)=>{
-        this.$store.commit(response.data.snackbar,response.data.msg)
-      })
-      if(this.practice === 1){
-        const formData1 = new FormData()
-        formData1.append("independent_practice", this.independent_practice)
-        formData1.append("student_id", this.$store.state.studentId)
-
-        this.$axios({
-          url:"http://127.0.0.1:9000/postIndependentPractice",
-          method:"post",
-          data:formData1,
-          headers:{
-            "Content-Type": "multipart/form-data"
+        this.students.some((v,i)=>{
+          if(v.student_id === studentOBJ.student_id){
+            this.students.splice(i,1)
           }
         })
-      }
+      })
+    },
+    denied(studentOBJ) {
+      const formData = new FormData()
+      formData.append("student_id",studentOBJ.student_id)
+      formData.append("operation","denied")
+      this.$axios({
+        url:"http://127.0.0.1:9000/ApplyTeacher",
+        method:"post",
+        data:formData,
+        headers:{
+          "Content-Type": "multipart/form-data"
+        }
+      }).then((response)=>{
+        this.students.some((v,i)=>{
+          if(v.student_id === studentOBJ.student_id){
+            this.students.splice(i,1)
+          }
+        })
+      })
     }
   },
 }
