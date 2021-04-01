@@ -252,9 +252,14 @@ export default {
         url: "http://127.0.0.1:9000/operateApply",
         data: formdata,
         headers: {
-          "Content-Type": "multipart/form-data"
+          "Content-Type": "multipart/form-data",
+          'Token': "8a54sh " + this.$store.state.Jwt
         }
       }).then((response) => {
+        if (response.data.msg === "Token无效") {
+          this.$emit('func')
+          return
+        }
         this.applies.some((apply, index) => {
           if (apply.id === applyObj.id) {
             apply.result = 1
@@ -271,9 +276,14 @@ export default {
         url: "http://127.0.0.1:9000/operateApply",
         data: formdata,
         headers: {
-          "Content-Type": "multipart/form-data"
+          "Content-Type": "multipart/form-data",
+          'Token': "8a54sh " + this.$store.state.Jwt
         }
       }).then((response) => {
+        if (response.data.msg === "Token无效") {
+          this.$emit('func')
+          return
+        }
         this.applies.some((apply, index) => {
           if (apply.id === applyObj.id) {
             apply.result = 2
@@ -285,8 +295,15 @@ export default {
   created() {
     this.$axios({
       method: "get",
-      url: "http://127.0.0.1:9000/getApply?level=" + this.$store.state.level + '&teacher_id=' + this.$store.state.teacherId
+      url: "http://127.0.0.1:9000/getApply?level=" + this.$store.state.level + '&teacher_id=' + this.$store.state.teacherId,
+      headers:{
+        'Token': "8a54sh " + this.$store.state.Jwt
+      }
     }).then((response) => {
+      if (response.data.msg === "Token无效") {
+        this.$emit('func')
+        return
+      }
       this.classrooms = response.data.classrooms
       this.applies = response.data.applies
       console.log(response)

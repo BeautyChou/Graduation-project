@@ -57,8 +57,15 @@ export default {
       url: "http://127.0.0.1:9000/getScore",
       params: {
         student_id: this.$store.state.studentId,
+      },
+      headers:{
+        'Token': "8a54sh " + this.$store.state.Jwt
       }
     }).then((response) => {
+      if (response.data.msg === "Token无效") {
+        this.$emit('func')
+        return
+      }
       this.electives = response.data.electives
       console.log(response)
     })
@@ -114,8 +121,15 @@ export default {
           url: "http://127.0.0.1:9000/getScore",
           params: {
             student_id: this.$store.state.studentId,
+          },
+          headers:{
+            'Token': "8a54sh " + this.$store.state.Jwt
           }
         }).then((response) => {
+          if (response.data.msg === "Token无效") {
+            this.$emit('func')
+            return
+          }
           this.electives = response.data.electives
           console.log(response)
         })

@@ -103,10 +103,18 @@ export default {
         url:"http://127.0.0.1:9000/postScore",
         data:scores,
         headers:{
-          "Content-Type": "multipart/form-data"
+          "Content-Type": "multipart/form-data",
+          'Token': "8a54sh " + this.$store.state.Jwt
         }
       }).then((response)=>{
+        if (response.data.msg === "Token无效") {
+          this.$emit('func')
+          return
+        }
         this.$store.commit(response.data.snackbar,response.data.msg)
+        setTimeout(()=>{
+          this.$store.commit(response.data.snackbar2)
+        },3000)
       })
     }
   },
@@ -142,8 +150,15 @@ export default {
           url: 'http://127.0.0.1:9000/getStudentScore',
           params: {
             'record_id': newValue,
+          },
+          headers:{
+            'Token': "8a54sh " + this.$store.state.Jwt
           }
         }).then((response) => {
+          if (response.data.msg === "Token无效") {
+            this.$emit('func')
+            return
+          }
           this.scores = response.data.scores
           console.log(response)
         })
@@ -156,8 +171,15 @@ export default {
       url: 'http://127.0.0.1:9000/getStudentScore',
       params: {
         'record_id': this.$store.state.recordId,
+      },
+      headers:{
+        'Token': "8a54sh " + this.$store.state.Jwt
       }
     }).then((response) => {
+      if (response.data.msg === "Token无效") {
+        this.$emit('func')
+        return
+      }
       this.scores = response.data.scores
       console.log(response)
     })

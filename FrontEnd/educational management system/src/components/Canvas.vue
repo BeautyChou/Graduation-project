@@ -4,7 +4,7 @@
       <v-col class="col-3">
         <v-list shaped elevation="5">
           <v-card-title>
-            <v-btn icon to="/SelectHomework" @click.native="$store.commit('previousPage')" x-large>
+            <v-btn icon to="/SelectHomework" @click.native="$store.commit('previousPage');$store.commit('setHomeworkId',null)" x-large>
               <v-icon>mdi-arrow-left-bold</v-icon>
               <span>返回</span>
             </v-btn>
@@ -779,10 +779,18 @@ export default {
             url: "http://127.0.0.1:9000/image",
             data: formData,
             headers: {
-              "Content-Type": "multipart/form-data"
+              "Content-Type": "multipart/form-data",
+              'Token': "8a54sh " + this.$store.state.Jwt
             }
-          }).then(() => {
+          }).then((response) => {
+            if (response.data.msg === "Token无效") {
+              this.$emit('func')
+              return
+            }
             this.$store.commit('setSuccess',"成绩提交成功!")
+            setTimeout(()=>{
+              this.$store.commit("closeSuccess")
+            },3000)
             this.UploadScore = false
           });
         }, 100)
@@ -847,7 +855,14 @@ export default {
           params: {
             "homework_id": newValue
           },
+          headers:{
+            'Token': "8a54sh " + this.$store.state.Jwt
+          }
         }).then((response) => {
+          if (response.data.msg === "Token无效") {
+            this.$emit('func')
+            return
+          }
           this.lists = response.data.lists
           this.checked = response.data.checked
           this.windowWidth = (window.innerWidth - 272) * 0.75
@@ -871,7 +886,14 @@ export default {
             params: {
               "homework_id": this.$store.state.homeworkId
             },
+            headers:{
+              'Token': "8a54sh " + this.$store.state.Jwt
+            }
           }).then((response) => {
+            if (response.data.msg === "Token无效") {
+              this.$emit('func')
+              return
+            }
             this.lists = response.data.lists
             this.checked = response.data.checked
             this.windowWidth = (window.innerWidth - 272) * 0.75

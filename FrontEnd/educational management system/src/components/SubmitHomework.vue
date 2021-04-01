@@ -35,12 +35,19 @@ export default {
   created() {
     this.$axios({
       method: "get",
-      url: 'http://127.0.0.1:9000/getQuestionList',
+      url: 'http://127.0.0.1:9000http://127.0.0.1:9000/getQuestionList',
       params: {
         'homework_id': this.$store.state.homeworkId,
         'student_id': this.$store.state.studentId,
+      },
+      headers:{
+        'Token': "8a54sh " + this.$store.state.Jwt
       }
     }).then((response) => {
+      if (response.data.msg === "Token无效") {
+        this.$emit('func')
+        return
+      }
       this.questions = response.data.questions
       this.uploaded = response.data.uploaded
       console.log(response)
@@ -69,9 +76,14 @@ export default {
         url: "http://127.0.0.1:9000/postHomework",
         data: formData,
         headers: {
-          "Content-Type": "multipart/form-data"
+          "Content-Type": "multipart/form-data",
+          'Token': "8a54sh " + this.$store.state.Jwt
         }
-      }).then(()=>{
+      }).then((response)=>{
+        if (response.data.msg === "Token无效") {
+          this.$emit('func')
+          return
+        }
         this.$store.commit('setSuccess',"作业提交成功！")
         this.questions[id].uploaded = true;
       });
@@ -86,8 +98,15 @@ export default {
             params: {
               'homework_id': newValue,
               'student_id': this.$store.state.studentId,
+            },
+            headers:{
+              'Token': "8a54sh " + this.$store.state.Jwt
             }
           }).then((response) => {
+            if (response.data.msg === "Token无效") {
+              this.$emit('func')
+              return
+            }
             this.questions = response.data.questions
             this.uploaded = response.data.uploaded
             console.log(response)
@@ -106,8 +125,15 @@ export default {
             params: {
               'homework_id': this.$store.state.homeworkId,
               'student_id': this.$store.state.studentId,
+            },
+            headers:{
+              'Token': "8a54sh " + this.$store.state.Jwt
             }
           }).then((response) => {
+            if (response.data.msg === "Token无效") {
+              this.$emit('func')
+              return
+            }
             this.questions = response.data.questions
             this.uploaded = response.data.uploaded
             console.log(response)

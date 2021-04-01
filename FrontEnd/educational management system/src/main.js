@@ -15,6 +15,8 @@ import store from './store'
 Vue.prototype.$axios = axios
 Vue.config.productionTip = false
 /* eslint-disable no-new */
+axios.defaults.baseURL='http://127.0.0.1:9000/'
+
 new Vue({
   el: '#app',
   router,

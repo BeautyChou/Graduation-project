@@ -490,8 +490,15 @@ export default {
       params: {
         'teacher_id': this.$store.state.teacherId,
         'level': this.$store.state.level
+      },
+      headers:{
+        'Token': "8a54sh " + this.$store.state.Jwt
       }
     }).then((response) => {
+      if (response.data.msg === "Token无效") {
+        this.$emit('func')
+        return
+      }
       this.classes = response.data.classes
       this.teachers = response.data.teachers
       this.classrooms = response.data.classrooms
@@ -558,11 +565,19 @@ export default {
         url:"http://127.0.0.1:9000/postNewClass",
         data:formData,
         headers: {
-          "Content-Type": "multipart/form-data"
+          "Content-Type": "multipart/form-data",
+          'Token': "8a54sh " + this.$store.state.Jwt
         }
       }).then((response)=>{
+        if (response.data.msg === "Token无效") {
+          this.$emit('func')
+          return
+        }
         console.log(response)
         this.$store.commit(response.data.snackbar,response.data.msg)
+        setTimeout(()=>{
+          this.$store.commit(response.data.snackbar2)
+        },3000)
         this.addClass = false
         this.copyFlag = false
         this.copyCourseFlag = false
@@ -574,7 +589,14 @@ export default {
       this.$axios({
         method: "DELETE",
         url: "http://127.0.0.1:9000/deleteClass?record_id=" + RecordID,
+        headers:{
+          'Token': "8a54sh " + this.$store.state.Jwt
+        }
       }).then((response) => {
+        if (response.data.msg === "Token无效") {
+          this.$emit('func')
+          return
+        }
         for (let i = 0 ;i<this.changedClasses.length;i++){
           if(this.changedClasses[i].record_id === RecordID || this.changedClasses[i].copy_flag === RecordID) {
             this.changedClasses.splice(i,1);
@@ -589,6 +611,9 @@ export default {
           }
         }
         this.$store.commit(response.data.snackbar,response.data.msg)
+        setTimeout(()=>{
+          this.$store.commit(response.data.snackbar2)
+        },3000)
         this.dialog = false
       })
     },
@@ -598,10 +623,15 @@ export default {
         url:"http://127.0.0.1:9000/uploadClass",
         data:this.changedClasses,
         headers: {
-          "Content-Type": "multipart/form-data"
+          "Content-Type": "multipart/form-data",
+          'Token': "8a54sh " + this.$store.state.Jwt
+        }
+      }).then((response)=>{
+        if (response.data.msg === "Token无效") {
+          this.$emit('func')
+          return
         }
       })
-      console.log(this.classes)
     },
     pushing(classOBJ,str){
       var flag = true
@@ -645,9 +675,14 @@ export default {
         url: "http://127.0.0.1:9000/validClassrooms",
         data: formdata,
         headers: {
-          "Content-Type": "multipart/form-data"
+          "Content-Type": "multipart/form-data",
+          'Token': "8a54sh " + this.$store.state.Jwt
         }
       }).then((response) => {
+        if (response.data.msg === "Token无效") {
+          this.$emit('func')
+          return
+        }
         this.valClassrooms = response.data.classrooms
         if (this.valClassrooms.length === 0) this.$set(this.newClass, 'classroom_id', null)
         console.log(response)

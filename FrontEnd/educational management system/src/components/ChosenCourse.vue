@@ -48,8 +48,15 @@ name: "ChosenCourse",
       method: "get",
       params: {
         'student_id': this.$store.state.studentId,
+      },
+      headers:{
+        'Token': "8a54sh " + this.$store.state.Jwt
       }
     }).then((response)=>{
+      if (response.data.msg === "Token无效") {
+        this.$emit('func')
+        return
+      }
       this.courses = response.data.courses
       console.log(response)
     })
@@ -63,16 +70,33 @@ name: "ChosenCourse",
           "student_id":this.$store.state.studentId,
           "record_id":courseOBJ.record_id,
           "course_id":courseOBJ.course_id,
+        },
+        headers:{
+          'Token': "8a54sh " + this.$store.state.Jwt
         }
       }).then((response)=>{
+        if (response.data.msg === "Token无效") {
+          this.$emit('func')
+          return
+        }
         this.$store.commit(response.data.snackbar,response.data.msg)
+        setTimeout(()=>{
+          this.$store.commit(response.data.snackbar2)
+        },3000)
         this.$axios({
           url: "http://127.0.0.1:9000/getChosenCourse",
           method: "get",
           params: {
             'student_id': this.$store.state.studentId,
+          },
+          headers:{
+            'Token': "8a54sh " + this.$store.state.Jwt
           }
         }).then((response)=>{
+          if (response.data.msg === "Token无效") {
+            this.$emit('func')
+            return
+          }
           this.courses = response.data.courses
           console.log(response)
         })
@@ -87,8 +111,15 @@ name: "ChosenCourse",
           method: "get",
           params: {
             'student_id': this.$store.state.studentId,
+          },
+          headers:{
+            'Token': "8a54sh " + this.$store.state.Jwt
           }
         }).then((response)=>{
+          if (response.data.msg === "Token无效") {
+            this.$emit('func')
+            return
+          }
           this.courses = response.data.courses
           console.log(response)
         })

@@ -8,7 +8,8 @@ export default new Vuex.Store({
   state: {
     homeworkId: null,
     courseId: null,
-    Jwt: null,
+    JwtFlag:true,
+    Jwt: "",
     teacherId: 1,
     studentId: 1,
     homeworkFlag: false,
@@ -20,22 +21,38 @@ export default new Vuex.Store({
     errorMsg: null,
     modifyHomeworkFlag: false,
     refreshFlag: 0,
-    recordId:null,
-    facultyId:1,
-    specialtyId:1,
-    directionId:0,
+    recordId: null,
+    facultyId: 1,
+    specialtyId: 1,
+    directionId: 0,
+    username: "123",
   },
   mutations: {
-    setFacultyId(state,facultyID){
+    jwtInvalid(state){
+      state.JwtFlag = true
+    },
+    jwtValid(state){
+      state.JwtFlag = false
+    },
+    setStudentID(state, studentID) {
+      state.studentId = studentID
+    },
+    setTeacherID(state, teacherID) {
+      state.teacherId = teacherID
+    },
+    setUsername(state, username) {
+      state.username = username
+    },
+    setFacultyId(state, facultyID) {
       state.facultyId = facultyID
     },
-    setSpecialtyId(state,specialtyID){
+    setSpecialtyId(state, specialtyID) {
       state.specialtyId = specialtyID
     },
-    setDirectionId(state,directionID){
+    setDirectionId(state, directionID) {
       state.directionId = directionID
     },
-    setRecordId(state,recordId){
+    setRecordId(state, recordId) {
       state.recordId = recordId
     },
     setJwt(state, str) {
@@ -52,9 +69,6 @@ export default new Vuex.Store({
       state.courseFlag = true
       return 0
     },
-    setTeacherId(state, id) {
-      state.teacherId = id
-    },
     jumpToHomeworkSelect(state) {
       state.courseFlag = false
     },
@@ -64,6 +78,14 @@ export default new Vuex.Store({
     setSuccess(state, str) {
       state.successFlag = true
       state.successMsg = str
+    },
+    closeSuccess(state) {
+      state.successFlag = false
+      state.successMsg = null
+    },
+    closeError(state) {
+      state.errorFlag = false
+      state.errorMsg = null
     },
     setError(state, str) {
       state.errorFlag = true
@@ -81,12 +103,33 @@ export default new Vuex.Store({
     nextPage(state) {
       state.refreshFlag = 1
     },
-    setLevel(state,level) {
+    setLevel(state, level) {
       if (state.level === level) ++state.refreshFlag
       state.level = level
+    },
+    clear(state) {
+      state.homeworkId = null
+      state.courseId = null
+      state.Jwt = null
+      state.teacherId = null
+      state.studentId = null
+      state.homeworkFlag = false
+      state.courseFlag = false
+      state.level = null
+      state.successFlag = false
+      state.successMsg = null
+      state.errorFlag = false
+      state.errorMsg = null
+      state.modifyHomeworkFlag = false
+      state.refreshFlag = 0
+      state.recordId = null
+      state.facultyId = null
+      state.specialtyId = null
+      state.directionId = null
+      state.username = " "
     }
   },
   actions: {},
   modules: {},
-  plugins:[createPersistedState()]
+  plugins: [createPersistedState()]
 })

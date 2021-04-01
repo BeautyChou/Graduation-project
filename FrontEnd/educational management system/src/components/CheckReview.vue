@@ -64,8 +64,15 @@ export default {
       params: {
         'homework_id': this.$store.state.homeworkId,
         'student_id': this.$store.state.studentId,
+      },
+      headers:{
+        'Token': "8a54sh " + this.$store.state.Jwt
       }
     }).then((response) => {
+      if (response.data.msg === "Token无效") {
+        this.$emit('func')
+        return
+      }
       this.reviews = response.data.reviews
       this.sum = 0
       response.data.reviews.forEach((item,i)=>{
@@ -86,8 +93,15 @@ export default {
             params: {
               'homework_id': newValue,
               'student_id': this.$store.state.studentId,
+            },
+            headers:{
+              'Token': "8a54sh " + this.$store.state.Jwt
             }
           }).then((response) => {
+            if (response.data.msg === "Token无效") {
+              this.$emit('func')
+              return
+            }
             this.reviews = response.data.reviews
             this.sum = 0
             response.data.reviews.forEach((item,i)=>{
@@ -110,8 +124,15 @@ export default {
             params: {
               'homework_id': this.$store.state.homeworkId,
               'student_id': this.$store.state.studentId,
+            },
+            headers:{
+              'Token': "8a54sh " + this.$store.state.Jwt
             }
           }).then((response) => {
+            if (response.data.msg === "Token无效") {
+              this.$emit('func')
+              return
+            }
             this.reviews = response.data.reviews
             this.sum = 0
             response.data.reviews.forEach((item,i)=>{

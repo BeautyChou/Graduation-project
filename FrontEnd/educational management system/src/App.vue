@@ -1,25 +1,46 @@
 <template>
   <v-app>
+    <v-main class="flex">
+      <div>
+        <v-snackbar v-model="$store.state.successFlag" :timeout="-1" color="green" top>
+          <v-icon>
+            mdi-check-circle
+          </v-icon>
+          <span>
+        {{ $store.state.successMsg }}
+      </span>
+        </v-snackbar>
+        <v-snackbar v-model="$store.state.errorFlag" :timeout="-1" color="red" top>
+          <v-icon>
+            mdi-minus-circle
+          </v-icon>
+          <span>
+        {{ $store.state.errorMsg }}
+      </span>
+        </v-snackbar>
+
+      </div>
+    </v-main>
+
     <v-app id="blur">
       <v-card
         class="mx-auto"
         width="256"
         tile
       >
-
         <v-navigation-drawer permanent app expand-on-hover :mini-variant.sync="mini">
           <v-system-bar></v-system-bar>
-          <v-toolbar-title class="text-center">周美丽专属教务系统{{ $store.state.recordId }}</v-toolbar-title>
+          <v-toolbar-title class="text-center">{{ $store.state.recordId }}</v-toolbar-title>
           <v-list>
             <v-list-item>
               <v-list-item-avatar>
                 <v-avatar color="red" size="36">
-                  <span class="white--text headline">CJ</span>
+                  <span class="white--text headline">{{ avatar }}</span>
                 </v-avatar>
               </v-list-item-avatar>
               <v-list-item-content>
                 <v-list-item-title class="title">
-                  周美丽
+                  {{ $store.state.username }}
                 </v-list-item-title>
               </v-list-item-content>
             </v-list-item>
@@ -32,6 +53,9 @@
               color="primary"
             >
               <v-list-item to="/UserInfo">
+                <v-icon>
+
+                </v-icon>
                 <v-list-item-content >
                   <v-list-item-title>个人信息</v-list-item-title>
                 </v-list-item-content>
@@ -78,37 +102,29 @@
                   <v-list-item-title>查询成绩</v-list-item-title>
                 </v-list-item-content>
               </v-list-item>
-
             </v-list-item-group>
           </v-list>
-
+          <template v-slot:append>
+            <v-list-item-group>
+            <v-list-item @click="exit">
+              <v-list-item-content >
+                <v-list-item-title>退出登录</v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+            </v-list-item-group>
+          </template>
         </v-navigation-drawer>
+
       </v-card>
       <v-main>
-        <v-snackbar v-model="$store.state.successFlag" :timeout="3000" color="green" top>
-          <v-icon>
-            mdi-check-circle
-          </v-icon>
-          <span>
-        {{ $store.state.successMsg }}
-      </span>
-        </v-snackbar>
-        <v-snackbar v-model="$store.state.errorFlag" :timeout="3000" color="red" top>
-          <v-icon>
-            mdi-minus-circle
-          </v-icon>
-          <span>
-        {{ $store.state.errorMsg }}
-      </span>
-        </v-snackbar>
-        <router-view></router-view>
+        <router-view v-on:func="jwtInvalid"></router-view>
       </v-main>
     </v-app>
     <div>
       <v-dialog
         persistent
         overlay-opacity="0.92"
-        v-model="dialog"
+        v-model="$store.state.JwtFlag"
         width="500"
         transition="slide-y-transition"
       >
@@ -143,6 +159,7 @@
 
       </v-dialog>
     </div>
+
   </v-app>
 </template>
 
@@ -155,10 +172,31 @@ import SelectHomework from "./components/SelectHomework";
 import ChooseCourse from "./components/ChooseCourse";
 import ChosenCourse from "./components/ChosenCourse"
 import UserInfo from "./components/UserInfo";
+import store from "./store";
 
 export default {
   name: 'App',
-
+  created() {
+    if (this.$store.state.Jwt !== null){
+      this.$axios({
+        url:"isExpire",
+        method:"post",
+        headers:{
+          "Content-Type": "multipart/form-data"
+        }
+      }).then((response)=>{
+        if (response.data.msg === "Token无效" ){
+          this.jwtInvalid()
+        }else{
+          this.$store.commit('jwtValid')
+          this.$nextTick(()=> {
+            document.getElementById("blur").style.filter = "blur(0px)"
+          });
+          this.avatar = this.$store.state.username.substr(0,1)
+        }
+      })
+    }
+  },
   components: {
     HelloWorld,
     Canvas,
@@ -171,18 +209,70 @@ export default {
   },
 
   data: () => ({
+    avatar: null,
     account:null,
     password:null,
     dialog:true,
     selectedItem: 0,
     mini: true,
     isActive: true,
-
   }),
   methods:{
-    accept(){
-      this.dialog = false
+    jwtInvalid() {
       document.getElementById("blur").style.filter = "blur(0px)"
+      this.$store.commit('setError','登录失效，请重新登录！')
+      this.$router.replace('/HelloWorld')
+      this.$store.commit('jwtInvalid')
+      setTimeout(()=>{
+        this.exit()
+      },1000)
+    },
+    exit(){
+      this.$store.commit('clear')
+      this.dialog = true
+      document.getElementById("blur").style.filter = "blur(10px)"
+    },
+    accept(){
+      const formData = new FormData()
+      formData.append("id",this.account)
+      formData.append("password",this.password)
+      this.$axios({
+        url:"login",
+        method:"post",
+        data:formData,
+        headers:{
+          "Content-Type": "multipart/form-data"
+        }
+      }).then((response)=>{
+        if (response.data.msg === "success"){
+          this.avatar = response.data.username.substr(0,1)
+          console.log(response)
+          this.$store.commit("setSuccess","登录成功")
+          this.$store.commit('jwtValid')
+          setTimeout(()=>{
+            this.$store.commit("closeSuccess")
+          },3000)
+          this.$store.commit("setLevel",response.data.level)
+          this.$store.commit("setUsername",response.data.username)
+          this.$store.commit("setJwt",response.data.data.token)
+          if (response.data.level === 1){
+            this.$store.commit("setStudentID",response.data.ID)
+            this.$store.commit("setFacultyId",response.data.faculty_id)
+            this.$store.commit("setSpecialtyId",response.data.specialty_id)
+            this.$store.commit("setDirectionId",response.data.direction_id)
+          }else if (response.data.level === 2){
+            this.$store.commit("setFacultyId",response.data.faculty_id)
+            this.$store.commit("setTeacherID",response.data.ID)
+          }
+          this.dialog = false
+          document.getElementById("blur").style.filter = "blur(0px)"
+        }else if (response.data.msg === "failed"){
+          this.$store.commit("setError","用户名或密码错误！")
+          setTimeout(()=>{
+            this.$store.commit("closeError")
+          },3000)
+        }
+      })
     }
   }
 };

@@ -302,8 +302,15 @@ export default {
       params: {
         'teacher_id': this.$store.state.teacherId,
         'student_id': this.$store.state.studentId,
+      },
+      headers:{
+        'Token': "8a54sh " + this.$store.state.Jwt
       }
     }).then((response) => {
+      if (response.data.msg === "Token无效") {
+        this.$emit('func')
+        return
+      }
       this.courses = response.data.courses
       console.log(this.courses)
     })
@@ -318,8 +325,15 @@ export default {
           url: 'http://127.0.0.1:9000/getCourseList',
           params: {
             'teacher_id': this.$store.state.teacherId
+          },
+          headers:{
+            'Token': "8a54sh " + this.$store.state.Jwt
           }
         }).then((response) => {
+          if (response.data.msg === "Token无效") {
+            this.$emit('func')
+            return
+          }
           this.courses = response.data.courses
           console.log(this.courses)
         })
@@ -335,10 +349,18 @@ export default {
         url: "http://127.0.0.1:9000/postApply",
         data: this.apply,
         headers: {
-          "Content-Type": "multipart/form-data"
+          "Content-Type": "multipart/form-data",
+          'Token': "8a54sh " + this.$store.state.Jwt
         }
       }).then((response) => {
+        if (response.data.msg === "Token无效") {
+          this.$emit('func')
+          return
+        }
         this.$store.commit(response.data.snackbar, response.data.msg)
+        setTimeout(()=>{
+          this.$store.commit(response.data.snackbar2)
+        },3000)
         this.changeClass = false
         this.apply = {}
         console.log(response)
@@ -350,8 +372,15 @@ export default {
         url: 'http://127.0.0.1:9000/getClassesList',
         params: {
           'level': this.$store.state.level
+        },
+        headers:{
+          'Token': "8a54sh " + this.$store.state.Jwt
         }
       }).then((response) => {
+        if (response.data.msg === "Token无效") {
+          this.$emit('func')
+          return
+        }
         this.classrooms = response.data.classrooms
       })
     },
@@ -372,9 +401,14 @@ export default {
         url: "http://127.0.0.1:9000/validClassrooms",
         data: formdata,
         headers: {
-          "Content-Type": "multipart/form-data"
+          "Content-Type": "multipart/form-data",
+          'Token': "8a54sh " + this.$store.state.Jwt
         }
       }).then((response) => {
+        if (response.data.msg === "Token无效") {
+          this.$emit('func')
+          return
+        }
         this.before_classrooms = response.data.classrooms
         if (this.before_classrooms.length === 0) this.$set(this.apply, 'before_classroom_id', null)
         console.log(response)
@@ -398,9 +432,14 @@ export default {
         url: "http://127.0.0.1:9000/validClassrooms",
         data: formdata,
         headers: {
-          "Content-Type": "multipart/form-data"
+          "Content-Type": "multipart/form-data",
+          'Token': "8a54sh " + this.$store.state.Jwt
         }
       }).then((response) => {
+          if (response.data.msg === "Token无效") {
+            this.$emit('func')
+            return
+          }
         this.after_classrooms = response.data.classrooms
         if (this.after_classrooms.length === 0) this.$set(this.apply, 'after_classroom_id', null)
         console.log(response)

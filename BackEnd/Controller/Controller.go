@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 	"gorm.io/gorm/utils"
 	"net/http"
@@ -14,37 +15,78 @@ import (
 	"time"
 )
 
-type UserInfo struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
-
 func Test(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"msg": "ok",
 	})
 }
 
-func Auth(c *gin.Context) {
-	var user UserInfo
-	err := c.ShouldBind(&user)
-	if err != nil {
+func Auth(db *gorm.DB) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		user := &Model.User{}
+		temp := &Model.User{}
+		var err error
+		user.ID, err = strconv.Atoi(c.PostForm("id"))
+		if err != nil {
+			c.JSON(http.StatusOK, gin.H{
+				"msg": "无效的参数",
+			})
+		}
+		user.Password = c.PostForm("password")
+
+		hash, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+		fmt.Println(string(hash))
+		fmt.Println(user)
+		if err != nil {
+			c.JSON(http.StatusOK, gin.H{
+				"msg": "加密失败！",
+			})
+		}
+		db.Debug().Model(&Model.User{}).Where("id = ?", user.ID).Find(&temp)
+		if err = bcrypt.CompareHashAndPassword([]byte(temp.Password), []byte(user.Password)); err == nil {
+			TokenString, _ := Middleware.GenToken(strconv.Itoa(user.ID))
+			if user.ID > 0 && user.ID < 1000 {
+				admin := &Model.Admin{}
+				db.Debug().Model(&Model.Admin{}).Where("id = ?", temp.ID).Scan(&admin)
+				c.JSON(http.StatusOK, gin.H{
+					"ID":       admin.ID,
+					"level":    3,
+					"username": admin.Name,
+					"msg":      "success",
+					"data":     gin.H{"token": TokenString},
+				})
+			} else if user.ID >= 100000 && user.ID < 1000000 {
+				teacher := &Model.TeacherForSelect{}
+				db.Debug().Model(&Model.Teacher{}).Where("id = ?", temp.ID).Scan(&teacher)
+				c.JSON(http.StatusOK, gin.H{
+					"ID":         teacher.ID,
+					"level":      2,
+					"username":   teacher.Name,
+					"faculty_id": teacher.FacultyID,
+					"msg":        "success",
+					"data":       gin.H{"token": TokenString},
+				})
+			} else {
+				student := &Model.StudentForSelect{}
+				db.Debug().Model(&Model.Student{}).Where("id = ?", temp.ID).Scan(&student)
+				c.JSON(http.StatusOK, gin.H{
+					"ID":           student.ID,
+					"level":        1,
+					"username":     student.Name,
+					"faculty_id":   student.FacultyID,
+					"specialty_id": student.SpecialtyID,
+					"direction_id": student.DirectionID,
+					"msg":          "success",
+					"data":         gin.H{"token": TokenString},
+				})
+			}
+			return
+		}
 		c.JSON(http.StatusOK, gin.H{
-			"msg": "无效的参数",
-		})
-	}
-	if user.Username == "123" && user.Password == "456" {
-		TokenString, _ := Middleware.GenToken(user.Username)
-		c.JSON(http.StatusOK, gin.H{
-			"msg":  "success",
-			"data": gin.H{"token": TokenString},
+			"msg": "failed",
 		})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{
-		"msg": "failed",
-	})
-	return
 }
 
 func HoeHandler(c *gin.Context) {
@@ -358,8 +400,9 @@ func PostNewClass(db *gorm.DB) func(c *gin.Context) {
 		fmt.Println(course)
 		db.Create(&course)
 		c.JSON(http.StatusOK, gin.H{
-			"snackbar": "setSuccess",
-			"msg":      "添加课程成功",
+			"snackbar":  "setSuccess",
+			"msg":       "添加课程成功",
+			"snackbar2": "closeSuccess",
 		})
 
 		//db.Create(&course)
@@ -372,9 +415,10 @@ func DeleteClass(db *gorm.DB) func(c *gin.Context) {
 		result := db.Where("record_id = ? OR copy_flag = ?", id, id).Delete(&Model.Course{})
 		fmt.Println(result.RowsAffected)
 		c.JSON(http.StatusOK, gin.H{
-			"snackbar": "setSuccess",
-			"msg":      "删除课程成功！",
-			"id":       id,
+			"snackbar":  "setSuccess",
+			"msg":       "删除课程成功！",
+			"id":        id,
+			"snackbar2": "closeSuccess",
 		})
 	}
 }
@@ -385,8 +429,9 @@ func UploadClass(db *gorm.DB) func(c *gin.Context) {
 		err := c.ShouldBindJSON(&classes)
 		if err != nil {
 			c.JSON(http.StatusOK, gin.H{
-				"snackbar": "setError",
-				"msg":      err,
+				"snackbar":  "setError",
+				"msg":       err,
+				"snackbar2": "closeSuccess",
 			})
 			return
 		}
@@ -418,8 +463,9 @@ func PostApply(db *gorm.DB) func(c *gin.Context) {
 		c.ShouldBindJSON(&apply)
 		db.Create(&apply)
 		c.JSON(http.StatusOK, gin.H{
-			"snackbar": "setSuccess",
-			"msg":      "提交请求成功！",
+			"snackbar":  "setSuccess",
+			"msg":       "提交请求成功！",
+			"snackbar2": "closeSuccess",
 		})
 	}
 }
@@ -633,14 +679,16 @@ func ChooseCourse(db *gorm.DB) func(c *gin.Context) {
 		fmt.Println(count, int64(course.MaxChooseNum))
 		if count <= int64(course.MaxChooseNum) {
 			c.JSON(http.StatusOK, gin.H{
-				"snackbar": "setSuccess",
-				"msg":      "添加课程成功",
+				"snackbar":  "setSuccess",
+				"msg":       "添加课程成功",
+				"snackbar2": "closeSuccess",
 			})
 		} else {
 			db.Unscoped().Model(&Model.Student2Course{}).Delete(record)
 			c.JSON(http.StatusOK, gin.H{
-				"snackbar": "setError",
-				"msg":      "添加课程失败!人数已满！",
+				"snackbar":  "setError",
+				"msg":       "添加课程失败!人数已满！",
+				"snackbar2": "closeError",
 			})
 		}
 	}
@@ -666,8 +714,9 @@ func QuitCourse(db *gorm.DB) func(c *gin.Context) {
 			StudentID, CourseID, RecordID).Delete(&Model.Student2Course{})
 		fmt.Println(db.RowsAffected)
 		c.JSON(http.StatusOK, gin.H{
-			"snackbar": "setSuccess",
-			"msg":      "退课成功!",
+			"snackbar":  "setSuccess",
+			"msg":       "退课成功!",
+			"snackbar2": "closeSuccess",
 		})
 	}
 }
@@ -692,8 +741,9 @@ func PostScore(db *gorm.DB) func(c *gin.Context) {
 		temp := &Model.Elective{}
 		if err := c.ShouldBindJSON(&scores); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
-				"snackbar": "setError",
-				"msg":      "上传分数失败，请稍后重试！",
+				"snackbar":  "setError",
+				"msg":       "上传分数失败，请稍后重试！",
+				"snackbar2": "closeError",
 			})
 			return
 		}
@@ -713,8 +763,9 @@ func PostScore(db *gorm.DB) func(c *gin.Context) {
 			}
 		}
 		c.JSON(http.StatusOK, gin.H{
-			"snackbar": "setSuccess",
-			"msg":      "上传分数成功!",
+			"snackbar":  "setSuccess",
+			"msg":       "上传分数成功!",
+			"snackbar2": "closeSuccess",
 		})
 	}
 }
@@ -739,18 +790,18 @@ func GetUserInfo(db *gorm.DB) func(c *gin.Context) {
 		students := &Model.StudentForSelects{}
 		currentTime := time.Now()
 		if studentID == "" {
-			bTime := time.Date(currentTime.Year()-4,6,1,0,0,0,00,time.Local)
-			tTime := time.Date(currentTime.Year()-4,8,31,23,59,59,99,time.Local)
+			bTime := time.Date(currentTime.Year()-4, 6, 1, 0, 0, 0, 00, time.Local)
+			tTime := time.Date(currentTime.Year()-4, 8, 31, 23, 59, 59, 99, time.Local)
 			db.Model(&Model.Teacher{}).Select("teachers.*,faculties.name faculty_name").Where("teachers.id = ?", teacherID).Joins("left join faculties on faculties.id = teachers.faculty_id").Find(&teacher)
-			db.Debug().Model(&Model.Student{}).Where("teacher_id = ? AND created_at >= ? AND created_at <= ?",teacherID,bTime,tTime).Scan(&students)
+			db.Debug().Model(&Model.Student{}).Where("teacher_id = ? AND created_at >= ? AND created_at <= ?", teacherID, bTime, tTime).Scan(&students)
 		} else {
 			db.Debug().Model(&Model.Student{}).Select("students.created_at created,faculties.name faculty_name,direction_to_specialties.*,students.*").Where("students.id = ?", studentID).Joins("left join faculties on faculties.id = students.faculty_id left join direction_to_specialties on direction_to_specialties.faculty_id = students.faculty_id AND direction_to_specialties.specialty_id = students.specialty_id AND direction_to_specialties.direction_id = students.direction_id").Find(&student)
 		}
 		c.JSON(http.StatusOK, gin.H{
-			"student": student,
-			"teacher": teacher,
+			"student":      student,
+			"teacher":      teacher,
 			"current_time": currentTime,
-			"students":students,
+			"students":     students,
 		})
 	}
 }
@@ -786,8 +837,9 @@ func PostDirection(db *gorm.DB) func(c *gin.Context) {
 			DirectionID: directionID,
 		})
 		c.JSON(http.StatusOK, gin.H{
-			"snackbar": "setSuccess",
-			"msg":      "修改方向成功!",
+			"snackbar":  "setSuccess",
+			"msg":       "修改方向成功!",
+			"snackbar2": "closeSuccess",
 		})
 	}
 }
@@ -800,8 +852,9 @@ func PostTeacher(db *gorm.DB) func(c *gin.Context) {
 			TeacherID: teacherID,
 		})
 		c.JSON(http.StatusOK, gin.H{
-			"snackbar": "setSuccess",
-			"msg":      "导师修改成功!",
+			"snackbar":  "setSuccess",
+			"msg":       "导师修改成功!",
+			"snackbar2": "closeSuccess",
 		})
 	}
 }
@@ -814,8 +867,9 @@ func PostPractice(db *gorm.DB) func(c *gin.Context) {
 			Practice: practice,
 		})
 		c.JSON(http.StatusOK, gin.H{
-			"snackbar": "setSuccess",
-			"msg":      "实习方式修改成功!",
+			"snackbar":  "setSuccess",
+			"msg":       "实习方式修改成功!",
+			"snackbar2": "closeSuccess",
 		})
 	}
 }
@@ -826,8 +880,9 @@ func PostIndependentPractice(db *gorm.DB) func(c *gin.Context) {
 		temp := &Model.IndependentPractice{}
 		if err := c.ShouldBindJSON(&practice); err != nil {
 			c.JSON(http.StatusOK, gin.H{
-				"snackbar": "setError",
-				"msg":      "申请表格式有错，请重新填写！",
+				"snackbar":  "setError",
+				"msg":       "申请表格式有错，请重新填写！",
+				"snackbar2": "closeError",
 			})
 			return
 		}
@@ -838,25 +893,25 @@ func PostIndependentPractice(db *gorm.DB) func(c *gin.Context) {
 		} else {
 			db.Debug().Model(&Model.IndependentPractice{}).Where("student_id = ?", practice.StudentID).Updates(&practice)
 		}
-		c.JSON(http.StatusOK,gin.H{
-			"snackbar":"setSuccess",
-			"msg":"申请表上传成功！",
+		c.JSON(http.StatusOK, gin.H{
+			"snackbar":  "setSuccess",
+			"msg":       "申请表上传成功！",
+			"snackbar2": "closeSuccess",
 		})
 	}
 }
-
 
 func ApplyTeacher(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		studentID := c.PostForm("student_id")
 		teacherID := c.PostForm("teacher_id")
 		state := c.PostForm("operation")
-		if state == "pass"{
+		if state == "pass" {
 			course := &Model.CourseForSelect{}
 			record := &Model.Student2Course{}
 			var count int64
-			db.Debug().Model(&Model.Course{}).Where("teacher_id = ? AND selectable = 0",teacherID).Order("record_id desc").Limit(1).Scan(&course)
-			record.StudentID,_ = strconv.Atoi(studentID)
+			db.Debug().Model(&Model.Course{}).Where("teacher_id = ? AND selectable = 0", teacherID).Order("record_id desc").Limit(1).Scan(&course)
+			record.StudentID, _ = strconv.Atoi(studentID)
 			record.CourseID = course.ID
 			record.RecordID = course.RecordID
 			db.Debug().Model(&Model.Course{}).Select("max_choose_num").Where("record_id = ?", course.RecordID).Scan(&course)
@@ -865,20 +920,22 @@ func ApplyTeacher(db *gorm.DB) func(c *gin.Context) {
 			fmt.Println(count, int64(course.MaxChooseNum))
 			if count <= int64(course.MaxChooseNum) {
 				c.JSON(http.StatusOK, gin.H{
-					"snackbar": "setSuccess",
-					"msg":      "添加课程成功",
+					"snackbar":  "setSuccess",
+					"msg":       "添加课程成功",
+					"snackbar2": "closeSuccess",
 				})
-				db.Model(&Model.Student{}).Where("id = ?",studentID).Update("teacher_flag",1)
+				db.Model(&Model.Student{}).Where("id = ?", studentID).Update("teacher_flag", 1)
 			} else {
 				db.Unscoped().Model(&Model.Student2Course{}).Delete(record)
 				c.JSON(http.StatusOK, gin.H{
-					"snackbar": "setError",
-					"msg":      "添加课程失败!人数已满！",
+					"snackbar":  "setError",
+					"msg":       "添加课程失败!人数已满！",
+					"snackbar2": "closeError",
 				})
-				db.Model(&Model.Student{}).Where("id = ?",studentID).Update("teacher_id",0)
+				db.Model(&Model.Student{}).Where("id = ?", studentID).Update("teacher_id", 0)
 			}
-		}else {
-			db.Model(&Model.Student{}).Where("id = ?",studentID).Update("teacher_id",0)
+		} else {
+			db.Model(&Model.Student{}).Where("id = ?", studentID).Update("teacher_id", 0)
 		}
 	}
 }

@@ -104,7 +104,6 @@
           </v-card>
 
         </v-dialog>
-
         <v-tooltip v-if="($store.state.level===1||true)&&noHomeworkFlag" bottom>
           <template v-slot:activator="{ on,attrs }">
             <v-btn
@@ -173,7 +172,14 @@ export default {
       this.$axios({
         method: "DELETE",
         url: "http://127.0.0.1:9000/deleteHomework?id=" + id,
+        headers:{
+          'Token': "8a54sh " + this.$store.state.Jwt
+        }
       }).then((response) => {
+        if (response.data.msg === "Token无效") {
+          this.$emit('func')
+          return
+        }
         this.homeworks.some((item, i) => {
           if (item.id === id) {
             this.homeworks.splice(i, 1)
@@ -190,8 +196,15 @@ export default {
       params: {
         'course_id': this.$store.state.courseId,
         'record_id': this.$store.state.recordId,
+      },
+      headers:{
+        'Token': "8a54sh " + this.$store.state.Jwt
       }
     }).then((response) => {
+      if (response.data.msg === "Token无效") {
+        this.$emit('func')
+        return
+      }
       if (response.data.homeworks === null) {
         this.homeworks = this.homeworkBackup
         this.noHomeworkFlag = false
@@ -211,8 +224,15 @@ export default {
           params: {
             'course_id': newValue,
             'record_id': this.$store.state.recordId,
+          },
+          headers:{
+            'Token': "8a54sh " + this.$store.state.Jwt
           }
         }).then((response) => {
+          if (response.data.msg === "Token无效") {
+            this.$emit('func')
+            return
+          }
           if (response.data.homeworks === null) {
             this.homeworks = this.homeworkBackup
             this.noHomeworkFlag = false
@@ -234,8 +254,15 @@ export default {
             params: {
               'course_id': this.$store.state.courseId,
               'record_id': this.$store.state.recordId,
+            },
+            headers:{
+              'Token': "8a54sh " + this.$store.state.Jwt
             }
           }).then((response) => {
+            if (response.data.msg === "Token无效") {
+              this.$emit('func')
+              return
+            }
             if (response.data.homeworks === null) {
               this.homeworks = this.homeworkBackup
               this.noHomeworkFlag = false

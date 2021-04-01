@@ -6,7 +6,7 @@ import (
 )
 
 type MyModel struct {
-	ID        int `json:"id" gorm:"primary_key;"`
+	ID        int `json:"id" gorm:"primary_key"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt gorm.DeletedAt `sql:"index"`
@@ -152,6 +152,11 @@ type Elective struct {
 	BehaviorScore      int            `json:"behavior_score" gorm:"size:3;"`                                         // 平时成绩
 	Percentage         int            `json:"percentage" gorm:"size:3"`                                              // 考试成绩所占比例
 	HomeworkPercentage int            `json:"homework_percentage" gorm:"size:3"`                                     // 作业分数占比
+}
+
+type User struct {
+	ID                 int `json:"id"`
+	Password           string `json:"password" gorm:"size:60"`
 }
 
 type HomeworkUploadRecord struct {
@@ -495,5 +500,5 @@ type StudentForSelects []StudentForSelect
 
 func CreateDatabase(db *gorm.DB) {
 	//db.AutoMigrate(&Elective{})
-	db.AutoMigrate(&Title{}, &Faculty{}, &Teacher{}, &Elective{}, &Admin{}, &Classroom{}, &DirectionToSpecialty{}, &Course{}, &Student{}, &HomeworkUploadRecord{}, &Homework{}, &Question{}, &Student2Course{}, &ApplyForCourseChange{}, &IndependentPractice{})
+	//db.AutoMigrate(&User{},&Title{}, &Faculty{}, &Teacher{}, &Elective{}, &Admin{}, &Classroom{}, &DirectionToSpecialty{}, &Course{}, &Student{}, &HomeworkUploadRecord{}, &Homework{}, &Question{}, &Student2Course{}, &ApplyForCourseChange{}, &IndependentPractice{})
 }

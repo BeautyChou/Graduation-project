@@ -3,7 +3,8 @@
 
 
     <v-card-title>
-      <v-btn icon to="/SelectHomework" @click.native="$store.commit('previousPage');$store.commit('setHomeworkId',null)">
+      <v-btn icon to="/SelectHomework"
+             @click.native="$store.commit('previousPage');$store.commit('setHomeworkId',null)">
         <v-icon>mdi-arrow-left-bold</v-icon>
         <span>返回</span>
       </v-btn>
@@ -37,7 +38,7 @@
       </v-menu>
 
       <v-menu
-        ref="menu"
+        ref="menu1"
         v-model="menu1"
         :close-on-content-click="false"
         :nudge-right="40"
@@ -63,7 +64,7 @@
           full-width
           scrollable
           format="24hr"
-          @click:minute="$refs.menu.save(deadlineTime)"
+          @click:minute="$refs.menu1.save(deadlineTime)"
           color="green lighten-1"
         ></v-time-picker>
       </v-menu>
@@ -106,8 +107,6 @@
             <v-list-item-title>创建新题目</v-list-item-title>
           </v-list-item>
         </v-list>
-
-
         <v-dialog v-model="alreadyQuestion" width="500" persistent>
           <v-card>
             <v-card-title class="headline font-weight-bold">
@@ -144,8 +143,6 @@
             </v-card-actions>
           </v-card>
         </v-dialog>
-
-
         <v-dialog v-model="newQuestion" width="500" persistent>
           <v-card>
             <v-card-title class="headline font-weight-bold">
@@ -229,11 +226,17 @@ export default {
         'homework_id': this.$store.state.homeworkId,
       }
     }).then((response) => {
-      this.questions = response.data.questions
-      console.log(response,response.data.questions[0].DeadLine,this.deadlineTime)
-      this.deadlineTime = response.data.questions[0].DeadLine.substr(11, 5)
-      this.deadlineDate = response.data.questions[0].DeadLine.substr(0, 10)
-      this.homeworkTitle = response.data.questions[0].homework_title
+      if (response.data.msg === "Token无效") {
+        this.$emit('func')
+        return
+      }
+      if (!response.data) {
+        this.questions = response.data.questions
+        console.log("123456", response, response.data.questions[0].DeadLine, this.deadlineTime)
+        this.deadlineTime = response.data.questions[0].DeadLine.substr(11, 5)
+        this.deadlineDate = response.data.questions[0].DeadLine.substr(0, 10)
+        this.homeworkTitle = response.data.questions[0].homework_title
+      }
     })
   },
   data() {
@@ -282,6 +285,10 @@ export default {
         method: "get",
         url: "http://127.0.0.1:9000/getNewHomeworkID"
       }).then((response) => {
+        if (response.data.msg === "Token无效") {
+          this.$emit('func')
+          return
+        }
         for (let i = 0; i < this.questions.length; i++) {
           this.questions[i].id = response.data.id
           this.questions[i].deadline = this.deadlineDate + 'T' + this.deadlineTime + ':00+08:00'
@@ -297,9 +304,16 @@ export default {
           headers: {
             "Content-Type": "multipart/form-data"
           }
-        }).then(() => {
+        }).then((response) => {
+          if (response.data.msg === "Token无效") {
+            this.$emit('func')
+            return
+          }
           this.$store.commit('previousPage')
           this.$store.commit("setSuccess", "作业布置成功！")
+          setTimeout(() => {
+            this.$store.commit("closeSuccess")
+          }, 3000)
         })
           .catch((res) => {
             console.log(res)
@@ -328,6 +342,9 @@ export default {
       this.selectQuestion = null
       this.alreadyQuestion = false
       this.$store.commit("setSuccess", "添加至作业成功！")
+      setTimeout(() => {
+        this.$store.commit("closeSuccess")
+      }, 3000)
     },
     getContentList() {
       this.alreadyQuestion = true
@@ -335,6 +352,10 @@ export default {
         method: "get",
         url: 'http://127.0.0.1:9000/getContentList'
       }).then((response) => {
+        if (response.data.msg === "Token无效") {
+          this.$emit('func')
+          return
+        }
         this.contentList = response.data.questions
         this.contentList.header = null
         console.log(response)
@@ -358,8 +379,15 @@ export default {
           "Content-Type": "multipart/form-data"
         }
       }).then((response) => {
+        if (response.data.msg === "Token无效") {
+          this.$emit('func')
+          return
+        }
         this.newQuestion = false
         this.$store.commit("setSuccess", "添加题目成功！")
+        setTimeout(() => {
+          this.$store.commit("closeSuccess")
+        }, 3000)
         this.questions.push({question_id: response.data.id, content: this.content, question_max_score: 0})
         this.content = null
       })
@@ -385,11 +413,17 @@ export default {
             'homework_id': newValue,
           }
         }).then((response) => {
-          this.questions = response.data.questions
-          console.log(response,response.data.questions[0].DeadLine,this.deadlineTime)
-          this.deadlineTime = response.data.questions[0].DeadLine.substr(11, 5)
-          this.deadlineDate = response.data.questions[0].DeadLine.substr(0, 10)
-          this.homeworkTitle = response.data.questions[0].homework_title
+          if (response.data.msg === "Token无效") {
+            this.$emit('func')
+            return
+          }
+          if (!response.data) {
+            this.questions = response.data.questions
+            console.log(response, response.data.questions[0].DeadLine, this.deadlineTime)
+            this.deadlineTime = response.data.questions[0].DeadLine.substr(11, 5)
+            this.deadlineDate = response.data.questions[0].DeadLine.substr(0, 10)
+            this.homeworkTitle = response.data.questions[0].homework_title
+          }
         })
       }
     },
@@ -404,12 +438,19 @@ export default {
               'homework_id': this.$store.state.homeworkId,
             }
           }).then((response) => {
-            this.questions = response.data.questions
-            console.log(response,response.data.questions[0].DeadLine)
-            this.deadlineTime = response.data.questions[0].DeadLine.substr(11, 5)
-            this.deadlineDate = response.data.questions[0].DeadLine.substr(0, 10)
-            this.homeworkTitle = response.data.questions[0].homework_title
-            this.$store.commit('nextPage')
+            if (response.data.msg === "Token无效") {
+              this.$emit('func')
+              return
+            }
+            console.log(response)
+            if (!response.data) {
+              this.questions = response.data.questions
+              console.log(response, response.data.questions[0].DeadLine)
+              this.deadlineTime = response.data.questions[0].DeadLine.substr(11, 5)
+              this.deadlineDate = response.data.questions[0].DeadLine.substr(0, 10)
+              this.homeworkTitle = response.data.questions[0].homework_title
+              this.$store.commit('nextPage')
+            }
           })
       },
       immediate: true

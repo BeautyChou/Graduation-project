@@ -57,8 +57,15 @@ export default {
         teacher_id:this.$store.state.teacherId,
         week:(this.weekNum+1),
         student_id:this.$store.state.studentId,
+      },
+      headers:{
+        'Token': "8a54sh " + this.$store.state.Jwt
       }
     }).then((response)=>{
+      if (response.data.msg === "Token无效") {
+        this.$emit('func')
+        return
+      }
       this.timetables = response.data.classSheet
       this.timetable = new Timetables({
         el: '#coursesTable',
@@ -117,8 +124,15 @@ export default {
           teacher_id:this.$store.state.teacherId,
           week:(this.weekNum+1),
           student_id:this.$store.state.studentId,
+        },
+        headers:{
+          'Token': "8a54sh " + this.$store.state.Jwt
         }
       }).then((response)=>{
+        if (response.data.msg === "Token无效") {
+          this.$emit('func')
+          return
+        }
         this.timetables = response.data.classSheet
         this.timetable.setOption({
           timetables:this.timetables,
@@ -145,8 +159,15 @@ export default {
             teacher_id:this.$store.state.teacherId,
             week:(this.weekNum+1),
             student_id:this.$store.state.studentId,
+          },
+          headers:{
+            'Token': "8a54sh " + this.$store.state.Jwt
           }
         }).then((response)=>{
+          if (response.data.msg === "Token无效") {
+            this.$emit('func')
+            return
+          }
           this.timetables = response.data.classSheet
           this.timetable = new Timetables({
             el: '#coursesTable',
