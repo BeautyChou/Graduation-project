@@ -54,7 +54,7 @@
             >
               <v-list-item to="/UserInfo">
                 <v-icon>
-
+                  mdi-account-box
                 </v-icon>
                 <v-list-item-content >
                   <v-list-item-title>个人信息</v-list-item-title>
@@ -62,51 +62,84 @@
               </v-list-item>
 
               <v-list-item to="/SelectCourse">
+                <v-icon>
+                  mdi-playlist-edit
+                </v-icon>
                 <v-list-item-content>
                   <v-list-item-title>课程管理</v-list-item-title>
                 </v-list-item-content>
               </v-list-item>
 
               <v-list-item to="/SetClass">
+                <v-icon>
+                  mdi-table-cog
+                </v-icon>
                 <v-list-item-content>
                   <v-list-item-title>安排课程</v-list-item-title>
                 </v-list-item-content>
               </v-list-item>
 
               <v-list-item to="/Apply">
+                <v-icon>
+                  mdi-alert-circle-check
+                </v-icon>
                 <v-list-item-content>
-                  <v-list-item-title>修改课程申请</v-list-item-title>
+                  <v-list-item-title>课程申请审核</v-list-item-title>
                 </v-list-item-content>
               </v-list-item>
 
               <v-list-item to="/ClassSheet">
+                <v-icon>
+                  mdi-table-clock
+                </v-icon>
                 <v-list-item-content>
                   <v-list-item-title>查看课表</v-list-item-title>
                 </v-list-item-content>
               </v-list-item>
 
               <v-list-item to="/ChooseCourse">
+                <v-icon>
+                  mdi-playlist-check
+                </v-icon>
                 <v-list-item-content >
                   <v-list-item-title>选课</v-list-item-title>
                 </v-list-item-content>
               </v-list-item>
 
               <v-list-item to="/ChosenCourse">
+                <v-icon>
+                  mdi-playlist-remove
+                </v-icon>
                 <v-list-item-content >
                   <v-list-item-title>查看已选课程/退课</v-list-item-title>
                 </v-list-item-content>
               </v-list-item>
 
               <v-list-item to="/QueryResults">
+                <v-icon>
+                  mdi-file-search
+                </v-icon>
                 <v-list-item-content >
                   <v-list-item-title>查询成绩</v-list-item-title>
+                </v-list-item-content>
+              </v-list-item>
+
+              <v-list-item to="/Manage">
+                <v-icon>
+                  mdi-cog
+                </v-icon>
+                <v-list-item-content >
+                  <v-list-item-title>管理</v-list-item-title>
                 </v-list-item-content>
               </v-list-item>
             </v-list-item-group>
           </v-list>
           <template v-slot:append>
             <v-list-item-group>
-            <v-list-item @click="exit">
+            <v-list-item @click.native="exit">
+              <v-icon>
+                mdi-exit-to-app
+              </v-icon>
               <v-list-item-content >
                 <v-list-item-title>退出登录</v-list-item-title>
               </v-list-item-content>
@@ -124,7 +157,7 @@
       <v-dialog
         persistent
         overlay-opacity="0.92"
-        v-model="$store.state.JwtFlag"
+        v-model="dialog"
         width="500"
         transition="slide-y-transition"
       >
@@ -172,11 +205,11 @@ import SelectHomework from "./components/SelectHomework";
 import ChooseCourse from "./components/ChooseCourse";
 import ChosenCourse from "./components/ChosenCourse"
 import UserInfo from "./components/UserInfo";
-import store from "./store";
+import Manage from "./components/Manage";
 
 export default {
   name: 'App',
-  created() {
+  mounted() {
     if (this.$store.state.Jwt !== null){
       this.$axios({
         url:"isExpire",
@@ -188,6 +221,7 @@ export default {
         if (response.data.msg === "Token无效" ){
           this.jwtInvalid()
         }else{
+          this.dialog = false
           this.$store.commit('jwtValid')
           this.$nextTick(()=> {
             document.getElementById("blur").style.filter = "blur(0px)"
@@ -205,7 +239,8 @@ export default {
     SelectHomework,
     ChooseCourse,
     ChosenCourse,
-    UserInfo
+    UserInfo,
+    Manage
   },
 
   data: () => ({
@@ -228,8 +263,8 @@ export default {
       },1000)
     },
     exit(){
-      this.$store.commit('clear')
       this.dialog = true
+      this.$store.commit('clear')
       document.getElementById("blur").style.filter = "blur(10px)"
     },
     accept(){

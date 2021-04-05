@@ -15,6 +15,7 @@ import ChosenCourse from "../components/ChosenCourse";
 import RecordGrades from "../components/RecordGrades";
 import QueryResults from "../components/QueryResults";
 import UserInfo from "../components/UserInfo";
+import Manage from "../components/Manage";
 
 Vue.use(Router)
 
@@ -102,6 +103,11 @@ export default new Router({
       path:'/UserInfo',
       name:'UserInfo',
       component:UserInfo
+    },
+    {
+      path:'/Manage',
+      name:'Manage',
+      component:Manage
     },
   ]
 })

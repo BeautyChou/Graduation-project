@@ -136,7 +136,7 @@
         </v-row>
       </v-col>
       <v-col cols="2">
-        <v-text-field label="在外联系方式" outlined v-model.number="independent_practice.phone_number"></v-text-field>
+        <v-text-field label="在外联系方式" outlined v-model.number="independent_practice.phone"></v-text-field>
       </v-col>
       <v-col cols="5">
         <v-menu
@@ -201,7 +201,7 @@
         <v-text-field label="实习单位联系人" outlined v-model="independent_practice.company_person"></v-text-field>
       </v-col>
       <v-col cols="6">
-        <v-text-field label="实习单位电话" outlined v-model="independent_practice.company_phone"></v-text-field>
+        <v-text-field label="实习单位电话" outlined v-model.number="independent_practice.company_phone"></v-text-field>
       </v-col>
       <v-col cols="12">
         <v-text-field label="在外住宿地址" outlined v-model="independent_practice.address"></v-text-field>
@@ -280,7 +280,7 @@ export default {
         if (year === (this.student_year + 3).toString() && month === "09") {
           this.teacher_invalid = false
         }
-        if ((year === (this.student_year + 3).toString() && month >= "09" && month <= 12) || (year === (this.student_year + 4).toString() && month === "01")) {
+        if ((year === (this.student_year + 3).toString() && month >= "09" && month <= "12") || (year === (this.student_year + 4).toString() && month === "01")) {
           this.practice_invalid = false
         }
         this.direction_id = response.data.student.direction_id
@@ -410,11 +410,12 @@ export default {
         this.independent_practice.end_time = this.independent_practice.end_time + 'T00:00:00+08:00'
         var p = JSON.stringify(this.independent_practice)
         this.$axios({
-          url: "http://127.0.0.1:9000/postIndependentPractice",
+          url: "postIndependentPractice",
           method: "post",
           data: p,
           headers: {
-            "Content-Type": "multipart/form-data"
+            "Content-Type": "multipart/form-data",
+            'Token': "8a54sh " + this.$store.state.Jwt
           }
         }).then((response) => {
           if (response.data.msg === "Token无效") {
@@ -520,7 +521,7 @@ export default {
             if (year === (this.student_year + 3).toString() && month === "09") {
               this.teacher_invalid = false
             }
-            if ((year === (this.student_year + 3).toString() && month >= "09" && month <= 12) || (year === (this.student_year + 4).toString() && month === "01")) {
+            if ((year === (this.student_year + 3).toString() && month >= "09" && month <= "12") || (year === (this.student_year + 4).toString() && month === "01")) {
               this.practice_invalid = false
             }
             this.direction_id = response.data.student.direction_id

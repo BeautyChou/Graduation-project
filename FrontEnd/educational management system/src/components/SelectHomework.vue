@@ -185,6 +185,9 @@ export default {
             this.homeworks.splice(i, 1)
           }
           this.$store.commit('setSuccess',"删除作业成功!")
+          this.setTimeout(()=>{
+            this.$store.commit('closeSuccess')
+          },3000)
         })
       })
     }

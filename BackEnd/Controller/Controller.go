@@ -81,6 +81,8 @@ func Auth(db *gorm.DB) func(c *gin.Context) {
 				})
 			}
 			return
+		} else {
+			fmt.Println(err)
 		}
 		c.JSON(http.StatusOK, gin.H{
 			"msg": "failed",
@@ -886,6 +888,7 @@ func PostIndependentPractice(db *gorm.DB) func(c *gin.Context) {
 			})
 			return
 		}
+		fmt.Println(practice.Phone)
 		if err := db.Where("student_id = ?", practice.StudentID).First(&temp).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				db.Debug().Model(&Model.IndependentPractice{}).Create(&practice)
@@ -940,6 +943,162 @@ func ApplyTeacher(db *gorm.DB) func(c *gin.Context) {
 	}
 }
 
+func GetStudentList(db *gorm.DB) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		specialtyId := c.Query("specialty_id")
+		facultyId := c.Query("faculty_id")
+		students := &Model.StudentForUserInfos{}
+		faculties := Model.Faculties{}
+		specialties := Model.DirectionToSpecialtyForSelects{}
+		directions := Model.DirectionToSpecialtyForSelects{}
+		facultyToSpecialty := make(map[int]Model.DirectionToSpecialtyForSelects)
+		SpecialtyToDirection := make(map[int]Model.DirectionToSpecialtyForSelects)
+		PunishmentLevel := &Model.PunishmentLevels{}
+		db.Find(&[]Model.DirectionToSpecialty{}).Where("direction_id <> 0").Scan(&directions)
+		db.Model(&Model.PunishmentLevel{}).Scan(&PunishmentLevel)
+		db.Find(&[]Model.DirectionToSpecialty{}).Where("specialty_id <> 0").Scan(&specialties)
+		db.Find(&[]Model.Faculty{}).Where("id <> 0").Scan(&faculties)
+		if facultyId != "" {
+			if specialtyId != "" {
+				db.Model(&Model.Student{}).Select("students.ID student_id,students.created_at created,f.name faculty_name,dts.*,students.*").Where(" students.faculty_id = ? AND students.specialty_id = ?", facultyId, specialtyId).Joins("left join direction_to_specialties dts on( dts.direction_id = students.direction_id and students.specialty_id = dts.specialty_id and students.direction_id = dts.direction_id and dts.faculty_id = students.faculty_id) left join faculties f on f.id = students.faculty_id ").Scan(&students)
+			} else {
+				db.Model(&Model.Student{}).Select("students.ID student_id,students.created_at created,f.name faculty_name,dts.*,students.*").Where(" students.faculty_id = ?", facultyId).Joins("left join direction_to_specialties dts on( dts.direction_id = students.direction_id and students.specialty_id = dts.specialty_id and students.direction_id = dts.direction_id and dts.faculty_id = students.faculty_id) left join faculties f on f.id = students.faculty_id ").Scan(&students)
+			}
+		} else {
+			db.Model(&Model.Student{}).Select("students.ID student_id,students.created_at created,f.name faculty_name,dts.*,students.*").Joins("left join direction_to_specialties dts on( dts.direction_id = students.direction_id and students.specialty_id = dts.specialty_id and students.direction_id = dts.direction_id and dts.faculty_id = students.faculty_id) left join faculties f on f.id = students.faculty_id ").Scan(&students)
+		}
+		for _, v := range specialties {
+			facultyToSpecialty[v.FacultyID] = append(facultyToSpecialty[v.FacultyID], v)
+		}
+		for _, v := range directions {
+			SpecialtyToDirection[v.SpecialtyID] = append(SpecialtyToDirection[v.SpecialtyID], v)
+		}
+		c.JSON(http.StatusOK, gin.H{
+			"specialties":      facultyToSpecialty,
+			"students":         students,
+			"faculties":        faculties,
+			"punishment_level": PunishmentLevel,
+			"directions":       SpecialtyToDirection,
+		})
+	}
+}
+
+func DeleteStudent(db *gorm.DB) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		StudentID := c.Query("student_id")
+		db.Where("id = ?", StudentID).Delete(&Model.Student{})
+		c.JSON(http.StatusOK, gin.H{
+			"snackbar":  "setSuccess",
+			"msg":       "删除学生成功！",
+			"snackbar2": "closeSuccess",
+		})
+	}
+}
+
+func GetPunishment(db *gorm.DB) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		StudentID := c.Query("student_id")
+		Punishments := &Model.PunishmentForSelects{}
+		db.Model(&Model.Punishment{}).Select("punishments.*,pl.level Level").Joins("left join punishment_levels pl on pl.id = punishments.punishment_level_id").Where("student_id = ? ", StudentID).Scan(&Punishments)
+		c.JSON(http.StatusOK, gin.H{
+			"punishments": Punishments,
+		})
+	}
+}
+
+func PutStudent(db *gorm.DB) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		studentId := c.PostForm("student_id")
+		password := c.PostForm("password")
+		facultyID := c.PostForm("faculty_id")
+		specialtyID := c.PostForm("specialty_id")
+		directionID := c.PostForm("direction_id")
+		if password != "" {
+			hash, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+			db.Model(&Model.User{}).Where("id = ?", studentId).Update("password", string(hash))
+		}
+		if facultyID != "null" {
+			if specialtyID != "null" {
+				if directionID != "null" {
+					db.Model(&Model.Student{}).Where("id = ?", studentId).Updates(map[string]interface{}{"faculty_id": facultyID, "specialty_id": specialtyID, "direction_id": directionID})
+				} else {
+					db.Model(&Model.Student{}).Where("id = ?", studentId).Updates(map[string]interface{}{"faculty_id": facultyID, "specialty_id": specialtyID})
+				}
+			} else {
+				db.Model(&Model.Student{}).Where("id = ?", studentId).Updates(map[string]interface{}{"faculty_id": facultyID})
+			}
+		}
+		c.JSON(http.StatusOK, gin.H{
+			"snackbar":  "setSuccess",
+			"msg":       "修改学生信息成功！",
+			"snackbar2": "closeSuccess",
+		})
+	}
+}
+
+func PunishStudent(db *gorm.DB) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		Punishment := &Model.Punishment{}
+		Punishment.StudentID, _ = strconv.Atoi(c.PostForm("student_id"))
+		Punishment.PunishmentLevelID, _ = strconv.Atoi(c.PostForm("punishment_level"))
+		Punishment.Reason = c.PostForm("punishment_content")
+		db.Create(&Punishment)
+		c.JSON(http.StatusOK, gin.H{
+			"snackbar":  "setSuccess",
+			"msg":       "添加处分纪录成功！",
+			"snackbar2": "closeSuccess",
+		})
+	}
+}
+
+func DeletePunishment(db *gorm.DB) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		PunishmentID := c.Query("punishment_id")
+		db.Model(&Model.Punishment{}).Where("id = ?", PunishmentID).Update("is_cancelled", true)
+		c.JSON(http.StatusOK, gin.H{
+			"snackbar":  "setSuccess",
+			"msg":       "取消处分成功！",
+			"snackbar2": "closeSuccess",
+		})
+	}
+}
+
+func AddStudent(db *gorm.DB) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		currentTime := time.Now()
+		student := &Model.Student{}
+		user := &Model.User{}
+		Grade, _ := strconv.Atoi(c.PostForm("grade"))
+		date := time.Date(currentTime.Year()-5+Grade, 6, 11, 0, 0, 0, 00, time.Local)
+		student.Name = c.PostForm("name")
+		Password, _ := bcrypt.GenerateFromPassword([]byte(c.PostForm("password")), bcrypt.DefaultCost)
+		student.CreatedAt = date
+		student.FacultyID, _ = strconv.Atoi(c.PostForm("faculty_id"))
+		student.SpecialtyID, _ = strconv.Atoi(c.PostForm("specialty_id"))
+		student.DirectionID, _ = strconv.Atoi(c.PostForm("direction_id"))
+		db.Create(&student)
+		user.ID = student.ID
+		user.Password = string(Password)
+		db.Create(&user)
+		c.JSON(http.StatusOK, gin.H{
+			"snackbar":  "setSuccess",
+			"msg":       "创建学生成功！",
+			"snackbar2": "closeSuccess",
+		})
+	}
+}
+
+func GetPracticeInfo(db *gorm.DB) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		StudentID := c.Query("student_id")
+		independentPractice := &Model.IndependentPracticeForSelect{}
+		db.Model(&Model.IndependentPractice{}).Where("student_id = ?",StudentID).Scan(&independentPractice)
+		c.JSON(http.StatusOK,gin.H{
+			"independent_practice":independentPractice,
+		})
+	}
+}
+
 func ReturnOK(c *gin.Context) {
-	c.JSON(http.StatusOK, 0)
+	c.JSON(http.StatusOK, 1)
 }
