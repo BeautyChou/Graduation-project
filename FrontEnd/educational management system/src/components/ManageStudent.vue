@@ -1,40 +1,49 @@
 <template>
   <v-card>
     <v-card-title>
-      <v-btn
-        color="primary"
-        dark
-        class="mb-2"
-        large
-        @click="add_student = true"
-      >
-        <v-icon>
-          mdi-plus-thick
-        </v-icon>
-        添加学生
-      </v-btn>
-      <v-select
-        class="col-4"
-        outlined
-        dense
-        v-model="faculty_id"
-        :items="faculties"
-        item-text="name"
-        item-value="id"
-        label="学生所属学院"
-        @change="getStudentList"
-      ></v-select>
-      <v-select
-        class="col-4"
-        outlined
-        dense
-        v-model="specialty_id"
-        :items="specialties[faculty_id]"
-        item-text="specialty_name"
-        item-value="specialty_id"
-        label="学生所属专业"
-        :disabled="faculty_id ==  null"
-        @change="getStudentList"></v-select>
+      <v-row>
+        <v-select
+          class="col-3"
+          outlined
+          dense
+          v-model="faculty_id"
+          :items="faculties"
+          item-text="name"
+          item-value="id"
+          label="学生所属学院"
+          @change="getStudentList"
+        ></v-select>
+        <v-select
+          class="col-3"
+          outlined
+          dense
+          v-model="specialty_id"
+          :items="specialties[faculty_id]"
+          item-text="specialty_name"
+          item-value="specialty_id"
+          label="学生所属专业"
+          :disabled="faculty_id ==  null"
+          @change="getStudentList"></v-select>
+        <v-btn
+          icon
+          @click.native="faculty_id = null;specialty_id = null;getStudentList()">
+          <v-icon>
+            mdi-trash-can-outline
+          </v-icon>
+        </v-btn>
+        <v-spacer></v-spacer>
+        <v-btn
+          color="primary"
+          dark
+          class="mb-2"
+          @click="add_student = true"
+        >
+          <v-icon>
+            mdi-plus-thick
+          </v-icon>
+          添加学生
+        </v-btn>
+      </v-row>
     </v-card-title>
     <v-data-table
       :headers="student_headers"
@@ -364,7 +373,7 @@
             label="在外联系方式"
             outlined
             v-model.number="independent_practice.phone"
-          readonly></v-text-field>
+            readonly></v-text-field>
         </v-col>
         <v-col cols="5">
           <v-text-field
@@ -505,9 +514,19 @@ export default {
         },
         data: formData
       }).then((response) => {
+        if (response.data.msg === "Token无效") {
+          this.$emit('func')
+          return
+        }
         this.add_student = false
         this.$store.commit(response.data.snackbar, response.data.msg)
         this.getStudentList()
+        this.new_name = null
+        this.new_grade = null
+        this.new_password = null
+        this.new_faculty = null
+        this.new_specialty = null
+        this.new_direction = null
         setTimeout(() => {
           this.$store.commit(response.data.snackbar2)
         }, 3000)
@@ -525,6 +544,10 @@ export default {
         },
         method: "get"
       }).then((response) => {
+        if (response.data.msg === "Token无效") {
+          this.$emit('func')
+          return
+        }
         console.log(response)
         this.specialties = response.data.specialties
         this.faculties = response.data.faculties
@@ -544,6 +567,10 @@ export default {
           'Token': "8a54sh " + this.$store.state.Jwt
         }
       }).then((response) => {
+        if (response.data.msg === "Token无效") {
+          this.$emit('func')
+          return
+        }
         this.delete_student = false
         this.$store.commit(response.data.snackbar, response.data.msg)
         this.getStudentList()
@@ -567,8 +594,16 @@ export default {
         },
         data: formData
       }).then((response) => {
+        if (response.data.msg === "Token无效") {
+          this.$emit('func')
+          return
+        }
         this.modify_student = false
         this.$store.commit(response.data.snackbar, response.data.msg)
+        this.new_password = null
+        this.new_faculty = null
+        this.new_specialty = null
+        this.new_direction = null
         this.getStudentList()
         setTimeout(() => {
           this.$store.commit(response.data.snackbar2)
@@ -588,8 +623,14 @@ export default {
         },
         data: formData
       }).then((response) => {
+        if (response.data.msg === "Token无效") {
+          this.$emit('func')
+          return
+        }
         this.punish_student = false
         this.$store.commit(response.data.snackbar, response.data.msg)
+        this.new_punishment_level = null
+        this.punish_reason = null
         setTimeout(() => {
           this.$store.commit(response.data.snackbar2)
         }, 3000)
@@ -606,6 +647,10 @@ export default {
         },
         method: "get"
       }).then((response) => {
+        if (response.data.msg === "Token无效") {
+          this.$emit('func')
+          return
+        }
         console.log(response)
         this.punishments = response.data.punishments
       })
@@ -621,6 +666,10 @@ export default {
           'Token': "8a54sh " + this.$store.state.Jwt
         }
       }).then((response) => {
+        if (response.data.msg === "Token无效") {
+          this.$emit('func')
+          return
+        }
         this.cancel_punishment = false
         this.$store.commit(response.data.snackbar, response.data.msg)
         setTimeout(() => {
@@ -639,10 +688,14 @@ export default {
         },
         method: "get"
       }).then((response) => {
+        if (response.data.msg === "Token无效") {
+          this.$emit('func')
+          return
+        }
         console.log(response)
         this.independent_practice = response.data.independent_practice
-        this.independent_practice.start_time = this.independent_practice.start_time.substr(0,10)
-        this.independent_practice.end_time = this.independent_practice.end_time.substr(0,10)
+        this.independent_practice.start_time = this.independent_practice.start_time.substr(0, 10)
+        this.independent_practice.end_time = this.independent_practice.end_time.substr(0, 10)
       })
     },
   },

@@ -441,6 +441,7 @@ type TeacherForUserInfo struct {
 	FacultyName string `json:"faculty_name"`                  //学院名称
 	Title       Title  `gorm:"foreignKey:TitleID;"`           // 职称外键
 	TitleID     int    `json:"title_id" gorm:"index:t_id"`    // 职称ID
+	TitleName   string `json:"title_name"` // 职称名
 }
 
 type StudentForUserInfo struct {
@@ -526,8 +527,11 @@ type StudentForSelects []StudentForSelect
 type StudentForUserInfos []StudentForUserInfo
 type PunishmentForSelects []PunishmentForSelect
 type PunishmentLevels []PunishmentLevel
+type TeacherForUserInfos []TeacherForUserInfo
+type Titles []Title
+type Admins []Admin
 
 func CreateDatabase(db *gorm.DB) {
 	//db.AutoMigrate(&Elective{})
-	db.AutoMigrate(&User{}, &Title{}, &Faculty{}, &Teacher{}, &Elective{}, &Admin{}, &Classroom{}, &DirectionToSpecialty{}, &Course{}, &Student{}, &HomeworkUploadRecord{}, &Homework{}, &Question{}, &Student2Course{}, &ApplyForCourseChange{}, &IndependentPractice{}, &PunishmentLevel{}, &Punishment{})
+	//db.AutoMigrate(&User{}, &Title{}, &Faculty{}, &Teacher{}, &Elective{}, &Admin{}, &Classroom{}, &DirectionToSpecialty{}, &Course{}, &Student{}, &HomeworkUploadRecord{}, &Homework{}, &Question{}, &Student2Course{}, &ApplyForCourseChange{}, &IndependentPractice{}, &PunishmentLevel{}, &Punishment{})
 }

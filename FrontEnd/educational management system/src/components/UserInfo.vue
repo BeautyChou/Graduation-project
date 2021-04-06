@@ -258,6 +258,7 @@ export default {
       console.log(response)
       if (response.data.msg === "Token无效") {
         this.$emit('func')
+        return
       }
       if (response.data.teacher.name === "") {
         //学生查询

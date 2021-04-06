@@ -987,6 +987,8 @@ func DeleteStudent(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		StudentID := c.Query("student_id")
 		db.Where("id = ?", StudentID).Delete(&Model.Student{})
+		db.Where("id = ?",StudentID).Delete(&Model.User{})
+
 		c.JSON(http.StatusOK, gin.H{
 			"snackbar":  "setSuccess",
 			"msg":       "删除学生成功！",
@@ -1092,9 +1094,158 @@ func GetPracticeInfo(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		StudentID := c.Query("student_id")
 		independentPractice := &Model.IndependentPracticeForSelect{}
-		db.Model(&Model.IndependentPractice{}).Where("student_id = ?",StudentID).Scan(&independentPractice)
-		c.JSON(http.StatusOK,gin.H{
-			"independent_practice":independentPractice,
+		db.Model(&Model.IndependentPractice{}).Where("student_id = ?", StudentID).Scan(&independentPractice)
+		c.JSON(http.StatusOK, gin.H{
+			"independent_practice": independentPractice,
+		})
+	}
+}
+
+func GetTeacherListForManage(db *gorm.DB) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		facultyId := c.Query("faculty_id")
+		titleID := c.Query("title_id")
+		teachers := &Model.TeacherForUserInfos{}
+		titles := &Model.Titles{}
+		faculties := Model.Faculties{}
+		PunishmentLevel := &Model.PunishmentLevels{}
+		db.Model(&Model.PunishmentLevel{}).Scan(&PunishmentLevel)
+		db.Find(&[]Model.Faculty{}).Where("id <> 0").Scan(&faculties)
+		db.Model(&Model.Title{}).Where("id <> 0").Scan(&titles)
+		if facultyId != "" {
+			if titleID != "" {
+				db.Model(&Model.Teacher{}).Select("teachers.*,f.*,t.*,teachers.ID ID,teachers.name name,f.name faculty_name,t.name title_name").Where(" teachers.faculty_id = ? AND teachers.title_id = ? AND teachers.id <> 0", facultyId, titleID).Joins("left join faculties f on f.id = teachers.faculty_id left join titles t on t.id = teachers.title_id").Scan(&teachers)
+			} else {
+				db.Model(&Model.Teacher{}).Select("teachers.*,f.*,t.*,teachers.ID ID,teachers.name name,f.name faculty_name,t.name title_name").Where(" teachers.faculty_id = ? AND teachers.id <> 0", facultyId).Joins("left join faculties f on f.id = teachers.faculty_id left join titles t on t.id = teachers.title_id").Scan(&teachers)
+			}
+		} else {
+			if titleID != "" {
+				db.Model(&Model.Teacher{}).Select("teachers.*,f.*,t.*,teachers.ID ID,teachers.name name,f.name faculty_name,t.name title_name").Where("teachers.title_id = ? AND teachers.id <> 0", titleID).Joins("left join faculties f on f.id = teachers.faculty_id left join titles t on t.id = teachers.title_id").Scan(&teachers)
+			} else {
+				db.Model(&Model.Teacher{}).Select("teachers.*,f.*,t.*,teachers.ID ID,teachers.name name,f.name faculty_name,t.name title_name").Where("teachers.id <> 0").Joins("left join faculties f on f.id = teachers.faculty_id left join titles t on t.id = teachers.title_id").Scan(&teachers)
+			}
+		}
+		c.JSON(http.StatusOK, gin.H{
+			"teachers":  teachers,
+			"faculties": faculties,
+			"titles":    titles,
+		})
+	}
+}
+
+func DeleteTeacher(db *gorm.DB) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		teacherID := c.Query("teacher_id")
+		db.Where("id = ?", teacherID).Delete(&Model.Teacher{})
+		db.Where("id = ?",teacherID).Delete(&Model.User{})
+		c.JSON(http.StatusOK, gin.H{
+			"snackbar":  "setSuccess",
+			"msg":       "删除教师成功！",
+			"snackbar2": "closeSuccess",
+		})
+	}
+}
+
+func PutTeacher(db *gorm.DB) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		teacherID := c.PostForm("teacher_id")
+		password := c.PostForm("password")
+		facultyID := c.PostForm("faculty_id")
+		titleID := c.PostForm("title_id")
+		if password != "" {
+			hash, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+			db.Model(&Model.User{}).Where("id = ?", teacherID).Update("password", string(hash))
+		}
+		if facultyID != "null" {
+			if titleID != "null" {
+				db.Model(&Model.Teacher{}).Where("id = ?", teacherID).Updates(map[string]interface{}{"faculty_id": facultyID, "title_id": titleID})
+			} else {
+				db.Model(&Model.Teacher{}).Where("id = ?", teacherID).Updates(map[string]interface{}{"faculty_id": facultyID})
+			}
+		} else {
+			if titleID != "null" {
+				db.Model(&Model.Teacher{}).Where("id = ?", teacherID).Updates(map[string]interface{}{"title_id": titleID})
+			}
+		}
+		c.JSON(http.StatusOK, gin.H{
+			"snackbar":  "setSuccess",
+			"msg":       "修改教师信息成功！",
+			"snackbar2": "closeSuccess",
+		})
+	}
+}
+
+func AddTeacher(db *gorm.DB) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		teacher := &Model.Teacher{}
+		user := &Model.User{}
+		teacher.Name = c.PostForm("name")
+		Password, _ := bcrypt.GenerateFromPassword([]byte(c.PostForm("password")), bcrypt.DefaultCost)
+		teacher.FacultyID, _ = strconv.Atoi(c.PostForm("faculty_id"))
+		teacher.TitleID, _ = strconv.Atoi(c.PostForm("title_id"))
+		db.Create(&teacher)
+		user.ID = teacher.ID
+		user.Password = string(Password)
+		db.Create(&user)
+		c.JSON(http.StatusOK, gin.H{
+			"snackbar":  "setSuccess",
+			"msg":       "创建教师成功！",
+			"snackbar2": "closeSuccess",
+		})
+	}
+}
+
+func GetAdminList(db *gorm.DB) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		admins := &Model.Admins{}
+		db.Model(&Model.Admin{}).Find(&admins)
+		c.JSON(http.StatusOK, gin.H{
+			"admins": admins,
+		})
+	}
+}
+
+func DeleteAdmin(db *gorm.DB) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		adminID := c.Query("admin_id")
+		db.Where("id = ?", adminID).Delete(&Model.Admin{})
+		db.Where("id = ?",adminID).Delete(&Model.User{})
+		c.JSON(http.StatusOK, gin.H{
+			"snackbar":  "setSuccess",
+			"msg":       "删除管理员成功！",
+			"snackbar2": "closeSuccess",
+		})
+	}
+}
+
+func PutAdmin(db *gorm.DB) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		adminID := c.PostForm("admin_id")
+		password := c.PostForm("password")
+		hash, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+		db.Debug().Model(&Model.User{}).Where("id = ?", adminID).Update("password", string(hash))
+		c.JSON(http.StatusOK, gin.H{
+			"snackbar":  "setSuccess",
+			"msg":       "修改管理员信息成功！",
+			"snackbar2": "closeSuccess",
+		})
+	}
+}
+
+func AddAdmin(db *gorm.DB) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		admin := &Model.Admin{}
+		user := &Model.User{}
+		admin.Name = c.PostForm("name")
+		Password, _ := bcrypt.GenerateFromPassword([]byte(c.PostForm("password")), bcrypt.DefaultCost)
+		db.Create(&admin)
+		user.ID = int(admin.ID)
+		user.Password = string(Password)
+		db.Create(&user)
+		c.JSON(http.StatusOK, gin.H{
+			"snackbar":  "setSuccess",
+			"msg":       "创建管理员成功！",
+			"snackbar2": "closeSuccess",
 		})
 	}
 }
