@@ -2,88 +2,60 @@
   <v-card>
     <v-card-title>
       <v-row>
-        <v-select
-          class="col-3"
-          outlined
-          dense
-          v-model="faculty_id"
-          :items="faculties"
-          item-text="name"
-          item-value="id"
-          label="教师所属学院"
-          @change="getTeacherList"
-        ></v-select>
-        <v-select
-          class="col-3"
-          outlined
-          dense
-          v-model="title_id"
-          :items="titles"
-          item-text="name"
-          item-value="id"
-          label="教师职称"
-          @change="getTeacherList"
-        ></v-select>
-        <v-btn
-          icon
-          @click.native="faculty_id = null;title_id = null;getTeacherList()">
-          <v-icon>
-            mdi-trash-can-outline
-          </v-icon>
-        </v-btn>
         <v-spacer></v-spacer>
         <v-btn
           color="primary"
           dark
           class="mb-2"
-          @click="add_teacher = true"
+          @click="add_punish_level = true"
         >
           <v-icon>
             mdi-plus-thick
           </v-icon>
-          添加教师
+          添加处分等级
         </v-btn>
       </v-row>
     </v-card-title>
     <v-data-table
-      :headers="teachers_headers"
-      :items="teachers"
+      :headers="punish_levels_headers"
+      :items="punish_levels"
+      hide-default-footer
     >
       <template v-slot:item.operation="{ item }">
 
         <v-tooltip v-if="$store.state.level===2||true" bottom>
           <template v-slot:activator="{ on,attrs }">
             <v-btn icon color="primary" v-bind="attrs" v-on="on" x-large
-                   @click="modify_teacher = true ;selectOBJ = item">
+                   @click="modify_punish_level = true ;selectOBJ = item">
               <v-icon>
                 mdi-lead-pencil
               </v-icon>
             </v-btn>
           </template>
-          <span>修改教师信息</span>
+          <span>修改处分等级名</span>
         </v-tooltip>
 
         <v-tooltip v-if="$store.state.level===2||true" bottom>
           <template v-slot:activator="{ on,attrs }">
             <v-btn icon color="red darken-4" v-bind="attrs" v-on="on" x-large
-                   @click="delete_teacher = true;selectOBJ = item">
+                   @click="delete_punish_level = true;selectOBJ = item">
               <v-icon>
                 mdi-account-remove
               </v-icon>
             </v-btn>
           </template>
-          <span>删除教师</span>
+          <span>删除处分等级</span>
         </v-tooltip>
 
       </template>
     </v-data-table>
-    <v-dialog v-if="($store.state.level===2||true)" v-model="delete_teacher" width="500" persistent>
+    <v-dialog v-if="($store.state.level===2||true)" v-model="delete_punish_level" width="500" persistent>
       <v-card>
         <v-card-title class="headline font-weight-bold">
           警告!
         </v-card-title>
         <v-card-text class="font-weight-bold">
-          真的要删除这个教师吗?这个操作是不可逆转的!
+          真的要删除这个处分等级吗?这个操作是不可逆转的!
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
@@ -91,7 +63,7 @@
             class="font-weight-bold"
             color="green darken-1"
             text
-            @click="deleteTeacher"
+            @click="deletePunishLevel"
           >
             是
           </v-btn>
@@ -99,7 +71,7 @@
             class="font-weight-bold"
             color="green darken-1"
             text
-            @click="delete_teacher = false"
+            @click="delete_punish_level = false"
           >
             否
           </v-btn>
@@ -107,36 +79,18 @@
       </v-card>
 
     </v-dialog>
-    <v-dialog v-model="modify_teacher" width="900" persistent>
+    <v-dialog v-model="modify_punish_level" width="900" persistent>
       <v-card>
         <v-card-title class="headline font-weight-bold">
-          修改教师信息:{{ selectOBJ.name }} (仅填写需要修改的地方)
+          修改处分等级信息
         </v-card-title>
         <v-card-text class="font-weight-bold">
           <v-row class="mt-2">
             <v-text-field
               outlined
-              label="密码"
-              v-model="new_password"
+              label="处分等级名"
+              v-model="new_name"
               class="col-12"></v-text-field>
-            <v-select
-              class="col-6"
-              v-model="new_faculty"
-              :items="faculties"
-              item-text="name"
-              item-value="id"
-              outlined
-              label="学院"
-            ></v-select>
-            <v-select
-              class="col-6"
-              v-model="new_title"
-              :items="titles"
-              item-text="name"
-              item-value="id"
-              outlined
-              label="职称"
-            ></v-select>
           </v-row>
         </v-card-text>
 
@@ -146,7 +100,7 @@
             class="font-weight-bold"
             color="green darken-1"
             text
-            @click="modifyTeacher"
+            @click="modifyPunishLevel"
           >
             提交
           </v-btn>
@@ -154,48 +108,25 @@
             class="font-weight-bold"
             color="green darken-1"
             text
-            @click="modify_teacher = false"
+            @click="modify_punish_level = false"
           >
             取消
           </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <v-dialog v-model="add_teacher" width="900" persistent>
+    <v-dialog v-model="add_punish_level" width="900" persistent>
       <v-card>
         <v-card-title class="headline font-weight-bold">
-          添加教师信息
+          添加处分等级信息
         </v-card-title>
         <v-card-text class="font-weight-bold">
           <v-row class="mt-2">
             <v-text-field
               outlined
-              label="姓名"
+              label="处分等级名"
               v-model="new_name"
-              class="col-6"></v-text-field>
-            <v-text-field
-              outlined
-              label="密码"
-              v-model="new_password"
-              class="col-6"></v-text-field>
-            <v-select
-              class="col-6"
-              v-model="new_faculty"
-              :items="faculties"
-              item-text="name"
-              item-value="id"
-              outlined
-              label="学院"
-            ></v-select>
-            <v-select
-              class="col-6"
-              v-model="new_title"
-              :items="titles"
-              item-text="name"
-              item-value="id"
-              outlined
-              label="职称"
-            ></v-select>
+              class="col-12"></v-text-field>
           </v-row>
         </v-card-text>
 
@@ -205,7 +136,7 @@
             class="font-weight-bold"
             color="green darken-1"
             text
-            @click="addTeacher"
+            @click="addPunishLevel"
           >
             提交
           </v-btn>
@@ -213,7 +144,7 @@
             class="font-weight-bold"
             color="green darken-1"
             text
-            @click="add_teacher = false"
+            @click="add_punish_level = false"
           >
             取消
           </v-btn>
@@ -225,41 +156,29 @@
 
 <script>
 export default {
-  name: "ManageTeacher",
+  name: "ManagePunishLevel",
   created() {
-    this.getTeacherList()
+    this.getPunishLevelList()
   },
-  data(){
-    return{
-      new_name:null,
-      new_title:null,
-      new_faculty:null,
-      new_password:null,
-      selectOBJ:{},
-      delete_teacher:false,
-      modify_teacher:false,
-      add_teacher:false,
-      faculty_id:null,
-      title_id: null,
-      faculties:[],
-      teachers:[],
-      titles:[],
-      teachers_headers: [
-        {text: '姓名', align: 'start', sortable: false, value: 'name'},
-        {text: '学院', sortable: false, value: 'faculty_name'},
-        {text: '职称', sortable: false, value: 'title_name'},
+  data() {
+    return {
+      new_name: null,
+      selectOBJ: {},
+      delete_punish_level: false,
+      modify_punish_level: false,
+      add_punish_level: false,
+      level_id: null,
+      punish_levels: [],
+      punish_levels_headers: [
+        {text: '处分等级名', align: 'start', sortable: false, value: 'level'},
         {text: '操作', sortable: false, value: 'operation'}
       ],
     }
   },
-  methods:{
-    getTeacherList() {
+  methods: {
+    getPunishLevelList() {
       this.$axios({
-        url: "getTeacherListForManage",
-        params: {
-          faculty_id: this.faculty_id,
-          title_id: this.title_id,
-        },
+        url: "getPunishLevelList",
         headers: {
           'Token': "8a54sh " + this.$store.state.Jwt
         },
@@ -270,20 +189,16 @@ export default {
           return
         }
         console.log(response)
-        this.faculties = response.data.faculties
-        this.teachers = response.data.teachers
-        this.titles = response.data.titles
+        this.punish_levels = response.data.punish_levels
       })
     },
-    modifyTeacher(){
+    modifyPunishLevel() {
       const formData = new FormData()
-      formData.append("teacher_id", this.selectOBJ.id)
-      formData.append("password", this.new_password)
-      formData.append("faculty_id", this.new_faculty)
-      formData.append("title_id", this.new_title)
+      formData.append("level_id", this.selectOBJ.id)
+      formData.append("name", this.new_name)
       this.$axios({
         method: "put",
-        url: "putTeacher",
+        url: "putPunishLevel",
         headers: {
           'Token': "8a54sh " + this.$store.state.Jwt
         },
@@ -293,23 +208,21 @@ export default {
           this.$emit('func')
           return
         }
-        this.modify_teacher = false
+        this.modify_punish_level = false
         this.$store.commit(response.data.snackbar, response.data.msg)
-        this.new_password = null
-        this.new_faculty = null
-        this.new_title = null
-        this.getTeacherList()
+        this.new_name = null
+        this.getPunishLevelList()
         setTimeout(() => {
           this.$store.commit(response.data.snackbar2)
         }, 3000)
       })
     },
-    deleteTeacher(){
+    deletePunishLevel() {
       this.$axios({
-        url: "deleteTeacher",
+        url: "deletePunishLevel",
         method: "delete",
         params: {
-          teacher_id: this.selectOBJ.id
+          level_id: this.selectOBJ.id
         },
         headers: {
           'Token': "8a54sh " + this.$store.state.Jwt
@@ -319,23 +232,20 @@ export default {
           this.$emit('func')
           return
         }
-        this.delete_teacher = false
+        this.delete_punish_level = false
         this.$store.commit(response.data.snackbar, response.data.msg)
-        this.getTeacherList()
+        this.getPunishLevelList()
         setTimeout(() => {
           this.$store.commit(response.data.snackbar2)
         }, 3000)
       })
     },
-    addTeacher(){
+    addPunishLevel() {
       const formData = new FormData()
       formData.append("name", this.new_name)
-      formData.append("password", this.new_password)
-      formData.append("faculty_id", this.new_faculty)
-      formData.append("title_id", this.new_title)
       this.$axios({
         method: "post",
-        url: "addTeacher",
+        url: "addPunishLevel",
         headers: {
           'Token': "8a54sh " + this.$store.state.Jwt
         },
@@ -345,13 +255,10 @@ export default {
           this.$emit('func')
           return
         }
-        this.add_teacher = false
+        this.add_punish_level = false
         this.$store.commit(response.data.snackbar, response.data.msg)
-        this.getTeacherList()
+        this.getPunishLevelList()
         this.new_name = null
-        this.new_password = null
-        this.new_faculty = null
-        this.new_title = null
         setTimeout(() => {
           this.$store.commit(response.data.snackbar2)
         }, 3000)

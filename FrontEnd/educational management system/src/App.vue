@@ -215,7 +215,8 @@ export default {
         url:"isExpire",
         method:"post",
         headers:{
-          "Content-Type": "multipart/form-data"
+          "Content-Type": "multipart/form-data",
+          'Token': "8a54sh " + this.$store.state.Jwt
         }
       }).then((response)=>{
         if (response.data.msg === "Token无效" ){

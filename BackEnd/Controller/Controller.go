@@ -986,7 +986,7 @@ func GetStudentList(db *gorm.DB) func(c *gin.Context) {
 func DeleteStudent(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		StudentID := c.Query("student_id")
-		db.Where("id = ?", StudentID).Delete(&Model.Student{})
+		db.Unscoped().Where("id = ?", StudentID).Delete(&Model.Student{})
 		db.Where("id = ?",StudentID).Delete(&Model.User{})
 
 		c.JSON(http.StatusOK, gin.H{
@@ -1136,7 +1136,7 @@ func GetTeacherListForManage(db *gorm.DB) func(c *gin.Context) {
 func DeleteTeacher(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		teacherID := c.Query("teacher_id")
-		db.Where("id = ?", teacherID).Delete(&Model.Teacher{})
+		db.Unscoped().Where("id = ?", teacherID).Delete(&Model.Teacher{})
 		db.Where("id = ?",teacherID).Delete(&Model.User{})
 		c.JSON(http.StatusOK, gin.H{
 			"snackbar":  "setSuccess",
@@ -1198,7 +1198,7 @@ func AddTeacher(db *gorm.DB) func(c *gin.Context) {
 func GetAdminList(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		admins := &Model.Admins{}
-		db.Model(&Model.Admin{}).Find(&admins)
+		db.Debug().Model(&Model.Admin{}).Find(&admins)
 		c.JSON(http.StatusOK, gin.H{
 			"admins": admins,
 		})
@@ -1245,6 +1245,152 @@ func AddAdmin(db *gorm.DB) func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"snackbar":  "setSuccess",
 			"msg":       "创建管理员成功！",
+			"snackbar2": "closeSuccess",
+		})
+	}
+}
+
+func GetTitleList(db *gorm.DB) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		titles := &Model.Titles{}
+		db.Debug().Model(&Model.Title{}).Where("id <> 0").Find(&titles)
+		c.JSON(http.StatusOK, gin.H{
+			"titles": titles,
+		})
+	}
+}
+
+func DeleteTitle(db *gorm.DB) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		titleID := c.Query("title_id")
+		db.Unscoped().Where("id = ?", titleID).Delete(&Model.Title{})
+		c.JSON(http.StatusOK, gin.H{
+			"snackbar":  "setSuccess",
+			"msg":       "删除职称成功！",
+			"snackbar2": "closeSuccess",
+		})
+	}
+}
+
+func PutTitle(db *gorm.DB) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		titleID := c.PostForm("title_id")
+		titleName := c.PostForm("name")
+		db.Debug().Model(&Model.Title{}).Where("id = ?", titleID).Update("name", titleName)
+		c.JSON(http.StatusOK, gin.H{
+			"snackbar":  "setSuccess",
+			"msg":       "修改职称成功！",
+			"snackbar2": "closeSuccess",
+		})
+	}
+}
+
+func AddTitle(db *gorm.DB) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		title := &Model.Title{}
+		title.Name = c.PostForm("name")
+		db.Create(&title)
+		c.JSON(http.StatusOK, gin.H{
+			"snackbar":  "setSuccess",
+			"msg":       "创建职称成功！",
+			"snackbar2": "closeSuccess",
+		})
+	}
+}
+
+func GetPunishLevelList(db *gorm.DB) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		punishLevels := &Model.PunishmentLevels{}
+		db.Debug().Model(&Model.PunishmentLevel{}).Find(&punishLevels)
+		c.JSON(http.StatusOK, gin.H{
+			"punish_levels": punishLevels,
+		})
+	}
+}
+
+func DeletePunishLevel(db *gorm.DB) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		levelID := c.Query("level_id")
+		db.Where("id = ?", levelID).Delete(&Model.PunishmentLevel{})
+		c.JSON(http.StatusOK, gin.H{
+			"snackbar":  "setSuccess",
+			"msg":       "删除处分等级成功！",
+			"snackbar2": "closeSuccess",
+		})
+	}
+}
+
+func PutPunishLevel(db *gorm.DB) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		levelID := c.PostForm("level_id")
+		levelName := c.PostForm("name")
+		db.Debug().Model(&Model.PunishmentLevel{}).Where("id = ?", levelID).Update("level", levelName)
+		c.JSON(http.StatusOK, gin.H{
+			"snackbar":  "setSuccess",
+			"msg":       "修改处分等级成功！",
+			"snackbar2": "closeSuccess",
+		})
+	}
+}
+
+func AddPunishLevel(db *gorm.DB) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		punishLevel := &Model.PunishmentLevel{}
+		punishLevel.Level = c.PostForm("name")
+		db.Create(&punishLevel)
+		c.JSON(http.StatusOK, gin.H{
+			"snackbar":  "setSuccess",
+			"msg":       "创建处分等级成功！",
+			"snackbar2": "closeSuccess",
+		})
+	}
+}
+
+func GetClassroomList(db *gorm.DB) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		classrooms := &Model.Classrooms{}
+		db.Debug().Model(&Model.Classroom{}).Find(&classrooms)
+		c.JSON(http.StatusOK, gin.H{
+			"classrooms": classrooms,
+		})
+	}
+}
+
+func DeleteClassroom(db *gorm.DB) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		classroomID := c.Query("classroom_id")
+		db.Unscoped().Where("id = ?", classroomID).Delete(&Model.Classroom{})
+		c.JSON(http.StatusOK, gin.H{
+			"snackbar":  "setSuccess",
+			"msg":       "删除教室成功！",
+			"snackbar2": "closeSuccess",
+		})
+	}
+}
+
+func PutClassroom(db *gorm.DB) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		classroomID := c.PostForm("classroom_id")
+		classroomName := c.PostForm("name")
+		classroomMaxNum,_ := strconv.Atoi(c.PostForm("max_num"))
+		db.Debug().Model(&Model.Classroom{}).Where("id = ?", classroomID).Updates(map[string]interface{}{"name": classroomName,"max_num":classroomMaxNum})
+		c.JSON(http.StatusOK, gin.H{
+			"snackbar":  "setSuccess",
+			"msg":       "修改教室成功！",
+			"snackbar2": "closeSuccess",
+		})
+	}
+}
+
+func AddClassroom(db *gorm.DB) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		classroom := &Model.Classroom{}
+		classroom.Name = c.PostForm("name")
+		classroom.MaxNum,_ = strconv.Atoi(c.PostForm("max_num"))
+		db.Create(&classroom)
+		c.JSON(http.StatusOK, gin.H{
+			"snackbar":  "setSuccess",
+			"msg":       "创建教室成功！",
 			"snackbar2": "closeSuccess",
 		})
 	}

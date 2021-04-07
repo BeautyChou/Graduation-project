@@ -34,7 +34,8 @@ type Title struct {
 //教室表
 type Classroom struct {
 	MyModel
-	Name string `json:"name" gorm:"size:30;not null;uniqueIndex:name;"` // 教室名
+	Name   string `json:"name" gorm:"size:30;not null;uniqueIndex:name;"` // 教室名
+	MaxNum int    `json:"max_number" gorm:"size:30"` // 教室可容纳最大人数
 }
 
 type DirectionToSpecialty struct {
@@ -441,7 +442,7 @@ type TeacherForUserInfo struct {
 	FacultyName string `json:"faculty_name"`                  //学院名称
 	Title       Title  `gorm:"foreignKey:TitleID;"`           // 职称外键
 	TitleID     int    `json:"title_id" gorm:"index:t_id"`    // 职称ID
-	TitleName   string `json:"title_name"` // 职称名
+	TitleName   string `json:"title_name"`                    // 职称名
 }
 
 type StudentForUserInfo struct {
@@ -528,6 +529,7 @@ type StudentForUserInfos []StudentForUserInfo
 type PunishmentForSelects []PunishmentForSelect
 type PunishmentLevels []PunishmentLevel
 type TeacherForUserInfos []TeacherForUserInfo
+type Classrooms []Classroom
 type Titles []Title
 type Admins []Admin
 
