@@ -4,7 +4,8 @@
     <v-data-table
       :headers="headers"
       :items="courses"
-      :items-per-page="5"
+      :options.sync="options"
+      :server-items-length="total"
       class="elevation-1"
     >
       <template v-slot:item.course_name="{ item }">
@@ -195,6 +196,8 @@ export default {
   name: "SelectCourse",
   data() {
     return {
+      options:{},
+      total:null,
       course: null,
       courses: [],
       headers: [
@@ -296,51 +299,47 @@ export default {
     }
   },
   created() {
-    this.$axios({
-      method: "get",
-      url: 'http://127.0.0.1:9000/getCourseList',
-      params: {
-        'teacher_id': this.$store.state.teacherId,
-        'student_id': this.$store.state.studentId,
-      },
-      headers:{
-        'Token': "8a54sh " + this.$store.state.Jwt
-      }
-    }).then((response) => {
-      if (response.data.msg === "Token无效") {
-        this.$emit('func')
-        return
-      }
-      this.courses = response.data.courses
-      console.log(this.courses)
-    })
+    this.getClass()
   },
   watch: {
     '$store.state.refreshFlag': {
       handler(newValue, oldValue) {
         console.log(newValue, oldValue)
         if (newValue !== 1) return
-        this.$axios({
-          method: "get",
-          url: 'http://127.0.0.1:9000/getCourseList',
-          params: {
-            'teacher_id': this.$store.state.teacherId
-          },
-          headers:{
-            'Token': "8a54sh " + this.$store.state.Jwt
-          }
-        }).then((response) => {
-          if (response.data.msg === "Token无效") {
-            this.$emit('func')
-            return
-          }
-          this.courses = response.data.courses
-          console.log(this.courses)
-        })
+        this.getClass()
       },
+    },
+    options:{
+      handler(){
+        this.getClass()
+      },
+      deep:true,
     },
   },
   methods: {
+    getClass() {
+      this.$axios({
+        method: "get",
+        url: 'http://127.0.0.1:9000/getCourseList',
+        params: {
+          'teacher_id': this.$store.state.teacherId,
+          'student_id': this.$store.state.studentId,
+          "page":this.options.page,
+          "items":this.options.itemsPerPage,
+        },
+        headers:{
+          'Token': "8a54sh " + this.$store.state.Jwt
+        }
+      }).then((response) => {
+        if (response.data.msg === "Token无效") {
+          this.$emit('func')
+          return
+        }
+        this.courses = response.data.courses
+        this.total = response.data.total
+        console.log(this.courses)
+      })
+    },
     submitApplyForClassChange() {
       this.apply.teacher_id = this.$store.state.teacherId
       this.apply.course_id = this.selectId

@@ -19,6 +19,8 @@
     <v-data-table
       :headers="classrooms_headers"
       :items="classrooms"
+      :options.sync="options"
+      :server-items-length="total"
     >
       <template v-slot:item.operation="{ item }">
 
@@ -171,6 +173,8 @@ export default {
   },
   data() {
     return {
+      options:{},
+      total:null,
       new_name: null,
       new_max_num:null,
       selectOBJ: {},
@@ -186,12 +190,25 @@ export default {
       ],
     }
   },
+  watch:{
+    options:{
+      handler(){
+        this.getClassroomList()
+      },
+      deep:true,
+    }
+  },
   methods: {
     getClassroomList() {
+      console.log(this.options)
       this.$axios({
         url: "getClassroomList",
         headers: {
           'Token': "8a54sh " + this.$store.state.Jwt
+        },
+        params:{
+          "page":this.options.page,
+          "items":this.options.itemsPerPage,
         },
         method: "get"
       }).then((response) => {
@@ -201,6 +218,7 @@ export default {
         }
         console.log(response)
         this.classrooms = response.data.classrooms
+        this.total = response.data.total
       })
     },
     modifyClassroom() {

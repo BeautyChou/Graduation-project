@@ -4,6 +4,8 @@
     <v-data-table
       :headers="headers"
       :items="electives"
+      :options.sync="options"
+      :server-items-length="total"
       class="elevation-1"
     >
       <template v-slot:item.total_score="{ item }">
@@ -47,31 +49,15 @@
 </template>
 
 <script>
-import Timetables from "timetables";
-
 export default {
   name: "QueryResults",
   created() {
-    this.$axios({
-      method: "get",
-      url: "http://127.0.0.1:9000/getScore",
-      params: {
-        student_id: this.$store.state.studentId,
-      },
-      headers:{
-        'Token': "8a54sh " + this.$store.state.Jwt
-      }
-    }).then((response) => {
-      if (response.data.msg === "Token无效") {
-        this.$emit('func')
-        return
-      }
-      this.electives = response.data.electives
-      console.log(response)
-    })
+    this.getScore()
   },
   data() {
     return {
+      options: {},
+      total: null,
       dialog: false,
       selectOBJ: {},
       electives: [],
@@ -81,6 +67,30 @@ export default {
         {text: '绩点', sortable: false, value: 'grade_point'},
         {text: '操作', sortable: false, value: 'operation'},
       ],
+    }
+  },
+  methods: {
+    getScore() {
+      this.$axios({
+        method: "get",
+        url: "http://127.0.0.1:9000/getScore",
+        params: {
+          student_id: this.$store.state.studentId,
+          "page": this.options.page,
+          "items": this.options.itemsPerPage,
+        },
+        headers: {
+          'Token': "8a54sh " + this.$store.state.Jwt
+        }
+      }).then((response) => {
+        if (response.data.msg === "Token无效") {
+          this.$emit('func')
+          return
+        }
+        this.electives = response.data.electives
+        this.total = response.data.total
+        console.log(response)
+      })
     }
   },
   computed: {
@@ -102,40 +112,31 @@ export default {
         let total = (homework + behavior + test).toFixed(0)
         let grade_point = 0
         console.log()
-        if (total>95) return 4.5
-        else if (total>=90&&total<=95) return 4.0;
-        else if (total>=85&&total<=89) return 3.5;
-        else if (total>=80&&total<=84) return 3.0;
-        else if (total>=75&&total<=79) return 2.5;
-        else if (total>=70&&total<=74) return 2.0;
-        else if (total>=60&&total<=70) return 1.0;
+        if (total > 95) return 4.5
+        else if (total >= 90 && total <= 95) return 4.0;
+        else if (total >= 85 && total <= 89) return 3.5;
+        else if (total >= 80 && total <= 84) return 3.0;
+        else if (total >= 75 && total <= 79) return 2.5;
+        else if (total >= 70 && total <= 74) return 2.0;
+        else if (total >= 60 && total <= 70) return 1.0;
         else return 0
       }
-    }
+    },
+
   },
   watch: {
     "$route.path": {
-      handler(newVal, oldVal) {
-        this.$axios({
-          method: "get",
-          url: "http://127.0.0.1:9000/getScore",
-          params: {
-            student_id: this.$store.state.studentId,
-          },
-          headers:{
-            'Token': "8a54sh " + this.$store.state.Jwt
-          }
-        }).then((response) => {
-          if (response.data.msg === "Token无效") {
-            this.$emit('func')
-            return
-          }
-          this.electives = response.data.electives
-          console.log(response)
-        })
+      handler() {
+        this.getScore()
       },
+    },
+    options: {
+      handler() {
+        this.getScore()
+      },
+      deep: true,
     }
-  }
+  },
 }
 </script>
 

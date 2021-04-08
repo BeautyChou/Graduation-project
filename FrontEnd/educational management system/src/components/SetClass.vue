@@ -20,6 +20,8 @@
       <v-data-table
         :headers="headers"
         :items="classes"
+        :options.sync="options"
+        :server-items-length="total"
         class="elevation-1"
       >
 
@@ -380,6 +382,8 @@ export default {
   name: "SetClass",
   data() {
     return {
+      options:{},
+      total:null,
       headers: [
         {text: '课程', align: 'start', sortable: false, value: 'course_name'},
         {text: '学分', sortable: false, value: 'credit'},
@@ -484,29 +488,7 @@ export default {
     }
   },
   created() {
-    this.$axios({
-      method: "get",
-      url: 'http://127.0.0.1:9000/getClassesList',
-      params: {
-        'teacher_id': this.$store.state.teacherId,
-        'level': this.$store.state.level
-      },
-      headers:{
-        'Token': "8a54sh " + this.$store.state.Jwt
-      }
-    }).then((response) => {
-      if (response.data.msg === "Token无效") {
-        this.$emit('func')
-        return
-      }
-      this.classes = response.data.classes
-      this.teachers = response.data.teachers
-      this.classrooms = response.data.classrooms
-      this.specialties = response.data.specialties
-      this.directions = response.data.directions
-      this.faculties = response.data.faculties
-      console.log(response)
-    })
+    this.getClass()
   },
   components: {},
   methods: {
@@ -687,9 +669,44 @@ export default {
         if (this.valClassrooms.length === 0) this.$set(this.newClass, 'classroom_id', null)
         console.log(response)
       })
+    },
+    getClass(){
+      this.$axios({
+        method: "get",
+        url: 'http://127.0.0.1:9000/getClassesList',
+        params: {
+          'teacher_id': this.$store.state.teacherId,
+          'level': this.$store.state.level,
+          "page":this.options.page,
+          "items":this.options.itemsPerPage,
+        },
+        headers:{
+          'Token': "8a54sh " + this.$store.state.Jwt
+        }
+      }).then((response) => {
+        if (response.data.msg === "Token无效") {
+          this.$emit('func')
+          return
+        }
+        this.classes = response.data.classes
+        this.teachers = response.data.teachers
+        this.classrooms = response.data.classrooms
+        this.specialties = response.data.specialties
+        this.directions = response.data.directions
+        this.faculties = response.data.faculties
+        this.total = response.data.total
+        console.log(response)
+      })
     }
   },
-  watch: {}
+  watch: {
+    options:{
+      handler(){
+        this.getClass()
+      },
+      deep:true,
+    }
+  }
 }
 </script>
 

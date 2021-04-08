@@ -48,6 +48,8 @@
     <v-data-table
       :headers="teachers_headers"
       :items="teachers"
+      :options.sync="options"
+      :server-items-length="total"
     >
       <template v-slot:item.operation="{ item }">
 
@@ -231,6 +233,8 @@ export default {
   },
   data(){
     return{
+      options:{},
+      total:null,
       new_name:null,
       new_title:null,
       new_faculty:null,
@@ -259,6 +263,8 @@ export default {
         params: {
           faculty_id: this.faculty_id,
           title_id: this.title_id,
+          "page":this.options.page,
+          "items":this.options.itemsPerPage,
         },
         headers: {
           'Token': "8a54sh " + this.$store.state.Jwt
@@ -273,6 +279,7 @@ export default {
         this.faculties = response.data.faculties
         this.teachers = response.data.teachers
         this.titles = response.data.titles
+        this.total = response.data.total
       })
     },
     modifyTeacher(){
@@ -357,7 +364,15 @@ export default {
         }, 3000)
       })
     },
-  }
+  },
+  watch:{
+    options:{
+      handler(){
+        this.getTeacherList()
+      },
+      deep:true,
+    }
+  },
 }
 </script>
 

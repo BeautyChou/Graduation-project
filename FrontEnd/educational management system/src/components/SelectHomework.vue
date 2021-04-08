@@ -19,15 +19,17 @@
     <v-data-table
       :headers="headers"
       :items="homeworks"
+      :options.sync="options"
+      :server-items-length="total"
       class="elevation-1"
     >
       <template v-slot:item.DeadLine="{ item }">
         <div v-if="item.DeadLine">
-          {{dateFormat(item.DeadLine)}}
+          {{ dateFormat(item.DeadLine) }}
         </div>
       </template>
       <template v-slot:item.operation="{ item }">
-        <v-tooltip v-if="($store.state.level===2||true)&&noHomeworkFlag" bottom>
+        <v-tooltip v-if="($store.state.level===2||true)" bottom>
           <template v-slot:activator="{ on,attrs }">
             <v-btn
               icon
@@ -45,7 +47,7 @@
           </template>
           <span>批改作业</span>
         </v-tooltip>
-        <v-tooltip v-if="($store.state.level===2||true)&&noHomeworkFlag" bottom>
+        <v-tooltip v-if="($store.state.level===2||true)" bottom>
           <template v-slot:activator="{ on,attrs }">
             <v-btn
               icon
@@ -64,7 +66,7 @@
           <span>查看作业内容</span>
         </v-tooltip>
 
-        <v-tooltip v-if="($store.state.level===2||true)&&noHomeworkFlag" bottom>
+        <v-tooltip v-if="($store.state.level===2||true)" bottom>
           <template v-slot:activator="{ on,attrs }">
             <v-btn icon color="error" v-bind="attrs" v-on="on" x-large @click="dialog=true;selectId = item.id">
               <v-icon>
@@ -74,7 +76,7 @@
           </template>
           <span>删除作业</span>
         </v-tooltip>
-        <v-dialog v-if="($store.state.level===2||true)&&noHomeworkFlag" v-model="dialog" width="500" persistent>
+        <v-dialog v-if="($store.state.level===2||true)" v-model="dialog" width="500" persistent>
           <v-card>
             <v-card-title class="headline font-weight-bold">
               警告!
@@ -104,7 +106,7 @@
           </v-card>
 
         </v-dialog>
-        <v-tooltip v-if="($store.state.level===1||true)&&noHomeworkFlag" bottom>
+        <v-tooltip v-if="($store.state.level===1||true)" bottom>
           <template v-slot:activator="{ on,attrs }">
             <v-btn
               icon
@@ -122,7 +124,7 @@
           </template>
           <span>写作业</span>
         </v-tooltip>
-        <v-tooltip v-if="($store.state.level===1||true)&&noHomeworkFlag" bottom>
+        <v-tooltip v-if="($store.state.level===1||true)" bottom>
           <template v-slot:activator="{ on,attrs }">
             <v-btn
               icon
@@ -150,11 +152,13 @@ export default {
   name: "SelectHomework",
   data() {
     return {
+      options: {},
+      total: null,
       selectId: null,
       alert: false,
       dialog: false,
       time: null,
-      homeworkBackup:[{'homework_title':'暂时还没有布置作业'}],
+      homeworkBackup: [{'homework_title': '暂时还没有布置作业'}],
       homeworks: [],
       headers: [
         {text: '作业名', align: 'start', sortable: false, value: 'homework_title'},
@@ -163,7 +167,7 @@ export default {
         {text: '操作', sortable: false, value: 'operation'},
       ],
       loadingFlag: true,
-      noHomeworkFlag:true,
+      noHomeworkFlag: true,
     }
   },
   methods: {
@@ -172,7 +176,7 @@ export default {
       this.$axios({
         method: "DELETE",
         url: "http://127.0.0.1:9000/deleteHomework?id=" + id,
-        headers:{
+        headers: {
           'Token': "8a54sh " + this.$store.state.Jwt
         }
       }).then((response) => {
@@ -184,39 +188,47 @@ export default {
           if (item.id === id) {
             this.homeworks.splice(i, 1)
           }
-          this.$store.commit('setSuccess',"删除作业成功!")
-          this.setTimeout(()=>{
+          this.$store.commit('setSuccess', "删除作业成功!")
+          this.setTimeout(() => {
             this.$store.commit('closeSuccess')
-          },3000)
+          }, 3000)
         })
+      })
+    },
+    getHomework() {
+      this.$axios({
+        method: "get",
+        url: 'http://127.0.0.1:9000/getHomeworkList',
+        params: {
+          'course_id': this.$store.state.courseId,
+          'record_id': this.$store.state.recordId,
+          "page": this.options.page,
+          "items": this.options.itemsPerPage,
+        },
+        headers: {
+          'Token': "8a54sh " + this.$store.state.Jwt
+        }
+      }).then((response) => {
+        if (response.data.msg === "Token无效") {
+          this.$emit('func')
+          return
+        }
+        if (response.data.homeworks === null) {
+          this.homeworks = this.homeworkBackup
+          this.noHomeworkFlag = false
+        } else {
+          this.homeworks = response.data.homeworks
+          this.noHomeworkFlag = true
+        }
+        this.total = response.data.total
+        this.time = response.data.time
+        this.loadingFlag = false
+        console.log('1', response)
       })
     }
   },
   created() {
-    this.$axios({
-      method: "get",
-      url: 'http://127.0.0.1:9000/getHomeworkList',
-      params: {
-        'course_id': this.$store.state.courseId,
-        'record_id': this.$store.state.recordId,
-      },
-      headers:{
-        'Token': "8a54sh " + this.$store.state.Jwt
-      }
-    }).then((response) => {
-      if (response.data.msg === "Token无效") {
-        this.$emit('func')
-        return
-      }
-      if (response.data.homeworks === null) {
-        this.homeworks = this.homeworkBackup
-        this.noHomeworkFlag = false
-      }
-      else this.homeworks = response.data.homeworks
-      this.time = response.data.time
-      this.loadingFlag = false
-      console.log('1',response)
-    })
+    this.getHomework()
   },
   watch: {
     '$store.state.courseId': {
@@ -227,8 +239,10 @@ export default {
           params: {
             'course_id': newValue,
             'record_id': this.$store.state.recordId,
+            "page": this.options.page,
+            "items": this.options.itemsPerPage,
           },
-          headers:{
+          headers: {
             'Token': "8a54sh " + this.$store.state.Jwt
           }
         }).then((response) => {
@@ -239,50 +253,34 @@ export default {
           if (response.data.homeworks === null) {
             this.homeworks = this.homeworkBackup
             this.noHomeworkFlag = false
+          } else {
+            this.homeworks = response.data.homeworks
+            this.noHomeworkFlag = true
           }
-          else this.homeworks = response.data.homeworks
+          this.total = response.data.total
           this.time = response.data.time
           this.loadingFlag = false
-          console.log('1',response)
+          console.log('1', response)
         })
       },
     },
-    '$store.state.refreshFlag':{
+    '$store.state.refreshFlag': {
       handler(newValue, oldValue) {
-        console.log(newValue,oldValue)
-        if (newValue < 1 ) return
-          this.$axios({
-            method: "get",
-            url: 'http://127.0.0.1:9000/getHomeworkList',
-            params: {
-              'course_id': this.$store.state.courseId,
-              'record_id': this.$store.state.recordId,
-            },
-            headers:{
-              'Token': "8a54sh " + this.$store.state.Jwt
-            }
-          }).then((response) => {
-            if (response.data.msg === "Token无效") {
-              this.$emit('func')
-              return
-            }
-            if (response.data.homeworks === null) {
-              this.homeworks = this.homeworkBackup
-              this.noHomeworkFlag = false
-            }
-            else this.homeworks = response.data.homeworks
-
-            this.time = response.data.time
-            this.loadingFlag = false
-            this.$store.commit('nextPage')
-            console.log('2',response)
-          })
-        },
+        console.log(newValue, oldValue)
+        if (newValue < 1) return
+        this.getHomework()
+      },
+    },
+    options: {
+      handler() {
+        this.getHomework()
+      },
+      deep: true,
     },
   },
-  computed:{
+  computed: {
     dateFormat() {
-      return function (str){
+      return function (str) {
         return str.substring(0, 10) + '　' + str.substring(11, 19)
       }
     },

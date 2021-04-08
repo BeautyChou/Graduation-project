@@ -22,7 +22,7 @@ type Admin struct {
 //学院表
 type Faculty struct {
 	MyModel
-	Name string `json:"name" gorm:"size:30;uniqueIndex:name;not null"` // 学院名
+	Name string `form:"faculty_name" json:"name" gorm:"size:30;not null"` // 学院名
 }
 
 //职称表
@@ -35,17 +35,17 @@ type Title struct {
 type Classroom struct {
 	MyModel
 	Name   string `json:"name" gorm:"size:30;not null;uniqueIndex:name;"` // 教室名
-	MaxNum int    `json:"max_number" gorm:"size:30"` // 教室可容纳最大人数
+	MaxNum int    `json:"max_number" gorm:"size:30"`                      // 教室可容纳最大人数
 }
 
 type DirectionToSpecialty struct {
 	MyModel
 	Faculty       Faculty `gorm:"ForeignKey:FacultyID;"`                                           // 专业所属学院
-	FacultyID     int     `json:"faculty_id" gorm:"primary_key;type:int(11)"`                      // 学院ID
-	SpecialtyName string  `json:"specialty_name" gorm:"type:varchar(60)"`                          // 专业名称
-	DirectionID   int     `json:"direction_id" gorm:"primary_key;index:direction_id;type:int(11)"` // 学生所属方向
-	SpecialtyID   int     `json:"specialty_id" gorm:"primary_key;index:special_id;type:int(11)"`   // 学生所属专业
-	DirectionName string  `json:"direction_name" gorm:"type:varchar(60)"`                          // 方向名称
+	FacultyID     int     `form:"faculty_id" json:"faculty_id" gorm:"primary_key;type:int(11)"`                      // 学院ID
+	SpecialtyName string  `form:"specialty_name" json:"specialty_name" gorm:"type:varchar(60)"`                          // 专业名称
+	DirectionID   int     `form:"direction_id" json:"direction_id" gorm:"primary_key;index:direction_id;type:int(11)"` // 学生所属方向
+	SpecialtyID   int     `form:"specialty_id" json:"specialty_id" gorm:"primary_key;index:special_id;type:int(11)"`   // 学生所属专业
+	DirectionName string  `form:"direction_name" json:"direction_name" gorm:"type:varchar(60)"`                          // 方向名称
 }
 
 //教师表
@@ -337,12 +337,13 @@ type TeacherForSelect struct {
 }
 
 type DirectionToSpecialtyForSelect struct {
-	ID            int    `json:"value" gorm:"primary_key;type:int(11)"`
-	SpecialtyName string `json:"specialty_name" gorm:"type:varchar(60)"`                          // 专业名称
-	DirectionID   int    `json:"direction_id" gorm:"primary_key;index:direction_id;type:int(11)"` // 学生所属方向
-	SpecialtyID   int    `json:"specialty_id" gorm:"primary_key;index:special_id;type:int(11)"`   // 学生所属专业
-	DirectionName string `json:"direction_name" gorm:"type:varchar(60)"`                          // 方向名称
-	FacultyID     int    `json:"faculty_id" gorm:"primary_key;type:int(11)"`                      // 学院ID
+	ID            int    `form:"id" json:"value" gorm:"primary_key;type:int(11)"`
+	SpecialtyName string `form:"specialty_name" json:"specialty_name" gorm:"type:varchar(60)"`                          // 专业名称
+	DirectionID   int    `form:"direction_id" json:"direction_id" gorm:"primary_key;index:direction_id;type:int(11)"` // 学生所属方向
+	SpecialtyID   int    `form:"specialty_id" json:"specialty_id" gorm:"primary_key;index:special_id;type:int(11)"`   // 学生所属专业
+	DirectionName string `form:"direction_name" json:"direction_name" gorm:"type:varchar(60)"`                          // 方向名称
+	FacultyID     int    `form:"faculty_id" json:"faculty_id" gorm:"primary_key;type:int(11)"`                      // 学院ID
+	FacultyName   string `form:"faculty_name" json:"faculty_name"`                                                    // 学院名
 }
 
 type ClassroomForSelect struct {

@@ -4,7 +4,8 @@
     <v-data-table
       :headers="headers"
       :items="courses"
-      :items-per-page="5"
+      :options.sync="options"
+      :server-items-length="total"
       class="elevation-1"
     >
       <template v-slot:item.operation="{ item }">
@@ -29,6 +30,8 @@ export default {
   name: "ChooseCourse",
   data() {
     return {
+      options:{},
+      total:null,
       headers: [
         {text: '课程名', align: 'start', sortable: false, value: 'course_name'},
         {text: '教师', sortable: false, value: 'name'},
@@ -44,26 +47,7 @@ export default {
     }
   },
   created() {
-    this.$axios({
-      url: "http://127.0.0.1:9000/getAvailableCourses",
-      method: "get",
-      params: {
-        'student_id': this.$store.state.studentId,
-        'faculty_id': this.$store.state.facultyId,
-        'direction_id': this.$store.state.directionId,
-        'specialty_id': this.$store.state.specialtyId,
-      },
-      headers:{
-        'Token': "8a54sh " + this.$store.state.Jwt
-      }
-    }).then((response) => {
-      if (response.data.msg === "Token无效") {
-        this.$emit('func')
-        return
-      }
-      this.courses = response.data.courses
-      console.log(response)
-    })
+    this.getCourse()
   },
   methods: {
     chooseCourse(courseOBJ) {
@@ -110,31 +94,43 @@ export default {
         })
       })
     },
+    getCourse(){
+      this.$axios({
+        url: "http://127.0.0.1:9000/getAvailableCourses",
+        method: "get",
+        params: {
+          'student_id': this.$store.state.studentId,
+          'faculty_id': this.$store.state.facultyId,
+          'direction_id': this.$store.state.directionId,
+          'specialty_id': this.$store.state.specialtyId,
+          "page":this.options.page,
+          "items":this.options.itemsPerPage,
+        },
+        headers:{
+          'Token': "8a54sh " + this.$store.state.Jwt
+        }
+      }).then((response) => {
+        if (response.data.msg === "Token无效") {
+          this.$emit('func')
+          return
+        }
+        this.courses = response.data.courses
+        this.total = response.data.total
+        console.log(response)
+      })
+    }
   },
   watch: {
     "$route.path": {
       handler(newVal, oldVal) {
-        this.$axios({
-          url: "http://127.0.0.1:9000/getAvailableCourses",
-          method: "get",
-          params: {
-            'student_id': this.$store.state.studentId,
-            'faculty_id': this.$store.state.facultyId,
-            'direction_id': this.$store.state.directionId,
-            'specialty_id': this.$store.state.specialtyId,
-          },
-          headers:{
-            'Token': "8a54sh " + this.$store.state.Jwt
-          }
-        }).then((response) => {
-          if (response.data.msg === "Token无效") {
-            this.$emit('func')
-            return
-          }
-          this.courses = response.data.courses
-          console.log(response)
-        })
+        this.getCourse()
       },
+    },
+    options:{
+      handler(){
+        this.getCourse()
+      },
+      deep:true,
     }
   }
 }

@@ -4,7 +4,8 @@
     <v-data-table
       :headers="headers"
       :items="courses"
-      :items-per-page="5"
+      :options.sync="options"
+      :server-items-length="total"
       class="elevation-1"
     >
       <template v-slot:item.operation="{ item }">
@@ -26,9 +27,11 @@
 
 <script>
 export default {
-name: "ChosenCourse",
+  name: "ChosenCourse",
   data() {
     return {
+      options:{},
+      total:null,
       headers: [
         {text: '课程名', align: 'start', sortable: false, value: 'course_name'},
         {text: '教师', sortable: false, value: 'name'},
@@ -39,60 +42,66 @@ name: "ChosenCourse",
         {text: '结束周', sortable: false, value: 'end_time'},
         {text: '操作', sortable: false, value: 'operation'}
       ],
-      courses:[],
+      courses: [],
     }
   },
   created() {
-    this.$axios({
-      url: "http://127.0.0.1:9000/getChosenCourse",
-      method: "get",
-      params: {
-        'student_id': this.$store.state.studentId,
-      },
-      headers:{
-        'Token': "8a54sh " + this.$store.state.Jwt
-      }
-    }).then((response)=>{
-      if (response.data.msg === "Token无效") {
-        this.$emit('func')
-        return
-      }
-      this.courses = response.data.courses
-      console.log(response)
-    })
+    this.getCourse()
   },
-  methods:{
-    quitCourse(courseOBJ){
+  methods: {
+    getCourse() {
       this.$axios({
-        method:"delete",
-        url:"http://127.0.0.1:9000/quitCourse",
-        params:{
-          "student_id":this.$store.state.studentId,
-          "record_id":courseOBJ.record_id,
-          "course_id":courseOBJ.course_id,
+        url: "http://127.0.0.1:9000/getChosenCourse",
+        method: "get",
+        params: {
+          'student_id': this.$store.state.studentId,
+          "page": this.options.page,
+          "items": this.options.itemsPerPage,
         },
-        headers:{
+        headers: {
           'Token': "8a54sh " + this.$store.state.Jwt
         }
-      }).then((response)=>{
+      }).then((response) => {
         if (response.data.msg === "Token无效") {
           this.$emit('func')
           return
         }
-        this.$store.commit(response.data.snackbar,response.data.msg)
-        setTimeout(()=>{
+        this.courses = response.data.courses
+        this.total = response.data.total
+        console.log(response)
+      })
+    },
+    quitCourse(courseOBJ) {
+      this.$axios({
+        method: "delete",
+        url: "http://127.0.0.1:9000/quitCourse",
+        params: {
+          "student_id": this.$store.state.studentId,
+          "record_id": courseOBJ.record_id,
+          "course_id": courseOBJ.course_id,
+        },
+        headers: {
+          'Token': "8a54sh " + this.$store.state.Jwt
+        }
+      }).then((response) => {
+        if (response.data.msg === "Token无效") {
+          this.$emit('func')
+          return
+        }
+        this.$store.commit(response.data.snackbar, response.data.msg)
+        setTimeout(() => {
           this.$store.commit(response.data.snackbar2)
-        },3000)
+        }, 3000)
         this.$axios({
           url: "http://127.0.0.1:9000/getChosenCourse",
           method: "get",
           params: {
             'student_id': this.$store.state.studentId,
           },
-          headers:{
+          headers: {
             'Token': "8a54sh " + this.$store.state.Jwt
           }
-        }).then((response)=>{
+        }).then((response) => {
           if (response.data.msg === "Token无效") {
             this.$emit('func')
             return
@@ -106,24 +115,14 @@ name: "ChosenCourse",
   watch: {
     "$route.path": {
       handler(newVal, oldVal) {
-        this.$axios({
-          url: "http://127.0.0.1:9000/getChosenCourse",
-          method: "get",
-          params: {
-            'student_id': this.$store.state.studentId,
-          },
-          headers:{
-            'Token': "8a54sh " + this.$store.state.Jwt
-          }
-        }).then((response)=>{
-          if (response.data.msg === "Token无效") {
-            this.$emit('func')
-            return
-          }
-          this.courses = response.data.courses
-          console.log(response)
-        })
+        this.getCourse()
       },
+    },
+    options:{
+      handler(){
+        this.getCourse()
+      },
+      deep:true,
     }
   }
 }

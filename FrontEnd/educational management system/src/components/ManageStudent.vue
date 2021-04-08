@@ -48,6 +48,8 @@
     <v-data-table
       :headers="student_headers"
       :items="students"
+      :options.sync="options"
+      :server-items-length="total"
     >
       <template v-slot:item.direction="{ item }">
         {{ item.direction_id === 0 ? "无方向" : item.direction_name }}
@@ -267,7 +269,8 @@
         </v-card-title>
         <v-data-table
           :headers="punishment_headers"
-          :items="punishments">
+          :items="punishments"
+          hide-default-footer>
           <template v-slot:item.operation="{ item }">
             <v-tooltip v-if="$store.state.level===2||true" bottom>
               <template v-slot:activator="{ on,attrs }">
@@ -449,6 +452,8 @@ export default {
   name: "ManageStudent",
   data() {
     return {
+      options: {},
+      total: null,
       independent_practice: {},
       practice: false,
       new_grade: null,
@@ -538,6 +543,8 @@ export default {
         params: {
           faculty_id: this.faculty_id,
           specialty_id: this.specialty_id,
+          "page": this.options.page,
+          "items": this.options.itemsPerPage,
         },
         headers: {
           'Token': "8a54sh " + this.$store.state.Jwt
@@ -554,6 +561,7 @@ export default {
         this.students = response.data.students
         this.punishment_level = response.data.punishment_level
         this.directions = response.data.directions
+        this.total = response.data.total
       })
     },
     deleteStudent() {
@@ -698,6 +706,14 @@ export default {
         this.independent_practice.end_time = this.independent_practice.end_time.substr(0, 10)
       })
     },
+  },
+  watch: {
+    options: {
+      handler() {
+        this.getStudentList()
+      },
+      deep: true,
+    }
   },
 }
 </script>

@@ -180,7 +180,8 @@
     <v-data-table
       :headers="headers"
       :items="questions"
-      :items-per-page="10"
+      :options.sync="options"
+      :server-items-length="totals"
       class="elevation-1"
       calculate-widths
     >
@@ -219,28 +220,12 @@
 export default {
   name: "AddHomework",
   created() {
-    this.$axios({
-      method: "get",
-      url: 'http://127.0.0.1:9000/getQuestionList',
-      params: {
-        'homework_id': this.$store.state.homeworkId,
-      }
-    }).then((response) => {
-      if (response.data.msg === "Token无效") {
-        this.$emit('func')
-        return
-      }
-      if (!response.data) {
-        this.questions = response.data.questions
-        console.log("123456", response, response.data.questions[0].DeadLine, this.deadlineTime)
-        this.deadlineTime = response.data.questions[0].DeadLine.substr(11, 5)
-        this.deadlineDate = response.data.questions[0].DeadLine.substr(0, 10)
-        this.homeworkTitle = response.data.questions[0].homework_title
-      }
-    })
+    this.getQuestionList()
   },
   data() {
     return {
+      options: {},
+      totals: null,
       successText: null,
       errorText: null,
       homeworkTitle: null,
@@ -266,6 +251,31 @@ export default {
     }
   },
   methods: {
+    getQuestionList() {
+      this.$axios({
+        method: "get",
+        url: 'http://127.0.0.1:9000/getQuestionList',
+        params: {
+          'homework_id': this.$store.state.homeworkId,
+          "page": this.options.page,
+          "items": this.options.itemsPerPage,
+        },
+        headers: {
+          'Token': "8a54sh " + this.$store.state.Jwt
+        }
+      }).then((response) => {
+        if (response.data.msg === "Token无效") {
+          this.$emit('func')
+          return
+        }
+        this.questions = response.data.questions
+        console.log(response)
+        this.deadlineTime = response.data.questions[0].DeadLine.substr(11, 5)
+        this.deadlineDate = response.data.questions[0].DeadLine.substr(0, 10)
+        this.homeworkTitle = response.data.questions[0].homework_title
+        this.totals = response.data.total
+      })
+    },
     allowedDates(val) {
       var date = new Date();
       var y = date.getFullYear();
@@ -283,7 +293,10 @@ export default {
     createHomework() {
       this.$axios({
         method: "get",
-        url: "http://127.0.0.1:9000/getNewHomeworkID"
+        url: "http://127.0.0.1:9000/getNewHomeworkID",
+        headers: {
+          'Token': "8a54sh " + this.$store.state.Jwt
+        }
       }).then((response) => {
         if (response.data.msg === "Token无效") {
           this.$emit('func')
@@ -302,7 +315,8 @@ export default {
           url: "http://127.0.0.1:9000/createHomework",
           data: questions,
           headers: {
-            "Content-Type": "multipart/form-data"
+            "Content-Type": "multipart/form-data",
+            'Token': "8a54sh " + this.$store.state.Jwt
           }
         }).then((response) => {
           if (response.data.msg === "Token无效") {
@@ -350,7 +364,10 @@ export default {
       this.alreadyQuestion = true
       this.$axios({
         method: "get",
-        url: 'http://127.0.0.1:9000/getContentList'
+        url: 'http://127.0.0.1:9000/getContentList',
+        headers: {
+          'Token': "8a54sh " + this.$store.state.Jwt
+        }
       }).then((response) => {
         if (response.data.msg === "Token无效") {
           this.$emit('func')
@@ -376,7 +393,8 @@ export default {
         url: 'http://127.0.0.1:9000/postQuestion',
         data: formData,
         headers: {
-          "Content-Type": "multipart/form-data"
+          "Content-Type": "multipart/form-data",
+          'Token': "8a54sh " + this.$store.state.Jwt
         }
       }).then((response) => {
         if (response.data.msg === "Token无效") {
@@ -411,49 +429,38 @@ export default {
           url: 'http://127.0.0.1:9000/getQuestionList',
           params: {
             'homework_id': newValue,
+            "page": this.options.page,
+            "items": this.options.itemsPerPage,
+          },
+          headers: {
+            'Token': "8a54sh " + this.$store.state.Jwt
           }
         }).then((response) => {
           if (response.data.msg === "Token无效") {
             this.$emit('func')
             return
           }
-          if (!response.data) {
-            this.questions = response.data.questions
-            console.log(response, response.data.questions[0].DeadLine, this.deadlineTime)
-            this.deadlineTime = response.data.questions[0].DeadLine.substr(11, 5)
-            this.deadlineDate = response.data.questions[0].DeadLine.substr(0, 10)
-            this.homeworkTitle = response.data.questions[0].homework_title
-          }
+          this.questions = response.data.questions
+          console.log(response)
+          this.deadlineTime = response.data.questions[0].DeadLine.substr(11, 5)
+          this.deadlineDate = response.data.questions[0].DeadLine.substr(0, 10)
+          this.homeworkTitle = response.data.questions[0].homework_title
+          this.totals = response.data.total
         })
       }
     },
     '$store.state.refreshFlag': {
       handler(newValue, oldValue) {
         if (this.$store.state.modifyHomeworkFlag !== false) return
-        if (newValue === 1)
-          this.$axios({
-            method: "get",
-            url: 'http://127.0.0.1:9000/getQuestionList',
-            params: {
-              'homework_id': this.$store.state.homeworkId,
-            }
-          }).then((response) => {
-            if (response.data.msg === "Token无效") {
-              this.$emit('func')
-              return
-            }
-            console.log(response)
-            if (!response.data) {
-              this.questions = response.data.questions
-              console.log(response, response.data.questions[0].DeadLine)
-              this.deadlineTime = response.data.questions[0].DeadLine.substr(11, 5)
-              this.deadlineDate = response.data.questions[0].DeadLine.substr(0, 10)
-              this.homeworkTitle = response.data.questions[0].homework_title
-              this.$store.commit('nextPage')
-            }
-          })
+        if (newValue === 1) this.getQuestionList()
       },
       immediate: true
+    },
+    options: {
+      handler() {
+        this.getQuestionList()
+      },
+      deep: true,
     }
   }
 }

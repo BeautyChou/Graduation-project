@@ -41,6 +41,7 @@ func main() {
 	r.OPTIONS("/deletePunishLevel", Controller.ReturnOK)
 	r.OPTIONS("/putClassroom", Controller.ReturnOK)
 	r.OPTIONS("/deleteClassroom", Controller.ReturnOK)
+	r.OPTIONS("/deleteFacultySpecialtyDirection", Controller.ReturnOK)
 	AuthGroup := r.Group("/",Middleware.Cors(),Middleware.JWTAuthMiddleWare())
 	{
 		AuthGroup.POST("/image", Controller.CheckedImage(db))
@@ -109,6 +110,9 @@ func main() {
 		AuthGroup.DELETE("/deleteClassroom",Controller.DeleteClassroom(db))
 		AuthGroup.PUT("/putClassroom",Controller.PutClassroom(db))
 		AuthGroup.POST("/addClassroom",Controller.AddClassroom(db))
+		AuthGroup.GET("/getDirectionSpecialtyFacultyList",Controller.GetDirectionSpecialtyFacultyList(db))
+		AuthGroup.POST("/addFacultySpecialtyDirection",Controller.AddFacultySpecialtyDirection(db))
+		AuthGroup.DELETE("/deleteFacultySpecialtyDirection",Controller.DeleteFacultySpecialtyDirection(db))
 		AuthGroup.POST("/isExpire")
 	}
 	r.Run(":9000")

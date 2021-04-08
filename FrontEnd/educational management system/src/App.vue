@@ -31,10 +31,10 @@
         <v-navigation-drawer permanent app expand-on-hover :mini-variant.sync="mini">
           <v-system-bar></v-system-bar>
           <v-toolbar-title class="text-center">{{ $store.state.recordId }}</v-toolbar-title>
-          <v-list>
-            <v-list-item>
+          <v-list >
+            <v-list-item class="pl-2">
               <v-list-item-avatar>
-                <v-avatar color="red" size="36">
+                <v-avatar color="red" size="36" >
                   <span class="white--text headline">{{ avatar }}</span>
                 </v-avatar>
               </v-list-item-avatar>

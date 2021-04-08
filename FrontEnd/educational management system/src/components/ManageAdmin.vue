@@ -19,6 +19,8 @@
     <v-data-table
       :headers="admins_headers"
       :items="admins"
+      :options.sync="options"
+      :server-items-length="total"
     >
       <template v-slot:item.operation="{ item }">
 
@@ -163,6 +165,8 @@ export default {
   name: "ManageAdmin",
   data(){
     return{
+      options:{},
+      total:null,
       new_name:null,
       new_password:null,
       selectOBJ:{},
@@ -183,7 +187,11 @@ export default {
         headers: {
           'Token': "8a54sh " + this.$store.state.Jwt
         },
-        method: "get"
+        method: "get",
+        params:{
+          "page":this.options.page,
+          "items":this.options.itemsPerPage,
+        }
       }).then((response) => {
         if (response.data.msg === "Token无效") {
           this.$emit('func')
@@ -191,6 +199,7 @@ export default {
         }
         console.log(response)
         this.admins = response.data.admins
+        this.total = response.data.total
       })
     },
     modifyAdmin(){
@@ -271,7 +280,14 @@ export default {
   created() {
     this.getAdminList()
   },
-
+  watch:{
+    options:{
+      handler(){
+        this.getAdminList()
+      },
+      deep:true,
+    }
+  },
 }
 </script>
 
