@@ -1,6 +1,7 @@
 <template>
   <v-app>
     <v-main class="flex">
+
       <div>
         <v-snackbar v-model="$store.state.successFlag" :timeout="-1" color="green" top>
           <v-icon>
@@ -18,7 +19,6 @@
         {{ $store.state.errorMsg }}
       </span>
         </v-snackbar>
-
       </div>
     </v-main>
 
@@ -191,6 +191,34 @@
         </v-card>
 
       </v-dialog>
+      <v-dialog
+        persistent
+        overlay-opacity="0.92"
+        v-model="alert"
+        width="500"
+        transition="slide-y-transition"
+      >
+
+        <v-card class="text-center">
+          <v-card-title class="font-weight-bold title pt-4">通知</v-card-title>
+          <v-card-text v-html="notification"></v-card-text>
+
+          <v-divider></v-divider>
+
+          <v-card-actions>
+            <v-btn
+              block
+              class="mx-auto"
+              color="primary"
+              text
+              @click="alert = false"
+            >
+              知道了
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+
+      </v-dialog>
     </div>
 
   </v-app>
@@ -252,6 +280,8 @@ export default {
     selectedItem: 0,
     mini: true,
     isActive: true,
+    alert:false,
+    notification:null
   }),
   methods:{
     jwtInvalid() {
@@ -281,6 +311,17 @@ export default {
         }
       }).then((response)=>{
         if (response.data.msg === "success"){
+          this.$axios({
+            url:"getNotification",
+            method:"get",
+            headers:{
+              'Token': "8a54sh " + response.data.data.token
+            }
+          }).then((response2)=>{
+            console.log(response2)
+            this.notification = response2.data.notification.notification
+            this.alert = true
+          })
           this.avatar = response.data.username.substr(0,1)
           console.log(response)
           this.$store.commit("setSuccess","登录成功")

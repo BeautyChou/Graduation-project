@@ -641,6 +641,7 @@ export default {
       if (this.newClass.week_time == null || this.newClass.start_time == null || this.newClass.end_time == null || this.newClass.start_week == null || this.newClass.end_week == null) return
       const formdata = new FormData
       formdata.append('course_id', this.selectId)
+      formdata.append("max_choose_num",this.newClass.max_choose_num)
       formdata.append('week_time', this.newClass.week_time)
       formdata.append('start_time', this.newClass.start_time)
       formdata.append('end_time', this.newClass.end_time)

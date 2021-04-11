@@ -322,6 +322,7 @@ export default {
       this.src = "http://127.0.0.1:9000/image?homework=" + this.$store.state.homeworkId + "&question=" + QuestionID + "&student=" + StudentID;
       img.crossOrigin = "Anonymous"
       img.src = this.src
+
       this.widths = this.windowWidth
       this.heights = this.windowHeight
       img.onload = () => {

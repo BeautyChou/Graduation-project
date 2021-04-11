@@ -7,6 +7,7 @@
     <v-tab @click="$refs.managePunishLevel.getPunishLevelList()">处分等级管理</v-tab>
     <v-tab @click="$refs.manageFaculty.getDirectionSpecialtyFacultyList()">学院管理</v-tab>
     <v-tab @click="$refs.manageClassroom.getClassroomList()">教室管理</v-tab>
+    <v-tab @click="$refs.manageNotification.getNotification()">通知管理</v-tab>
 
     <v-tab-item>
       <v-manage-student ref="manageStudent"></v-manage-student>
@@ -29,6 +30,9 @@
     <v-tab-item>
       <v-manage-classroom ref="manageClassroom"></v-manage-classroom>
     </v-tab-item>
+    <v-tab-item>
+      <v-manage-notification ref="manageNotification"></v-manage-notification>
+    </v-tab-item>
   </v-tabs>
 </template>
 
@@ -40,6 +44,7 @@ import ManageTitle from "./ManageTitle";
 import ManagePunishLevel from "./ManagePunishLevel";
 import ManageClassroom from "./ManageClassroom";
 import ManageFaculty from "./ManageFaculty";
+import ManageNotification from "./ManageNotification";
 export default {
   name: "Manage",
   components: {
@@ -50,6 +55,7 @@ export default {
     "v-manage-punish-level":ManagePunishLevel,
     "v-manage-classroom":ManageClassroom,
     "v-manage-faculty":ManageFaculty,
+    "v-manage-notification":ManageNotification
   },
   data() {
     return {

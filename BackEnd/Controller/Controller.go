@@ -565,6 +565,7 @@ func ValidClassrooms(db *gorm.DB) func(c *gin.Context) {
 		tempCourse := &Model.CourseForSelect{}
 		tempClassrooms1 := &Model.ClassroomForSelects{}
 		tempClassrooms2 := &Model.ClassroomForSelects{}
+		tempClassrooms3 := &Model.ClassroomForSelects{}
 		classrooms := &Model.ClassroomForSelects{}
 		course.RecordID, _ = strconv.Atoi(c.PostForm("record_id"))
 		course.ID, _ = strconv.Atoi(c.PostForm("course_id"))
@@ -578,6 +579,17 @@ func ValidClassrooms(db *gorm.DB) func(c *gin.Context) {
 		course.FacultyID, _ = strconv.Atoi(c.PostForm("faculty_id"))
 		course.SpecialtyID, _ = strconv.Atoi(c.PostForm("specialty_id"))
 		course.DirectionID, _ = strconv.Atoi(c.PostForm("direction_id"))
+		course.MaxChooseNum,_ = strconv.Atoi(c.PostForm("max_choose_num"))
+		fmt.Println("course_num:",course.MaxChooseNum)
+		if course.MaxChooseNum == 0 {
+			// 申请换课
+			class := &Model.Course{}
+			db.Debug().Model(&Model.Course{}).Where("record_id = ?",course.RecordID).Scan(&class)
+			db.Debug().Model(&Model.Classroom{}).Where("max_num < ?",class.MaxChooseNum).Scan(&tempClassrooms3)
+		}else{
+			// 设置课程
+			db.Debug().Model(&Model.Classroom{}).Where("max_num < ?",course.MaxChooseNum).Scan(&tempClassrooms3)
+		}
 		timeNode := c.PostForm("time")
 		flag := c.PostForm("flag")
 		if timeNode == "after" || timeNode == "applyAfter" {
@@ -589,6 +601,7 @@ func ValidClassrooms(db *gorm.DB) func(c *gin.Context) {
 				course.TeacherID = tempCourse.TeacherID
 				course.RecordID = tempCourse.RecordID
 				if flag != "not" {
+					//判断教师、上课同学时间是否有冲突
 					if course.DirectionID == 0 && course.SpecialtyID == 0 {
 						db.Debug().Model(&Model.Classroom{}).Where("(select count(1) from courses where (IF(start_time > ? ,start_time,?)<=IF(end_time<?,end_time,?)) AND (IF(start_week > ? ,start_week,?)<=IF(end_week<?,end_week,?)) AND week_time = ? AND (teacher_id = ? OR(faculty_id = ? AND (specialty_id = 0) AND (direction_id = 0))) AND record_id <> ?) > 0", course.StartTime, course.StartTime, course.EndTime, course.EndTime, course.StartWeek, course.StartWeek, course.EndWeek, course.EndWeek, course.WeekTime, course.TeacherID, course.FacultyID, course.RecordID).Scan(&tempClassrooms1)
 					} else if course.DirectionID == 0 {
@@ -599,6 +612,7 @@ func ValidClassrooms(db *gorm.DB) func(c *gin.Context) {
 						db.Debug().Model(&Model.Classroom{}).Where("(select count(1) from courses where (IF(start_time > ? ,start_time,?)<=IF(end_time<?,end_time,?)) AND (IF(start_week > ? ,start_week,?)<=IF(end_week<?,end_week,?)) AND week_time = ? AND (teacher_id = ? OR(faculty_id = ? AND (specialty_id = ? OR specialty_id = 0) AND (direction_id = ? OR direction_id = 0))) AND record_id <> ? ) > 0", course.StartTime, course.StartTime, course.EndTime, course.EndTime, course.StartWeek, course.StartWeek, course.EndWeek, course.EndWeek, course.WeekTime, course.TeacherID, course.FacultyID, course.SpecialtyID, course.DirectionID, course.RecordID).Scan(&tempClassrooms1)
 					}
 				} else {
+					//不可能有空教室的情况
 					if course.DirectionID == 0 && course.SpecialtyID == 0 {
 						db.Debug().Model(&Model.Classroom{}).Where("(select count(1) from courses where (IF(start_time > ? ,start_time,?)<=IF(end_time<?,end_time,?)) AND (IF(start_week > ? ,start_week,?)<=IF(end_week<?,end_week,?)) AND week_time = ? AND (teacher_id = ? OR(faculty_id = ? AND (specialty_id = 0) AND (direction_id = 0)))) > 0", course.StartTime, course.StartTime, course.EndTime, course.EndTime, course.StartWeek, course.StartWeek, course.EndWeek, course.EndWeek, course.WeekTime, course.TeacherID, course.FacultyID).Scan(&tempClassrooms1)
 					} else if course.DirectionID == 0 {
@@ -619,7 +633,7 @@ func ValidClassrooms(db *gorm.DB) func(c *gin.Context) {
 				db.Debug().Model(&Model.Classroom{}).Where("(select count(1) from courses where (IF(start_time > ? ,start_time,?)<=IF(end_time<?,end_time,?)) AND (IF(start_week > ? ,start_week,?)<=IF(end_week<?,end_week,?)) AND week_time = ? AND (teacher_id = ? OR(faculty_id = ? AND (specialty_id = ? OR specialty_id = 0) AND (direction_id = ? OR direction_id = 0)))) > 0", course.StartTime, course.StartTime, course.EndTime, course.EndTime, course.StartWeek, course.StartWeek, course.EndWeek, course.EndWeek, course.WeekTime, course.TeacherID, course.FacultyID, course.SpecialtyID, course.DirectionID).Scan(&tempClassrooms1)
 			}
 			db.Debug().Model(&Model.Course{}).Select("courses.classroom_id as id,c.name").Joins("left join classrooms c on c.id = courses.classroom_id").Where("(IF(start_time > ? ,start_time,?)<=IF(end_time<?,end_time,?)) AND (IF(start_week > ? ,start_week,?)<=IF(end_week<?,end_week,?)) AND week_time = ?", course.StartTime, course.StartTime, course.EndTime, course.EndTime, course.StartWeek, course.StartWeek, course.EndWeek, course.EndWeek, course.WeekTime).Group("c.name").Scan(&tempClassrooms2)
-			db.Debug().Model(&Model.Classroom{}).Not(tempClassrooms1, tempClassrooms2).Scan(&classrooms)
+			db.Debug().Model(&Model.Classroom{}).Not(tempClassrooms1, tempClassrooms2,tempClassrooms3).Scan(&classrooms)
 		} else {
 			db.Debug().Model(&Model.Course{}).Select("courses.classroom_id as id,c.name").Joins("left join classrooms c on c.id = courses.classroom_id").Where(" courses.id = ? AND start_time = ? and end_time = ? AND (IF(start_week > ? ,start_week,?)<=IF(end_week<?,end_week,?)) AND week_time = ? AND (record_id = ? OR copy_flag = ?)", course.ID, course.StartTime, course.EndTime, course.StartWeek, course.StartWeek, course.EndWeek, course.EndWeek, course.WeekTime, course.RecordID, course.RecordID).Group("c.name").Scan(&classrooms)
 		}
@@ -1537,6 +1551,28 @@ func DeleteFacultySpecialtyDirection(db *gorm.DB) func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"snackbar":  "setSuccess",
 			"msg":       "删除成功！",
+			"snackbar2": "closeSuccess",
+		})
+	}
+}
+
+func GetNotification(db *gorm.DB) func(c *gin.Context){
+	return func(c *gin.Context) {
+		notification := &Model.Notification{}
+		db.Model(&Model.Notification{}).First(&notification)
+		c.JSON(http.StatusOK,gin.H{
+			"notification":notification,
+		})
+	}
+}
+
+func PutNotification(db *gorm.DB) func(c *gin.Context){
+	return func(c *gin.Context) {
+		content := c.PostForm("notification")
+		db.Model(&Model.Notification{}).Where("id = 1").Update("notification",content)
+		c.JSON(http.StatusOK, gin.H{
+			"snackbar":  "setSuccess",
+			"msg":       "修改通知成功！",
 			"snackbar2": "closeSuccess",
 		})
 	}

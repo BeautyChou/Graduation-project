@@ -242,6 +242,12 @@ type Punishment struct {
 	IsCancelled       bool            `json:"is_cancelled"`                                               // 处分是否被清除
 }
 
+type Notification struct {
+	MyModel
+	Notification string `json:"notification" gorm:"type:longtext"`
+}
+
+
 type HomeworkUploadRecordsForSelect struct {
 	QuestionID       int    `json:"question_id" gorm:"primary_Key;uniqueIndex:homework_id;" sql:"type:INT(11) NOT NULL"` // 课程号
 	Name             string `json:"name" gorm:"type:varchar(50);not null;"`                                              // 学生姓名
@@ -536,5 +542,6 @@ type Admins []Admin
 
 func CreateDatabase(db *gorm.DB) {
 	//db.AutoMigrate(&Elective{})
+	db.AutoMigrate(&Notification{})
 	//db.AutoMigrate(&User{}, &Title{}, &Faculty{}, &Teacher{}, &Elective{}, &Admin{}, &Classroom{}, &DirectionToSpecialty{}, &Course{}, &Student{}, &HomeworkUploadRecord{}, &Homework{}, &Question{}, &Student2Course{}, &ApplyForCourseChange{}, &IndependentPractice{}, &PunishmentLevel{}, &Punishment{})
 }
