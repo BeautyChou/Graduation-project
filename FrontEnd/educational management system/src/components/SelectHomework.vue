@@ -9,7 +9,7 @@
         选择作业
       </div>
       <v-spacer></v-spacer>
-      <v-btn color="primary" to="/AddHomework" @click.native="$store.commit('addHomework')">
+      <v-btn color="primary" to="/AddHomework" @click.native="$store.commit('addHomework')" v-if="$store.state.level===2">
         <v-icon>mdi-plus-thick</v-icon>
         <span>
           添加作业
@@ -29,7 +29,7 @@
         </div>
       </template>
       <template v-slot:item.operation="{ item }">
-        <v-tooltip v-if="($store.state.level===2||true)" bottom>
+        <v-tooltip v-if="($store.state.level===2)" bottom>
           <template v-slot:activator="{ on,attrs }">
             <v-btn
               icon
@@ -47,7 +47,7 @@
           </template>
           <span>批改作业</span>
         </v-tooltip>
-        <v-tooltip v-if="($store.state.level===2||true)" bottom>
+        <v-tooltip v-if="($store.state.level===2)" bottom>
           <template v-slot:activator="{ on,attrs }">
             <v-btn
               icon
@@ -66,7 +66,7 @@
           <span>查看作业内容</span>
         </v-tooltip>
 
-        <v-tooltip v-if="($store.state.level===2||true)" bottom>
+        <v-tooltip v-if="($store.state.level===2)" bottom>
           <template v-slot:activator="{ on,attrs }">
             <v-btn icon color="error" v-bind="attrs" v-on="on" x-large @click="dialog=true;selectId = item.id">
               <v-icon>
@@ -76,7 +76,7 @@
           </template>
           <span>删除作业</span>
         </v-tooltip>
-        <v-dialog v-if="($store.state.level===2||true)" v-model="dialog" width="500" persistent>
+        <v-dialog v-if="($store.state.level===2)" v-model="dialog" width="500" persistent>
           <v-card>
             <v-card-title class="headline font-weight-bold">
               警告!
@@ -106,7 +106,7 @@
           </v-card>
 
         </v-dialog>
-        <v-tooltip v-if="($store.state.level===1||true)" bottom>
+        <v-tooltip v-if="($store.state.level===1)" bottom>
           <template v-slot:activator="{ on,attrs }">
             <v-btn
               icon
@@ -124,7 +124,7 @@
           </template>
           <span>写作业</span>
         </v-tooltip>
-        <v-tooltip v-if="($store.state.level===1||true)" bottom>
+        <v-tooltip v-if="($store.state.level===1)" bottom>
           <template v-slot:activator="{ on,attrs }">
             <v-btn
               icon

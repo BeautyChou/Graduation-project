@@ -1,7 +1,9 @@
 package Model
 
 import (
+	"fmt"
 	"gorm.io/gorm"
+	"os"
 	"time"
 )
 
@@ -14,15 +16,20 @@ type MyModel struct {
 
 //管理员表
 type Admin struct {
-	gorm.Model
-	Name     string `json:"name" gorm:"name;size:50;not null"`         // 管理员名字
-	Password string `json:"password" gorm:"password;size:50;not null"` // 密码
+	ID        int `json:"id" gorm:"primary_key"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt gorm.DeletedAt `sql:"index"`
+	Name      string         `json:"name" gorm:"name;size:50;not null"` // 管理员名字
 }
 
 //学院表
 type Faculty struct {
-	MyModel
-	Name string `form:"faculty_name" json:"name" gorm:"size:30;not null"` // 学院名
+	ID        int `json:"id" gorm:"primary_key"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt gorm.DeletedAt `sql:"index"`
+	Name      string         `form:"faculty_name" json:"name" gorm:"size:30;not null"` // 学院名
 }
 
 //职称表
@@ -40,26 +47,25 @@ type Classroom struct {
 
 type DirectionToSpecialty struct {
 	MyModel
-	Faculty       Faculty `gorm:"ForeignKey:FacultyID;"`                                           // 专业所属学院
-	FacultyID     int     `form:"faculty_id" json:"faculty_id" gorm:"primary_key;type:int(11)"`                      // 学院ID
-	SpecialtyName string  `form:"specialty_name" json:"specialty_name" gorm:"type:varchar(60)"`                          // 专业名称
+	Faculty       Faculty `gorm:"ForeignKey:FacultyID;"`                                                               // 专业所属学院
+	FacultyID     int     `form:"faculty_id" json:"faculty_id" gorm:"primary_key;type:int(11)"`                        // 学院ID
+	SpecialtyName string  `form:"specialty_name" json:"specialty_name" gorm:"type:varchar(60)"`                        // 专业名称
 	DirectionID   int     `form:"direction_id" json:"direction_id" gorm:"primary_key;index:direction_id;type:int(11)"` // 学生所属方向
 	SpecialtyID   int     `form:"specialty_id" json:"specialty_id" gorm:"primary_key;index:special_id;type:int(11)"`   // 学生所属专业
-	DirectionName string  `form:"direction_name" json:"direction_name" gorm:"type:varchar(60)"`                          // 方向名称
+	DirectionName string  `form:"direction_name" json:"direction_name" gorm:"type:varchar(60)"`                        // 方向名称
 }
 
 //教师表
 type Teacher struct {
-	MyModel
-	Avatar    string  `json:"avatar" gorm:"size:50"`         // 头像
-	Name      string  `json:"name" gorm:"size:50;not null"`  // 教师姓名
-	Email     string  `json:"email" gorm:"size:50;"`         // 邮箱
-	Phone     string  `json:"phone" gorm:"size:50;"`         // 电话
-	Password  string  `json:"password" gorm:"size:50"`       // 密码
-	Faculty   Faculty `gorm:"foreignKey:FacultyID;"`         // 学院外键
-	FacultyID int     `json:"faculty_id" gorm:"index:f_id;"` // 学院ID
-	Title     Title   `gorm:"foreignKey:TitleID;"`           // 职称外键
-	TitleID   int     `json:"title_id" gorm:"index:t_id"`    // 职称ID
+	ID        int `json:"id" gorm:"primary_key;AUTO_INCREMENT=100000"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt gorm.DeletedAt `sql:"index"`
+	Name      string         `json:"name" gorm:"size:50;not null"`  // 教师姓名
+	Faculty   Faculty        `gorm:"foreignKey:FacultyID;"`         // 学院外键
+	FacultyID int            `json:"faculty_id" gorm:"index:f_id;"` // 学院ID
+	Title     Title          `gorm:"foreignKey:TitleID;"`           // 职称外键
+	TitleID   int            `json:"title_id" gorm:"index:t_id"`    // 职称ID
 }
 
 //所有课程
@@ -116,26 +122,21 @@ type ApplyForCourseChange struct {
 
 //学生表
 type Student struct {
-	MyModel
-	Name         string               `json:"name" gorm:"type:varchar(50);not null;"`                    // 学生姓名
-	Sex          string               `json:"sex" gorm:"type:varchar(10);"`                              // 性别
-	Password     string               `json:"password" gorm:"type:varchar(20);"`                         // 密码
-	Faculty      Faculty              `gorm:"ForeignKey:FacultyID;"`                                     // 院系外键
-	FacultyID    int                  `json:"faculty_id" gorm:"index:faculty_id;"`                       // 所在院系
-	NativePlace  string               `json:"native_place" gorm:"type:varchar(60);"`                     // 籍贯
-	Credit       float32              `json:"mark" gorm:"type:float(5,2);"`                              // 累计学分
-	Email        string               `json:"email" gorm:"type:varchar(50);"`                            // 电子邮件
-	Avatar       string               `json:"avatar" gorm:"type:varchar(50);"`                           // 头像
-	Phone        string               `json:"phone" gorm:"type:varchar(50);"`                            // 手机号码
-	MaxChooseNum int                  `json:"max_choose_num" gorm:"type:int(11);"`                       // 最大可选课数
-	Direction    DirectionToSpecialty `gorm:"references:DirectionID;"`                                   // 方向外键
-	DirectionID  int                  `json:"direction_id" gorm:"index:direction_id;type:int(11)"`       // 学生所属方向
-	SpecialtyID  int                  `json:"specialty_id" gorm:"index:special_id;type:int(11)"`         // 学生所属专业
-	Specialty    DirectionToSpecialty `gorm:"references:SpecialtyID;"`                                   // 专业外键
-	Teacher      Teacher              `gorm:"references:ID;"`                                            // 导师外键
-	TeacherID    int                  `json:"teacher_id" gorm:"type:int(11);not null;index:teacher_id;"` // 导师ID
-	Practice     int                  `json:"practice"`                                                  // 实习方式
-	TeacherFlag  bool                 `json:"teacher_flag"`                                              // 是否被导师同意
+	ID          int `json:"id" gorm:"primary_key;AUTO_INCREMENT=1000000"`
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	DeletedAt   gorm.DeletedAt       `sql:"index"`
+	Name        string               `json:"name" gorm:"type:varchar(50);not null;"`                             // 学生姓名
+	Faculty     Faculty              `gorm:"ForeignKey:FacultyID;"`                                              // 院系外键
+	FacultyID   int                  `json:"faculty_id" gorm:"index:faculty_id;"`                                // 所在院系
+	Direction   DirectionToSpecialty `gorm:"references:DirectionID;"`                                            // 方向外键
+	DirectionID int                  `json:"direction_id" gorm:"index:direction_id;type:int(11)"`                // 学生所属方向
+	SpecialtyID int                  `json:"specialty_id" gorm:"index:special_id;type:int(11)"`                  // 学生所属专业
+	Specialty   DirectionToSpecialty `gorm:"references:SpecialtyID;"`                                            // 专业外键
+	Teacher     Teacher              `gorm:"references:ID;"`                                                     // 导师外键
+	TeacherID   int                  `json:"teacher_id" gorm:"type:int(11);not null;index:teacher_id;default:1"` // 导师ID
+	Practice    int                  `json:"practice"`                                                           // 实习方式
+	TeacherFlag bool                 `json:"teacher_flag"`                                                       // 是否被导师同意
 }
 
 //学生成绩
@@ -247,7 +248,6 @@ type Notification struct {
 	Notification string `json:"notification" gorm:"type:longtext"`
 }
 
-
 type HomeworkUploadRecordsForSelect struct {
 	QuestionID       int    `json:"question_id" gorm:"primary_Key;uniqueIndex:homework_id;" sql:"type:INT(11) NOT NULL"` // 课程号
 	Name             string `json:"name" gorm:"type:varchar(50);not null;"`                                              // 学生姓名
@@ -344,11 +344,11 @@ type TeacherForSelect struct {
 
 type DirectionToSpecialtyForSelect struct {
 	ID            int    `form:"id" json:"value" gorm:"primary_key;type:int(11)"`
-	SpecialtyName string `form:"specialty_name" json:"specialty_name" gorm:"type:varchar(60)"`                          // 专业名称
+	SpecialtyName string `form:"specialty_name" json:"specialty_name" gorm:"type:varchar(60)"`                        // 专业名称
 	DirectionID   int    `form:"direction_id" json:"direction_id" gorm:"primary_key;index:direction_id;type:int(11)"` // 学生所属方向
 	SpecialtyID   int    `form:"specialty_id" json:"specialty_id" gorm:"primary_key;index:special_id;type:int(11)"`   // 学生所属专业
-	DirectionName string `form:"direction_name" json:"direction_name" gorm:"type:varchar(60)"`                          // 方向名称
-	FacultyID     int    `form:"faculty_id" json:"faculty_id" gorm:"primary_key;type:int(11)"`                      // 学院ID
+	DirectionName string `form:"direction_name" json:"direction_name" gorm:"type:varchar(60)"`                        // 方向名称
+	FacultyID     int    `form:"faculty_id" json:"faculty_id" gorm:"primary_key;type:int(11)"`                        // 学院ID
 	FacultyName   string `form:"faculty_name" json:"faculty_name"`                                                    // 学院名
 }
 
@@ -541,7 +541,34 @@ type Titles []Title
 type Admins []Admin
 
 func CreateDatabase(db *gorm.DB) {
-	//db.AutoMigrate(&Elective{})
-	db.AutoMigrate(&Notification{})
-	//db.AutoMigrate(&User{}, &Title{}, &Faculty{}, &Teacher{}, &Elective{}, &Admin{}, &Classroom{}, &DirectionToSpecialty{}, &Course{}, &Student{}, &HomeworkUploadRecord{}, &Homework{}, &Question{}, &Student2Course{}, &ApplyForCourseChange{}, &IndependentPractice{}, &PunishmentLevel{}, &Punishment{})
+	db.AutoMigrate(&Notification{}, &User{}, &Title{}, &Faculty{}, &Teacher{}, &Elective{}, &Admin{}, &Classroom{}, &DirectionToSpecialty{}, &Course{}, &Student{}, &HomeworkUploadRecord{}, &Homework{}, &Question{}, &Student2Course{}, &ApplyForCourseChange{}, &IndependentPractice{}, &PunishmentLevel{}, &Punishment{})
+	db.Debug().Exec("alter table admins AUTO_INCREMENT=1;")
+	db.Debug().Exec("alter table teachers AUTO_INCREMENT=100000;")
+	db.Debug().Exec("alter table students AUTO_INCREMENT=1000000;")
+	//Password, _ := bcrypt.GenerateFromPassword([]byte("admin"), bcrypt.DefaultCost)
+	//admin := Admin{
+	//	Name:     "Admin",
+	//}
+	//user1 := User{
+	//	ID:       1,
+	//	Password: string(Password),
+	//}
+	//db.Create(&admin)
+	//db.Create(&user1)
+	//teacher := Teacher{
+	//	Name:      "无",
+	//	Faculty:   Faculty{
+	//		Name: "全体学院",
+	//	},
+	//	FacultyID: 0,
+	//	Title:     Title{
+	//		Name: "讲师",
+	//	},
+	//	TitleID:   0,
+	//}
+	//db.Create(&teacher)
+	if err := os.MkdirAll("./images/", 0666); err != nil {
+		fmt.Println("err", err)
+	}
+
 }

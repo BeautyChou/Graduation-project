@@ -1,0 +1,8 @@
+#前端请求API端口
+baseurl: http://127.0.0.1:9000/
+#数据库名称
+database_name: tttt
+#是否创建数据库并初始化数据
+init_database: 0
+#后端运行端口号
+port: 9000

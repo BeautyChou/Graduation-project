@@ -13,8 +13,8 @@
           {{ item.course_name }}
         </router-link>
       </template>
-      <template v-slot:item.operation="{ item }">
-        <v-tooltip v-if="$store.state.level===2||true" bottom>
+      <template v-slot:item.operation="{ item }" v-if="$store.state.level===2">
+        <v-tooltip v-if="$store.state.level===2" bottom>
           <template v-slot:activator="{ on,attrs }">
             <v-btn icon color="primary" v-bind="attrs" v-on="on" x-large
                    @click="changeClass = true ;selectId = item.course_id;selectRecordID = item.record_id;getInfo()">
@@ -26,7 +26,7 @@
           <span>申请修改课程</span>
 
         </v-tooltip>
-        <v-tooltip v-if="$store.state.level===2||true" bottom>
+        <v-tooltip v-if="$store.state.level===2" bottom>
           <template v-slot:activator="{ on,attrs }">
             <v-btn to="/RecordGrades" icon color="primary" v-bind="attrs" v-on="on" x-large
                    @click.native="$store.commit('setRecordId',item.record_id);$store.commit('setCourseId',item.course_id);">

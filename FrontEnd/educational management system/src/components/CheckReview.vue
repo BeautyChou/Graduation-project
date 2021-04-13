@@ -26,7 +26,7 @@
 
               </v-expansion-panel-header>
               <v-expansion-panel-content>
-                <v-img :src="'http://127.0.0.1:9000/image?homework='+$store.state.homeworkId+'&question='+review.question_id+'&student='+$store.state.studentId" alt="老师还没有批改这道题"></v-img>
+                <v-img :src="'http://127.0.0.1:9000/imageChecked?homework='+$store.state.homeworkId+'&question='+review.question_id+'&student='+$store.state.studentId" alt="老师还没有批改这道题"></v-img>
               </v-expansion-panel-content>
             </v-expansion-panel>
           </v-expansion-panels>

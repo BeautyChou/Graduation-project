@@ -6,47 +6,73 @@ import (
 	"BackEnd/Model"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/spf13/viper"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"gorm.io/gorm/utils"
 )
+
+type Config struct {
+	Port         int `mapstructure:"port"`
+	InitDatabase int `mapstructure:"init_database"`
+	DatabaseName string `mapstructure:"database_name"`
+}
+
+var Conf = new(Config)
 
 func main() {
 
-	dsn := "root:123456@tcp(127.0.0.1:3306)/tttt?charset=utf8mb4&parseTime=True&loc=Local"
+	//读取配置文件并进行配置
+	viper.AddConfigPath("./")
+	viper.SetConfigFile("config.yaml")
+	err := viper.ReadInConfig()
+	if err != nil {
+		panic(fmt.Errorf("Fatal error config file: %s \n", err))
+	}
+	if err := viper.Unmarshal(Conf); err != nil {
+		panic(fmt.Errorf("unmarshal conf failed, err:%s \n", err))
+	}
+
+	//连接数据库
+	dsn := "root:123456@tcp(127.0.0.1:3306)/"+Conf.DatabaseName+"?charset=utf8mb4&parseTime=True&loc=Local"
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
-	//db, err := gorm.Open("mysql", "root:123456@/tttt?charset=utf8&parseTime=True&loc=Local")
 	if err != nil {
 		fmt.Println(err)
+		return
 	}
-	//defer db.Close()
-	Model.CreateDatabase(db)
+
+	if Conf.InitDatabase == 1 {
+		Model.CreateDatabase(db)
+		viper.Set("init_database",0)
+		err = viper.WriteConfigAs("config.yaml")
+	}
+	//启动服务
 	r := gin.Default()
 	r.Use(Middleware.Cors())
 	r.POST("/test", Controller.Test)
 	r.POST("/login", Controller.Auth(db))
-	r.POST("/home", Middleware.JWTAuthMiddleWare(), Controller.HoeHandler)
-	r.OPTIONS("/deleteHomework", Controller.ReturnOK)
-	r.OPTIONS("/deleteClass", Controller.ReturnOK)
-	r.OPTIONS("/quitCourse", Controller.ReturnOK)
-	r.OPTIONS("/deleteStudent", Controller.ReturnOK)
-	r.OPTIONS("/putStudent", Controller.ReturnOK)
-	r.OPTIONS("/deletePunishment", Controller.ReturnOK)
-	r.OPTIONS("/deleteTeacher", Controller.ReturnOK)
-	r.OPTIONS("/putTeacher", Controller.ReturnOK)
-	r.OPTIONS("/putAdmin", Controller.ReturnOK)
-	r.OPTIONS("/deleteAdmin", Controller.ReturnOK)
-	r.OPTIONS("/putTitle", Controller.ReturnOK)
-	r.OPTIONS("/deleteTitle", Controller.ReturnOK)
-	r.OPTIONS("/putPunishLevel", Controller.ReturnOK)
-	r.OPTIONS("/deletePunishLevel", Controller.ReturnOK)
-	r.OPTIONS("/putClassroom", Controller.ReturnOK)
-	r.OPTIONS("/deleteClassroom", Controller.ReturnOK)
-	r.OPTIONS("/deleteFacultySpecialtyDirection", Controller.ReturnOK)
-	r.OPTIONS("/putNotification", Controller.ReturnOK)
-	r.POST("/image", Controller.CheckedImage(db))
-	r.GET("/image", Controller.ImageSend)
-	r.GET("/imageTest", Controller.ImageSendTest)
-	AuthGroup := r.Group("/",Middleware.Cors(),Middleware.JWTAuthMiddleWare())
+	TestConnection := r.Group("/", Middleware.Cors(), Controller.ReturnOK)
+	{
+		TestConnection.OPTIONS("/deleteHomework")
+		TestConnection.OPTIONS("/deleteClass")
+		TestConnection.OPTIONS("/quitCourse")
+		TestConnection.OPTIONS("/Student")
+		TestConnection.OPTIONS("/Punishment")
+		TestConnection.OPTIONS("/Teacher")
+		TestConnection.OPTIONS("/Admin")
+		TestConnection.OPTIONS("/Title")
+		TestConnection.OPTIONS("/PunishLevel")
+		TestConnection.OPTIONS("/Classroom")
+		TestConnection.OPTIONS("/DirectionSpecialtyFaculty")
+		TestConnection.OPTIONS("/Notification")
+	}
+	Image := r.Group("/", Middleware.Cors())
+	{
+		Image.POST("/image", Controller.CheckedImage(db))
+		Image.GET("/image", Controller.ImageSend)
+		Image.GET("/imageChecked", Controller.SendCheckedImage)
+	}
+	AuthGroup := r.Group("/", Middleware.Cors(), Middleware.JWTAuthMiddleWare())
 	{
 		AuthGroup.GET("/homeworkJudgeList", Controller.HomeworkJudgeList(db))
 		AuthGroup.GET("/getCourseList", Controller.GetCourseList(db))
@@ -80,43 +106,74 @@ func main() {
 		AuthGroup.GET("/getTeacherList", Controller.GetTeacherList(db))
 		AuthGroup.POST("/postDirection", Controller.PostDirection(db))
 		AuthGroup.POST("/postTeacher", Controller.PostTeacher(db))
-		AuthGroup.POST("/postPractice", Controller.PostPractice(db))
-		AuthGroup.POST("/postIndependentPractice", Controller.PostIndependentPractice(db))
 		AuthGroup.POST("/ApplyTeacher", Controller.ApplyTeacher(db))
-		AuthGroup.GET("/getStudentList",Controller.GetStudentList(db))
-		AuthGroup.DELETE("/deleteStudent",Controller.DeleteStudent(db))
-		AuthGroup.PUT("/putStudent",Controller.PutStudent(db))
-		AuthGroup.POST("/punishStudent",Controller.PunishStudent(db))
-		AuthGroup.GET("/getPunishment",Controller.GetPunishment(db))
-		AuthGroup.DELETE("/deletePunishment",Controller.DeletePunishment(db))
-		AuthGroup.POST("/addStudent",Controller.AddStudent(db))
-		AuthGroup.GET("/getPracticeInfo",Controller.GetPracticeInfo(db))
-		AuthGroup.GET("/getTeacherListForManage",Controller.GetTeacherListForManage(db))
-		AuthGroup.DELETE("/deleteTeacher",Controller.DeleteTeacher(db))
-		AuthGroup.PUT("/putTeacher",Controller.PutTeacher(db))
-		AuthGroup.POST("/addTeacher",Controller.AddTeacher(db))
-		AuthGroup.GET("/getAdminList",Controller.GetAdminList(db))
-		AuthGroup.DELETE("/deleteAdmin",Controller.DeleteAdmin(db))
-		AuthGroup.PUT("/putAdmin",Controller.PutAdmin(db))
-		AuthGroup.POST("/addAdmin",Controller.AddAdmin(db))
-		AuthGroup.GET("/getTitleList",Controller.GetTitleList(db))
-		AuthGroup.DELETE("/deleteTitle",Controller.DeleteTitle(db))
-		AuthGroup.PUT("/putTitle",Controller.PutTitle(db))
-		AuthGroup.POST("/addTitle",Controller.AddTitle(db))
-		AuthGroup.GET("/getPunishLevelList",Controller.GetPunishLevelList(db))
-		AuthGroup.DELETE("/deletePunishLevel",Controller.DeletePunishLevel(db))
-		AuthGroup.PUT("/putPunishLevel",Controller.PutPunishLevel(db))
-		AuthGroup.POST("/addPunishLevel",Controller.AddPunishLevel(db))
-		AuthGroup.GET("/getClassroomList",Controller.GetClassroomList(db))
-		AuthGroup.DELETE("/deleteClassroom",Controller.DeleteClassroom(db))
-		AuthGroup.PUT("/putClassroom",Controller.PutClassroom(db))
-		AuthGroup.POST("/addClassroom",Controller.AddClassroom(db))
-		AuthGroup.GET("/getDirectionSpecialtyFacultyList",Controller.GetDirectionSpecialtyFacultyList(db))
-		AuthGroup.POST("/addFacultySpecialtyDirection",Controller.AddFacultySpecialtyDirection(db))
-		AuthGroup.DELETE("/deleteFacultySpecialtyDirection",Controller.DeleteFacultySpecialtyDirection(db))
-		AuthGroup.GET("/getNotification",Controller.GetNotification(db))
-		AuthGroup.PUT("/putNotification",Controller.PutNotification(db))
+		Practice := AuthGroup.Group("/")
+		{
+			Practice.GET("/Practice", Controller.GetPracticeInfo(db))
+			Practice.PUT("/Practice", Controller.PutPractice(db))
+			Practice.POST("/Practice", Controller.PostPractice(db))
+		}
+		Student := AuthGroup.Group("/")
+		{
+			Student.GET("/Student", Controller.GetStudentList(db))
+			Student.DELETE("/Student", Controller.DeleteStudent(db))
+			Student.PUT("/Student", Controller.PutStudent(db))
+			Student.POST("/Student", Controller.AddStudent(db))
+		}
+		Punishment := AuthGroup.Group("/")
+		{
+			Punishment.POST("/Punishment", Controller.PunishStudent(db))
+			Punishment.GET("/Punishment", Controller.GetPunishment(db))
+			Punishment.DELETE("/Punishment", Controller.DeletePunishment(db))
+		}
+		Teacher := AuthGroup.Group("/")
+		{
+			Teacher.GET("/Teacher", Controller.GetTeacherListForManage(db))
+			Teacher.DELETE("/Teacher", Controller.DeleteTeacher(db))
+			Teacher.PUT("/Teacher", Controller.PutTeacher(db))
+			Teacher.POST("/Teacher", Controller.AddTeacher(db))
+		}
+		Admin := AuthGroup.Group("/")
+		{
+			Admin.GET("/Admin", Controller.GetAdminList(db))
+			Admin.DELETE("/Admin", Controller.DeleteAdmin(db))
+			Admin.PUT("/Admin", Controller.PutAdmin(db))
+			Admin.POST("/Admin", Controller.AddAdmin(db))
+		}
+		Title := AuthGroup.Group("/")
+		{
+			Title.GET("/Title", Controller.GetTitleList(db))
+			Title.DELETE("/Title", Controller.DeleteTitle(db))
+			Title.PUT("/Title", Controller.PutTitle(db))
+			Title.POST("/Title", Controller.AddTitle(db))
+		}
+		PunishLevel := AuthGroup.Group("/")
+		{
+			PunishLevel.GET("/PunishLevel", Controller.GetPunishLevelList(db))
+			PunishLevel.DELETE("/PunishLevel", Controller.DeletePunishLevel(db))
+			PunishLevel.PUT("/PunishLevel", Controller.PutPunishLevel(db))
+			PunishLevel.POST("/PunishLevel", Controller.AddPunishLevel(db))
+		}
+		Classroom := AuthGroup.Group("/", Middleware.JWTAuthMiddleWare())
+		{
+			Classroom.GET("/Classroom", Controller.GetClassroomList(db))
+			Classroom.DELETE("/Classroom", Controller.DeleteClassroom(db))
+			Classroom.PUT("/Classroom", Controller.PutClassroom(db))
+			Classroom.POST("/Classroom", Controller.AddClassroom(db))
+		}
+		DirectionSpecialtyFaculty := AuthGroup.Group("/")
+		{
+			DirectionSpecialtyFaculty.GET("/DirectionSpecialtyFaculty", Controller.GetDirectionSpecialtyFacultyList(db))
+			DirectionSpecialtyFaculty.POST("/DirectionSpecialtyFaculty", Controller.AddFacultySpecialtyDirection(db))
+			DirectionSpecialtyFaculty.DELETE("/DirectionSpecialtyFaculty", Controller.DeleteFacultySpecialtyDirection(db))
+		}
+		Notification := AuthGroup.Group("/")
+		{
+			Notification.GET("/Notification", Controller.GetNotification(db))
+			Notification.PUT("/Notification", Controller.PutNotification(db))
+		}
 		AuthGroup.POST("/isExpire")
 	}
-	r.Run(":9000")
+	r.Run(":" + utils.ToString(Conf.Port))
+
 }

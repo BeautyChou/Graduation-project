@@ -15,17 +15,20 @@
       </v-col>
       <v-col cols="5">
         <v-row>
-          <v-card-title class="font-weight-bold">姓名：{{ name }}</v-card-title>
+          <v-card-title class="font-weight-bold">姓名：{{ $store.state.username }}</v-card-title>
         </v-row>
         <v-row>
-          <v-card-title class="font-weight-bold">学院：{{ faculty }}</v-card-title>
+          <v-card-title class="font-weight-bold" v-if="this.$store.state.level === 1 || this.$store.state.level === 2">学院：{{ faculty }}</v-card-title>
+        </v-row>
+        <v-row>
+          <v-card-title class="font-weight-bold" v-if="this.$store.state.level === 3">身份：管理员</v-card-title>
         </v-row>
         <v-row v-if="this.$store.state.level === 1">
           <v-card-title class="font-weight-bold">专业：{{ specialty }}</v-card-title>
         </v-row>
       </v-col>
     </v-row>
-    <v-card class="d-flex justify-center" v-if="specialty_flag">
+    <v-card class="d-flex justify-center" v-if="this.$store.state.level === 1">
       <v-col cols="4">
         <v-card>
           <v-card-title>选择方向</v-card-title>
@@ -207,13 +210,10 @@
         <v-text-field label="在外住宿地址" outlined v-model="independent_practice.address"></v-text-field>
       </v-col>
     </v-card>
-
-
   </v-card>
 </template>
 
 <script>
-import store from "../store";
 
 export default {
   name: "UserInfo",
@@ -230,7 +230,6 @@ export default {
       direction_invalid: true,
       teacher_invalid: true,
       practice_invalid: true,
-      specialty_flag: true,
       student_year: null,
       teacher: {},
       student: {},
@@ -289,7 +288,6 @@ export default {
         this.practice = parseInt(response.data.student.practice)
       } else {
         //老师查询
-        this.specialty_flag = false
         this.teacher = response.data.teacher
         this.name = response.data.teacher.name
         this.faculty = response.data.teacher.faculty_name
@@ -388,8 +386,8 @@ export default {
       formData.append("practice", this.practice)
       formData.append("student_id", this.$store.state.studentId)
       this.$axios({
-        url: "http://127.0.0.1:9000/postPractice",
-        method: "post",
+        url: "Practice",
+        method: "put",
         data: formData,
         headers: {
           "Content-Type": "multipart/form-data",
@@ -411,7 +409,7 @@ export default {
         this.independent_practice.end_time = this.independent_practice.end_time + 'T00:00:00+08:00'
         var p = JSON.stringify(this.independent_practice)
         this.$axios({
-          url: "postIndependentPractice",
+          url: "Practice",
           method: "post",
           data: p,
           headers: {

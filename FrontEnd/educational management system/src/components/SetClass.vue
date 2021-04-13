@@ -613,6 +613,14 @@ export default {
           this.$emit('func')
           return
         }
+        this.$store.commit(response.data.snackbar,response.data.msg)
+        setTimeout(()=>{
+          this.$store.commit(response.data.snackbar2)
+        },3000)
+        if (response.data.snackbar === "setSuccess"){
+          this.changedClasses = []
+          this.uploadFlag = true
+        }
       })
     },
     pushing(classOBJ,str){
@@ -625,7 +633,7 @@ export default {
       })
       if(str !== 'recursion'){
         this.classes.forEach((item,i)=>{
-          if(item.copy_flag === classOBJ.record_id){
+          if(item.course_id === classOBJ.course_id){
             if (item.credit !== classOBJ.credit){
               item.credit = classOBJ.credit
               this.pushing(item,'recursion')

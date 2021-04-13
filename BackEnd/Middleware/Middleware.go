@@ -33,7 +33,7 @@ func Cors() gin.HandlerFunc {
 		if c.Copy().Request.Method == "OPTIONS" {
 			c.Writer.WriteHeader(http.StatusOK)
 			return
-		}else{
+		} else {
 			c.Next()
 		}
 	}
@@ -86,7 +86,7 @@ func JWTAuthMiddleWare() func(c *gin.Context) {
 			c.Abort()
 			return
 		}
-		mc, err := ParseToken(parts[1])
+		_, err := ParseToken(parts[1])
 		if err != nil {
 			c.JSON(http.StatusOK, gin.H{
 				"msg": "Token无效",
@@ -94,7 +94,7 @@ func JWTAuthMiddleWare() func(c *gin.Context) {
 			c.Abort()
 			return
 		}
-		c.Set("username", mc.Username)
+		//c.Set("c", c.Copy())
 		c.Next()
 	}
 }

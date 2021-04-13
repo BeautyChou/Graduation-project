@@ -10,12 +10,17 @@ import '@mdi/font/css/materialdesignicons.css'
 import axios from 'axios'
 import './assets/index.css'
 import store from './store'
+import config from 'raw-loader!../../../BackEnd/config.yaml'
 
 
 Vue.prototype.$axios = axios
 Vue.config.productionTip = false
 /* eslint-disable no-new */
-axios.defaults.baseURL='http://127.0.0.1:9000/'
+//读取配置文件中的baseURL
+const configArray =config.split("\n")
+const baseURL_databaseName = configArray[configArray.indexOf("#前端请求API端口")+1]
+console.log(baseURL_databaseName.split(": ")[1])
+axios.defaults.baseURL= baseURL_databaseName.split(": ")[1]
 
 new Vue({
   el: '#app',

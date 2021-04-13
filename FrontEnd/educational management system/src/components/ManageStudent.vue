@@ -513,14 +513,14 @@ export default {
       formData.append("direction_id", this.new_direction)
       this.$axios({
         method: "post",
-        url: "addStudent",
+        url: "Student",
         headers: {
           'Token': "8a54sh " + this.$store.state.Jwt
         },
         data: formData
       }).then((response) => {
         if (response.data.msg === "Token无效") {
-          this.$emit('func')
+          this.expire()
           return
         }
         this.add_student = false
@@ -539,7 +539,7 @@ export default {
     },
     getStudentList() {
       this.$axios({
-        url: "http://127.0.0.1:9000/getStudentList",
+        url: "Student",
         params: {
           faculty_id: this.faculty_id,
           specialty_id: this.specialty_id,
@@ -552,7 +552,7 @@ export default {
         method: "get"
       }).then((response) => {
         if (response.data.msg === "Token无效") {
-          this.$emit('func')
+          this.expire()
           return
         }
         console.log(response)
@@ -566,7 +566,7 @@ export default {
     },
     deleteStudent() {
       this.$axios({
-        url: "deleteStudent",
+        url: "Student",
         method: "delete",
         params: {
           student_id: this.selectOBJ.student_id
@@ -576,7 +576,7 @@ export default {
         }
       }).then((response) => {
         if (response.data.msg === "Token无效") {
-          this.$emit('func')
+          this.expire()
           return
         }
         this.delete_student = false
@@ -596,14 +596,14 @@ export default {
       formData.append("direction_id", this.new_direction)
       this.$axios({
         method: "put",
-        url: "putStudent",
+        url: "Student",
         headers: {
           'Token': "8a54sh " + this.$store.state.Jwt
         },
         data: formData
       }).then((response) => {
         if (response.data.msg === "Token无效") {
-          this.$emit('func')
+          this.expire()
           return
         }
         this.modify_student = false
@@ -625,14 +625,14 @@ export default {
       formData.append("punishment_content", this.punish_reason)
       this.$axios({
         method: "post",
-        url: "punishStudent",
+        url: "Punishment",
         headers: {
           'Token': "8a54sh " + this.$store.state.Jwt
         },
         data: formData
       }).then((response) => {
         if (response.data.msg === "Token无效") {
-          this.$emit('func')
+          this.expire()
           return
         }
         this.punish_student = false
@@ -646,7 +646,7 @@ export default {
     },
     getPunishments() {
       this.$axios({
-        url: "getPunishment",
+        url: "Punishment",
         params: {
           student_id: this.selectOBJ.student_id
         },
@@ -656,7 +656,7 @@ export default {
         method: "get"
       }).then((response) => {
         if (response.data.msg === "Token无效") {
-          this.$emit('func')
+          this.expire()
           return
         }
         console.log(response)
@@ -665,7 +665,7 @@ export default {
     },
     cancelPunishment() {
       this.$axios({
-        url: "deletePunishment",
+        url: "Punishment",
         method: "delete",
         params: {
           punishment_id: this.selectOBJ.id
@@ -675,7 +675,7 @@ export default {
         }
       }).then((response) => {
         if (response.data.msg === "Token无效") {
-          this.$emit('func')
+          this.expire()
           return
         }
         this.cancel_punishment = false
@@ -687,7 +687,7 @@ export default {
     },
     getPracticeInfo() {
       this.$axios({
-        url: "getPracticeInfo",
+        url: "Practice",
         params: {
           student_id: this.selectOBJ.student_id
         },
@@ -697,7 +697,7 @@ export default {
         method: "get"
       }).then((response) => {
         if (response.data.msg === "Token无效") {
-          this.$emit('func')
+          this.expire()
           return
         }
         console.log(response)
@@ -715,6 +715,7 @@ export default {
       deep: true,
     }
   },
+  inject:['expire']
 }
 </script>
 

@@ -259,7 +259,7 @@ export default {
   methods:{
     getTeacherList() {
       this.$axios({
-        url: "getTeacherListForManage",
+        url: "Teacher",
         params: {
           faculty_id: this.faculty_id,
           title_id: this.title_id,
@@ -272,7 +272,7 @@ export default {
         method: "get"
       }).then((response) => {
         if (response.data.msg === "Token无效") {
-          this.$emit('func')
+          this.expire()
           return
         }
         console.log(response)
@@ -290,14 +290,14 @@ export default {
       formData.append("title_id", this.new_title)
       this.$axios({
         method: "put",
-        url: "putTeacher",
+        url: "Teacher",
         headers: {
           'Token': "8a54sh " + this.$store.state.Jwt
         },
         data: formData
       }).then((response) => {
         if (response.data.msg === "Token无效") {
-          this.$emit('func')
+          this.expire()
           return
         }
         this.modify_teacher = false
@@ -313,7 +313,7 @@ export default {
     },
     deleteTeacher(){
       this.$axios({
-        url: "deleteTeacher",
+        url: "Teacher",
         method: "delete",
         params: {
           teacher_id: this.selectOBJ.id
@@ -323,7 +323,7 @@ export default {
         }
       }).then((response) => {
         if (response.data.msg === "Token无效") {
-          this.$emit('func')
+          this.expire()
           return
         }
         this.delete_teacher = false
@@ -342,14 +342,14 @@ export default {
       formData.append("title_id", this.new_title)
       this.$axios({
         method: "post",
-        url: "addTeacher",
+        url: "Teacher",
         headers: {
           'Token': "8a54sh " + this.$store.state.Jwt
         },
         data: formData
       }).then((response) => {
         if (response.data.msg === "Token无效") {
-          this.$emit('func')
+          this.expire()
           return
         }
         this.add_teacher = false
@@ -373,6 +373,7 @@ export default {
       deep:true,
     }
   },
+  inject:['expire']
 }
 </script>
 

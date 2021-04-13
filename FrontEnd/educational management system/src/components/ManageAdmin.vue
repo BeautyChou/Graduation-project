@@ -183,7 +183,7 @@ export default {
   methods:{
     getAdminList() {
       this.$axios({
-        url: "getAdminList",
+        url: "Admin",
         headers: {
           'Token': "8a54sh " + this.$store.state.Jwt
         },
@@ -194,7 +194,7 @@ export default {
         }
       }).then((response) => {
         if (response.data.msg === "Token无效") {
-          this.$emit('func')
+          this.expire()
           return
         }
         console.log(response)
@@ -208,14 +208,15 @@ export default {
       formData.append("password", this.new_password)
       this.$axios({
         method: "put",
-        url: "putAdmin",
+        url: "Admin",
         headers: {
+          "Content-Type": "multipart/form-data",
           'Token': "8a54sh " + this.$store.state.Jwt
         },
         data: formData
       }).then((response) => {
         if (response.data.msg === "Token无效") {
-          this.$emit('func')
+          this.expire()
           return
         }
         this.modify_admin = false
@@ -229,19 +230,20 @@ export default {
     },
     deleteAdmin(){
       this.$axios({
-        url: "deleteAdmin",
+        url: "Admin",
         method: "delete",
         params: {
-          admin_id: this.selectOBJ.ID
+          "admin_id": this.selectOBJ.id
         },
         headers: {
           'Token': "8a54sh " + this.$store.state.Jwt
         }
       }).then((response) => {
         if (response.data.msg === "Token无效") {
-          this.$emit('func')
+          this.expire()
           return
         }
+        console.log(this.selectOBJ)
         this.delete_admin = false
         this.$store.commit(response.data.snackbar, response.data.msg)
         this.getAdminList()
@@ -256,14 +258,14 @@ export default {
       formData.append("password", this.new_password)
       this.$axios({
         method: "post",
-        url: "addAdmin",
+        url: "Admin",
         headers: {
           'Token': "8a54sh " + this.$store.state.Jwt
         },
         data: formData
       }).then((response) => {
         if (response.data.msg === "Token无效") {
-          this.$emit('func')
+          this.expire()
           return
         }
         this.add_admin = false
@@ -288,6 +290,7 @@ export default {
       deep:true,
     }
   },
+  inject:['expire']
 }
 </script>
 

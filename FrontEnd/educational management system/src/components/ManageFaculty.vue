@@ -439,7 +439,7 @@ export default {
   methods: {
     getDirectionSpecialtyFacultyList() {
       this.$axios({
-        url: "getDirectionSpecialtyFacultyList",
+        url: "DirectionSpecialtyFaculty",
         params: {
           faculty_id: this.faculty_id,
           specialty_id: this.specialty_id,
@@ -452,7 +452,7 @@ export default {
         method: "get"
       }).then((response) => {
         if (response.data.msg === "Token无效") {
-          this.$emit('func')
+          this.expire()
           return
         }
         console.log(response)
@@ -482,7 +482,7 @@ export default {
         console.log(this.new_faculty,this.new_specialty,this.new_direction)
       }
       this.$axios({
-        url: "addFacultySpecialtyDirection",
+        url: "DirectionSpecialtyFaculty",
         method: "post",
         data: formData,
         headers: {
@@ -491,7 +491,7 @@ export default {
         }
       }).then((response)=>{
         if (response.data.msg === "Token无效") {
-          this.$emit('func')
+          this.expire()
           return
         }
         this.add_faculty = this.add_specialty = this.add_direction = false
@@ -506,7 +506,7 @@ export default {
     },
     deleteFacultySpecialtyDirection() {
       this.$axios({
-        url:"deleteFacultySpecialtyDirection",
+        url:"DirectionSpecialtyFaculty",
         method:"delete",
         params:{
           faculty_id:this.new_faculty,
@@ -518,7 +518,7 @@ export default {
         }
       }).then((response)=>{
         if (response.data.msg === "Token无效") {
-          this.$emit('func')
+          this.expire()
           return
         }
         this.delete_faculty = this.delete_specialty = this.delete_direction = false
@@ -540,6 +540,7 @@ export default {
       deep:true,
     }
   },
+  inject:['expire']
 }
 </script>
 

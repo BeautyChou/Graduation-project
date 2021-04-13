@@ -202,7 +202,7 @@ export default {
     getClassroomList() {
       console.log(this.options)
       this.$axios({
-        url: "getClassroomList",
+        url: "Classroom",
         headers: {
           'Token': "8a54sh " + this.$store.state.Jwt
         },
@@ -213,7 +213,7 @@ export default {
         method: "get"
       }).then((response) => {
         if (response.data.msg === "Token无效") {
-          this.$emit('func')
+          this.expire()
           return
         }
         console.log(response)
@@ -228,14 +228,14 @@ export default {
       formData.append("max_num", this.new_max_num)
       this.$axios({
         method: "put",
-        url: "putClassroom",
+        url: "Classroom",
         headers: {
           'Token': "8a54sh " + this.$store.state.Jwt
         },
         data: formData
       }).then((response) => {
         if (response.data.msg === "Token无效") {
-          this.$emit('func')
+          this.expire()
           return
         }
         this.modify_classroom = false
@@ -250,7 +250,7 @@ export default {
     },
     deleteClassroom() {
       this.$axios({
-        url: "deleteClassroom",
+        url: "Classroom",
         method: "delete",
         params: {
           classroom_id: this.selectOBJ.id
@@ -260,7 +260,7 @@ export default {
         }
       }).then((response) => {
         if (response.data.msg === "Token无效") {
-          this.$emit('func')
+          this.expire()
           return
         }
         this.delete_classroom = false
@@ -277,14 +277,14 @@ export default {
       formData.append("max_num", this.new_max_num)
       this.$axios({
         method: "post",
-        url: "addClassroom",
+        url: "Classroom",
         headers: {
           'Token': "8a54sh " + this.$store.state.Jwt
         },
         data: formData
       }).then((response) => {
         if (response.data.msg === "Token无效") {
-          this.$emit('func')
+          this.expire()
           return
         }
         this.add_classroom = false
@@ -297,7 +297,8 @@ export default {
         }, 3000)
       })
     },
-  }
+  },
+  inject:['expire']
 }
 </script>
 

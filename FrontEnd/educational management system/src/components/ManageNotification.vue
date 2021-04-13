@@ -53,7 +53,7 @@ export default {
   methods:{
     getNotification(){
       this.$axios({
-        url:"getNotification",
+        url:"Notification",
         method:"get",
         headers:{
           'Token': "8a54sh " + this.$store.state.Jwt
@@ -67,7 +67,7 @@ export default {
       const formData = new FormData()
       formData.append("notification",this.Alert)
       this.$axios({
-        url:"putNotification",
+        url:"Notification",
         method:"put",
         data:formData,
         headers: {
@@ -76,7 +76,7 @@ export default {
         }
       }).then((response)=>{
         if (response.data.msg === "Token无效") {
-          this.$emit('func')
+          this.expire()
           return
         }
         console.log(response)
@@ -86,7 +86,8 @@ export default {
         },3000)
       })
     }
-  }
+  },
+  inject:['expire']
 }
 </script>
 

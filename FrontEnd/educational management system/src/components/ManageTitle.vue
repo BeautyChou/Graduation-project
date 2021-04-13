@@ -178,7 +178,7 @@ export default {
   methods: {
     getTitleList() {
       this.$axios({
-        url: "getTitleList",
+        url: "Title",
         headers: {
           'Token': "8a54sh " + this.$store.state.Jwt
         },
@@ -198,7 +198,7 @@ export default {
       formData.append("name", this.new_name)
       this.$axios({
         method: "put",
-        url: "putTitle",
+        url: "Title",
         headers: {
           'Token': "8a54sh " + this.$store.state.Jwt
         },
@@ -219,7 +219,7 @@ export default {
     },
     deleteTitle() {
       this.$axios({
-        url: "deleteTitle",
+        url: "Title",
         method: "delete",
         params: {
           title_id: this.selectOBJ.id
@@ -245,7 +245,7 @@ export default {
       formData.append("name", this.new_name)
       this.$axios({
         method: "post",
-        url: "addTitle",
+        url: "Title",
         headers: {
           'Token': "8a54sh " + this.$store.state.Jwt
         },
@@ -264,7 +264,8 @@ export default {
         }, 3000)
       })
     },
-  }
+  },
+  inject:['expire']
 }
 </script>
 

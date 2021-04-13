@@ -178,14 +178,14 @@ export default {
   methods: {
     getPunishLevelList() {
       this.$axios({
-        url: "getPunishLevelList",
+        url: "PunishLevel",
         headers: {
           'Token': "8a54sh " + this.$store.state.Jwt
         },
         method: "get"
       }).then((response) => {
         if (response.data.msg === "Token无效") {
-          this.$emit('func')
+          this.expire()
           return
         }
         console.log(response)
@@ -198,14 +198,14 @@ export default {
       formData.append("name", this.new_name)
       this.$axios({
         method: "put",
-        url: "putPunishLevel",
+        url: "PunishLevel",
         headers: {
           'Token': "8a54sh " + this.$store.state.Jwt
         },
         data: formData
       }).then((response) => {
         if (response.data.msg === "Token无效") {
-          this.$emit('func')
+          this.expire()
           return
         }
         this.modify_punish_level = false
@@ -219,7 +219,7 @@ export default {
     },
     deletePunishLevel() {
       this.$axios({
-        url: "deletePunishLevel",
+        url: "PunishLevel",
         method: "delete",
         params: {
           level_id: this.selectOBJ.id
@@ -229,7 +229,7 @@ export default {
         }
       }).then((response) => {
         if (response.data.msg === "Token无效") {
-          this.$emit('func')
+          this.expire()
           return
         }
         this.delete_punish_level = false
@@ -245,14 +245,14 @@ export default {
       formData.append("name", this.new_name)
       this.$axios({
         method: "post",
-        url: "addPunishLevel",
+        url: "PunishLevel",
         headers: {
           'Token': "8a54sh " + this.$store.state.Jwt
         },
         data: formData
       }).then((response) => {
         if (response.data.msg === "Token无效") {
-          this.$emit('func')
+          this.expire()
           return
         }
         this.add_punish_level = false
@@ -264,7 +264,8 @@ export default {
         }, 3000)
       })
     },
-  }
+  },
+  inject:['expire']
 }
 </script>
 

@@ -61,7 +61,7 @@
                 </v-list-item-content>
               </v-list-item>
 
-              <v-list-item to="/SelectCourse">
+              <v-list-item to="/SelectCourse" v-if="$store.state.level === 1||$store.state.level === 2">
                 <v-icon>
                   mdi-playlist-edit
                 </v-icon>
@@ -70,7 +70,7 @@
                 </v-list-item-content>
               </v-list-item>
 
-              <v-list-item to="/SetClass">
+              <v-list-item to="/SetClass" v-if="$store.state.level === 3">
                 <v-icon>
                   mdi-table-cog
                 </v-icon>
@@ -79,7 +79,7 @@
                 </v-list-item-content>
               </v-list-item>
 
-              <v-list-item to="/Apply">
+              <v-list-item to="/Apply" v-if="$store.state.level === 3">
                 <v-icon>
                   mdi-alert-circle-check
                 </v-icon>
@@ -88,7 +88,7 @@
                 </v-list-item-content>
               </v-list-item>
 
-              <v-list-item to="/ClassSheet">
+              <v-list-item to="/ClassSheet" v-if="$store.state.level === 1||$store.state.level === 2">
                 <v-icon>
                   mdi-table-clock
                 </v-icon>
@@ -97,7 +97,7 @@
                 </v-list-item-content>
               </v-list-item>
 
-              <v-list-item to="/ChooseCourse">
+              <v-list-item to="/ChooseCourse" v-if="$store.state.level === 1">
                 <v-icon>
                   mdi-playlist-check
                 </v-icon>
@@ -106,7 +106,7 @@
                 </v-list-item-content>
               </v-list-item>
 
-              <v-list-item to="/ChosenCourse">
+              <v-list-item to="/ChosenCourse" v-if="$store.state.level === 1">
                 <v-icon>
                   mdi-playlist-remove
                 </v-icon>
@@ -115,7 +115,7 @@
                 </v-list-item-content>
               </v-list-item>
 
-              <v-list-item to="/QueryResults">
+              <v-list-item to="/QueryResults" v-if="$store.state.level === 1">
                 <v-icon>
                   mdi-file-search
                 </v-icon>
@@ -124,7 +124,7 @@
                 </v-list-item-content>
               </v-list-item>
 
-              <v-list-item to="/Manage">
+              <v-list-item to="/Manage" v-if="$store.state.level === 3">
                 <v-icon>
                   mdi-cog
                 </v-icon>
@@ -211,7 +211,8 @@
               class="mx-auto"
               color="primary"
               text
-              @click="alert = false"
+              :disabled="alert_timer"
+              @click="alert = false;alert_timer = true"
             >
               知道了
             </v-btn>
@@ -281,7 +282,8 @@ export default {
     mini: true,
     isActive: true,
     alert:false,
-    notification:null
+    notification:null,
+    alert_timer:true,
   }),
   methods:{
     jwtInvalid() {
@@ -311,8 +313,9 @@ export default {
         }
       }).then((response)=>{
         if (response.data.msg === "success"){
+          //登录成功并获取通知
           this.$axios({
-            url:"getNotification",
+            url:"Notification",
             method:"get",
             headers:{
               'Token': "8a54sh " + response.data.data.token
@@ -321,6 +324,9 @@ export default {
             console.log(response2)
             this.notification = response2.data.notification.notification
             this.alert = true
+            setTimeout(()=>{
+              this.alert_timer=false
+            },5000)
           })
           this.avatar = response.data.username.substr(0,1)
           console.log(response)
@@ -350,6 +356,11 @@ export default {
           },3000)
         }
       })
+    }
+  },
+  provide(){
+    return{
+      expire:this.jwtInvalid
     }
   }
 };

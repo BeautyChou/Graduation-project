@@ -1,5 +1,8 @@
 <template>
   <v-card>
+    <v-overlay :value="overlay&&false">
+      <v-card-title class="title font-weight-bold">当前时间不在可退课时间内！</v-card-title>
+    </v-overlay>
     <v-card-title>已选课程</v-card-title>
     <v-data-table
       :headers="headers"
@@ -43,6 +46,7 @@ export default {
         {text: '操作', sortable: false, value: 'operation'}
       ],
       courses: [],
+      overlay:true
     }
   },
   created() {
@@ -68,6 +72,11 @@ export default {
         }
         this.courses = response.data.courses
         this.total = response.data.total
+        var time = response.data.time
+        var month = time.substr(5,2)
+        var day = time.substr(8,2)
+        console.log(month,day)
+        if ( (month==='07'&&(day>='01'||day<='15'))||(month==='02'&&(day>='01'||day<='15')) ) this.overlay = false
         console.log(response)
       })
     },
