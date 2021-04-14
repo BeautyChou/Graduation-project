@@ -55,7 +55,7 @@ export default {
   methods: {
     getCourse() {
       this.$axios({
-        url: "http://127.0.0.1:9000/getChosenCourse",
+        url: "ChosenCourse",
         method: "get",
         params: {
           'student_id': this.$store.state.studentId,
@@ -83,7 +83,7 @@ export default {
     quitCourse(courseOBJ) {
       this.$axios({
         method: "delete",
-        url: "http://127.0.0.1:9000/quitCourse",
+        url: "Course",
         params: {
           "student_id": this.$store.state.studentId,
           "record_id": courseOBJ.record_id,
@@ -102,7 +102,7 @@ export default {
           this.$store.commit(response.data.snackbar2)
         }, 3000)
         this.$axios({
-          url: "http://127.0.0.1:9000/getChosenCourse",
+          url: "ChosenCourse",
           method: "get",
           params: {
             'student_id': this.$store.state.studentId,

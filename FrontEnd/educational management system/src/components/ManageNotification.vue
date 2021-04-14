@@ -10,84 +10,88 @@
           保存通知
         </v-btn>
       </v-card-title>
-      <editor
-        api-key="2wktxhha9m0ig3njfyxvd50y8us108lenerm7fv0y6xgp0vl"
-        :init="{
-      height:'500',
-      selector: 'textarea',
-      language:'zh_CN',
-      plugins: [
-        'a11ychecker advcode casechange formatpainter linkchecker autolink lists checklist media mediaembed pageembed permanentpen powerpaste table advtable tinycomments tinymcespellchecker',
-        'advlist autolink lists link image charmap print preview anchor',
-        'searchreplace visualblocks code fullscreen',
-        'insertdatetime media table paste code help wordcount'
-        ],
-      toolbar: 'undo redo | formatselect | bold italic backcolor | \
-           alignleft aligncenter alignright alignjustify | \
-           bullist numlist outdent indent | removeformat  | a11ycheck addcomment showcomments casechange checklist code formatpainter pageembed permanentpen table| help',
-      toolbar_mode: 'floating',
-      tinycomments_mode: 'embedded',
-      tinycomments_author: 'Author name',
-       }"
-        v-model="Alert"
-      />
+      <textarea id="tinyMCE" v-model="Alert"/>
     </v-card>
   </div>
 </template>
 <script>
-import Editor from '@tinymce/tinymce-vue'
 
 export default {
   name: "ManageAlert",
   created() {
     this.getNotification()
   },
-  components: {
-    'editor': Editor
+  mounted() {
+    this.initTinymce()
   },
-  data(){
-    return{
-      Alert:null
+  data() {
+    return {
+      Alert: null,
     }
   },
-  methods:{
-    getNotification(){
+  methods: {
+    getNotification() {
       this.$axios({
-        url:"Notification",
-        method:"get",
-        headers:{
+        url: "Notification",
+        method: "get",
+        headers: {
           'Token': "8a54sh " + this.$store.state.Jwt
         }
-      }).then((response)=>{
+      }).then((response) => {
         console.log(response)
         this.Alert = response.data.notification.notification
       })
     },
-    putNotification(){
+    putNotification() {
       const formData = new FormData()
-      formData.append("notification",this.Alert)
+      formData.append("notification", this.Alert)
       this.$axios({
-        url:"Notification",
-        method:"put",
-        data:formData,
+        url: "Notification",
+        method: "put",
+        data: formData,
         headers: {
           "Content-Type": "multipart/form-data",
           'Token': "8a54sh " + this.$store.state.Jwt
         }
-      }).then((response)=>{
+      }).then((response) => {
         if (response.data.msg === "Token无效") {
           this.expire()
           return
         }
         console.log(response)
-        this.$store.commit(response.data.snackbar,response.data.msg)
-        setTimeout(()=>{
+        this.$store.commit(response.data.snackbar, response.data.msg)
+        setTimeout(() => {
           this.$store.commit(response.data.snackbar2)
-        },3000)
+        }, 3000)
       })
-    }
+    },
+    initTinymce(){
+      window.tinymce.init({
+        branding:false,
+        height: '500',
+        selector: 'textarea',
+        language_url: '../../static/zh_CN.js',
+        language: 'zh_CN',
+        plugins: [
+          'checklist pageembed permanentpen advtable tinymcespellchecker',
+          'link preview anchor',
+          'table code help wordcount'
+        ],
+        toolbar: 'undo redo | formatselect | bold italic backcolor | \
+           alignleft aligncenter alignright alignjustify | \
+           bullist numlist outdent indent | removeformat  | code table| help',
+        toolbar_mode: 'floating',
+        init_instance_callback: editor => {
+          this.hasInit = true
+          editor.on('KeyUp', () => {
+            this.hasChange = true
+            this.Alert = editor.getContent()
+          })
+        },
+      })
+    },
   },
-  inject:['expire']
+  inject: ['expire']
 }
 </script>
 

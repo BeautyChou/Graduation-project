@@ -2,6 +2,7 @@ package Model
 
 import (
 	"fmt"
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 	"os"
 	"time"
@@ -545,28 +546,32 @@ func CreateDatabase(db *gorm.DB) {
 	db.Debug().Exec("alter table admins AUTO_INCREMENT=1;")
 	db.Debug().Exec("alter table teachers AUTO_INCREMENT=100000;")
 	db.Debug().Exec("alter table students AUTO_INCREMENT=1000000;")
-	//Password, _ := bcrypt.GenerateFromPassword([]byte("admin"), bcrypt.DefaultCost)
-	//admin := Admin{
-	//	Name:     "Admin",
-	//}
-	//user1 := User{
-	//	ID:       1,
-	//	Password: string(Password),
-	//}
-	//db.Create(&admin)
-	//db.Create(&user1)
-	//teacher := Teacher{
-	//	Name:      "无",
-	//	Faculty:   Faculty{
-	//		Name: "全体学院",
-	//	},
-	//	FacultyID: 0,
-	//	Title:     Title{
-	//		Name: "讲师",
-	//	},
-	//	TitleID:   0,
-	//}
-	//db.Create(&teacher)
+	Password, _ := bcrypt.GenerateFromPassword([]byte("admin"), bcrypt.DefaultCost)
+	admin := Admin{
+		Name:     "Admin",
+	}
+	user1 := User{
+		ID:       1,
+		Password: string(Password),
+	}
+	teacher := Teacher{
+		Name:      "无",
+		Faculty:   Faculty{
+			Name: "全体学院",
+		},
+		FacultyID: 0,
+		Title:     Title{
+			Name: "讲师",
+		},
+		TitleID:   0,
+	}
+	notification := Notification{
+		Notification: "",
+	}
+	db.FirstOrCreate(&admin)
+	db.FirstOrCreate(&user1)
+	db.FirstOrCreate(&teacher)
+	db.FirstOrCreate(&notification)
 	if err := os.MkdirAll("./images/", 0666); err != nil {
 		fmt.Println("err", err)
 	}

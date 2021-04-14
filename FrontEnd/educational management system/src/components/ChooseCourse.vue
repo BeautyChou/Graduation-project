@@ -61,7 +61,7 @@ export default {
       formData.append("course_id", courseOBJ.course_id)
       this.$axios({
         method: "post",
-        url: "http://127.0.0.1:9000/chooseCourse",
+        url: "Course",
         data: formData,
         headers: {
           "Content-Type": "multipart/form-data",
@@ -77,7 +77,7 @@ export default {
           this.$store.commit(response.data.snackbar2)
         },3000)
         this.$axios({
-          url: "http://127.0.0.1:9000/getAvailableCourses",
+          url: "Course",
           method: "get",
           params: {
             'student_id': this.$store.state.studentId,
@@ -100,7 +100,7 @@ export default {
     },
     getCourse(){
       this.$axios({
-        url: "http://127.0.0.1:9000/getAvailableCourses",
+        url: "Course",
         method: "get",
         params: {
           'student_id': this.$store.state.studentId,

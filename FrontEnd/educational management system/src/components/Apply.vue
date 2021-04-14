@@ -272,8 +272,8 @@ export default {
       formdata.append('result', 2)
       formdata.append('id', applyObj.id)
       this.$axios({
-        method: "post",
-        url: "http://127.0.0.1:9000/operateApply",
+        method: "PUT",
+        url: "Apply",
         data: formdata,
         headers: {
           "Content-Type": "multipart/form-data",
@@ -295,7 +295,7 @@ export default {
   created() {
     this.$axios({
       method: "get",
-      url: "http://127.0.0.1:9000/getApply?level=" + this.$store.state.level + '&teacher_id=' + this.$store.state.teacherId,
+      url: "Apply?level=" + this.$store.state.level + '&teacher_id=' + this.$store.state.teacherId,
       headers:{
         'Token': "8a54sh " + this.$store.state.Jwt
       }

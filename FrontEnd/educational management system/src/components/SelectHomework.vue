@@ -175,7 +175,7 @@ export default {
       this.dialog = false
       this.$axios({
         method: "DELETE",
-        url: "http://127.0.0.1:9000/deleteHomework?id=" + id,
+        url: "Homework?id=" + id,
         headers: {
           'Token': "8a54sh " + this.$store.state.Jwt
         }
@@ -198,7 +198,7 @@ export default {
     getHomework() {
       this.$axios({
         method: "get",
-        url: 'http://127.0.0.1:9000/getHomeworkList',
+        url: 'Homework',
         params: {
           'course_id': this.$store.state.courseId,
           'record_id': this.$store.state.recordId,

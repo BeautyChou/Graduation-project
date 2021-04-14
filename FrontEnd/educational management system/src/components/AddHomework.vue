@@ -254,7 +254,7 @@ export default {
     getQuestionList() {
       this.$axios({
         method: "get",
-        url: 'http://127.0.0.1:9000/getQuestionList',
+        url: 'SelectedQuestion',
         params: {
           'homework_id': this.$store.state.homeworkId,
           "page": this.options.page,
@@ -312,7 +312,7 @@ export default {
         var questions = JSON.stringify(this.questions)
         this.$axios({
           method: "post",
-          url: "http://127.0.0.1:9000/createHomework",
+          url: "Homework",
           data: questions,
           headers: {
             "Content-Type": "multipart/form-data",
@@ -364,7 +364,7 @@ export default {
       this.alreadyQuestion = true
       this.$axios({
         method: "get",
-        url: 'http://127.0.0.1:9000/getContentList',
+        url: 'Question',
         headers: {
           'Token': "8a54sh " + this.$store.state.Jwt
         }
@@ -390,7 +390,7 @@ export default {
       formData.append("content", this.content)
       this.$axios({
         method: 'post',
-        url: 'http://127.0.0.1:9000/postQuestion',
+        url: 'Question',
         data: formData,
         headers: {
           "Content-Type": "multipart/form-data",
@@ -426,7 +426,7 @@ export default {
       handler(newValue, oldValue) {
         this.$axios({
           method: "get",
-          url: 'http://127.0.0.1:9000/getQuestionList',
+          url: 'SelectedQuestion',
           params: {
             'homework_id': newValue,
             "page": this.options.page,

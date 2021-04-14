@@ -245,7 +245,7 @@ export default {
   created() {
     this.$axios({
       method: 'get',
-      url: "http://127.0.0.1:9000/getUserInfo",
+      url: "UserInfo/UserInfo",
       params: {
         student_id: this.$store.state.studentId,
         teacher_id: this.$store.state.teacherId,
@@ -299,7 +299,7 @@ export default {
   methods: {
     getDirectionList() {
       this.$axios({
-        url: "http://127.0.0.1:9000/getDirectionList",
+        url: "UserInfo/Direction",
         method: "GET",
         params: {
           faculty_id: this.student.faculty_id,
@@ -318,7 +318,7 @@ export default {
     },
     getTeacherList() {
       this.$axios({
-        url: "http://127.0.0.1:9000/getTeacherList",
+        url: "UserInfo/Teacher",
         method: "GET",
         params: {
           faculty_id: this.student.faculty_id,
@@ -339,7 +339,7 @@ export default {
       formData.append("direction_id", this.direction_id)
       formData.append("student_id", this.$store.state.studentId)
       this.$axios({
-        url: "http://127.0.0.1:9000/postDirection",
+        url: "UserInfo/Direction",
         method: "post",
         data: formData,
         headers: {
@@ -362,7 +362,7 @@ export default {
       formData.append("teacher_id", this.teacher_id)
       formData.append("student_id", this.$store.state.studentId)
       this.$axios({
-        url: "http://127.0.0.1:9000/postTeacher",
+        url: "UserInfo/Teacher",
         method: "post",
         data: formData,
         headers: {
@@ -436,7 +436,7 @@ export default {
 
       formData.append("operation", "pass")
       this.$axios({
-        url: "http://127.0.0.1:9000/ApplyTeacher",
+        url: "UserInfo/ApplyTeacher",
         method: "post",
         data: formData,
         headers: {
@@ -460,7 +460,7 @@ export default {
       formData.append("student_id", studentOBJ.student_id)
       formData.append("operation", "denied")
       this.$axios({
-        url: "http://127.0.0.1:9000/ApplyTeacher",
+        url: "UserInfo/ApplyTeacher",
         method: "post",
         data: formData,
         headers: {
@@ -485,7 +485,7 @@ export default {
       handler(newVal, oldVal) {
         this.$axios({
           method: 'get',
-          url: "http://127.0.0.1:9000/getUserInfo",
+          url: "UserInfo/UserInfo",
           params: {
             student_id: this.$store.state.studentId,
             teacher_id: this.$store.state.teacherId,

@@ -100,7 +100,7 @@ export default {
       let scores = JSON.stringify(this.scores)
       this.$axios({
         method:"post",
-        url:"http://127.0.0.1:9000/postScore",
+        url:"Score",
         data:scores,
         headers:{
           "Content-Type": "multipart/form-data",
@@ -147,7 +147,7 @@ export default {
       handler(newValue, oldValue) {
         this.$axios({
           method: "get",
-          url: 'http://127.0.0.1:9000/getStudentScore',
+          url: 'StudentScore',
           params: {
             'record_id': newValue,
           },
@@ -168,7 +168,7 @@ export default {
   created() {
     this.$axios({
       method: "get",
-      url: 'http://127.0.0.1:9000/getStudentScore',
+      url: 'StudentScore',
       params: {
         'record_id': this.$store.state.recordId,
       },

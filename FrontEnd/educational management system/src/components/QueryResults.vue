@@ -73,7 +73,7 @@ export default {
     getScore() {
       this.$axios({
         method: "get",
-        url: "http://127.0.0.1:9000/getScore",
+        url: "Score",
         params: {
           student_id: this.$store.state.studentId,
           "page": this.options.page,

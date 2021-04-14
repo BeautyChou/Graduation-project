@@ -544,7 +544,7 @@ export default {
       this.str = ''
       this.$axios({
         method:"post",
-        url:"http://127.0.0.1:9000/postNewClass",
+        url:"Class",
         data:formData,
         headers: {
           "Content-Type": "multipart/form-data",
@@ -570,7 +570,7 @@ export default {
       this.dialog = false
       this.$axios({
         method: "DELETE",
-        url: "http://127.0.0.1:9000/deleteClass?record_id=" + RecordID,
+        url: "Class?record_id=" + RecordID,
         headers:{
           'Token': "8a54sh " + this.$store.state.Jwt
         }
@@ -601,8 +601,8 @@ export default {
     },
     uploadClasses(){
       this.$axios({
-        method:"post",
-        url:"http://127.0.0.1:9000/uploadClass",
+        method:"put",
+        url:"Class",
         data:this.changedClasses,
         headers: {
           "Content-Type": "multipart/form-data",
@@ -682,7 +682,7 @@ export default {
     getClass(){
       this.$axios({
         method: "get",
-        url: 'http://127.0.0.1:9000/getClassesList',
+        url: 'Class',
         params: {
           'teacher_id': this.$store.state.teacherId,
           'level': this.$store.state.level,

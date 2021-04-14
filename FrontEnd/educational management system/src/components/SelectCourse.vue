@@ -345,7 +345,7 @@ export default {
       this.apply.course_id = this.selectId
       this.$axios({
         method: "post",
-        url: "http://127.0.0.1:9000/postApply",
+        url: "Apply",
         data: this.apply,
         headers: {
           "Content-Type": "multipart/form-data",
