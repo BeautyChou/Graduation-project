@@ -10,12 +10,17 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/utils"
+	"io"
+	"os"
 )
 
 type Config struct {
 	Port         int    `mapstructure:"port"`
 	InitDatabase int    `mapstructure:"init_database"`
 	DatabaseName string `mapstructure:"database_name"`
+	MysqlUsername string `mapstructure:"mysql_username"`
+	MysqlPassword string `mapstructure:"mysql_password"`
+	MysqlPort string `mapstructure:"mysql_port"`
 }
 
 var Conf = new(Config)
@@ -34,7 +39,7 @@ func main() {
 	}
 
 	//连接数据库
-	dsn := "root:123456@tcp(127.0.0.1:3306)/" + Conf.DatabaseName + "?charset=utf8mb4&parseTime=True&loc=Local"
+	dsn := Conf.MysqlUsername+":"+Conf.MysqlPassword+"@tcp(127.0.0.1:"+Conf.MysqlPort+")/" + Conf.DatabaseName + "?charset=utf8mb4&parseTime=True&loc=Local"
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		fmt.Println(err)
@@ -47,6 +52,8 @@ func main() {
 		err = viper.WriteConfigAs("config.yaml")
 	}
 	//启动服务
+	f,_ := os.Create("gin.log")
+	gin.DefaultWriter = io.MultiWriter(f)
 	r := gin.Default()
 	r.Use(Middleware.Cors())
 	r.POST("/login", Controller.Auth(db))

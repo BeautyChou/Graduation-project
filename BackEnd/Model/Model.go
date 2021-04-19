@@ -17,19 +17,19 @@ type MyModel struct {
 
 //管理员表
 type Admin struct {
-	ID        int `json:"id" gorm:"primary_key"`
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt gorm.DeletedAt `sql:"index"`
+	ID        int            `json:"id" gorm:"primary_key"`             // 管理员ID
+	CreatedAt time.Time      ``                                         // 记录创建时间
+	UpdatedAt time.Time      ``                                         // 记录更新时间
+	DeletedAt gorm.DeletedAt `sql:"index"`                              // 记录删除时间
 	Name      string         `json:"name" gorm:"name;size:50;not null"` // 管理员名字
 }
 
 //学院表
 type Faculty struct {
-	ID        int `json:"id" gorm:"primary_key"`
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt gorm.DeletedAt `sql:"index"`
+	ID        int            `json:"id" gorm:"primary_key"`                            // 学院ID
+	CreatedAt time.Time      ``                                                        // 记录创建时间
+	UpdatedAt time.Time      ``                                                        // 记录更新时间
+	DeletedAt gorm.DeletedAt `sql:"index"`                                             // 记录删除时间
 	Name      string         `form:"faculty_name" json:"name" gorm:"size:30;not null"` // 学院名
 }
 
@@ -46,6 +46,7 @@ type Classroom struct {
 	MaxNum int    `json:"max_number" gorm:"size:30"`                      // 教室可容纳最大人数
 }
 
+//学院-专业-方向表
 type DirectionToSpecialty struct {
 	MyModel
 	Faculty       Faculty `gorm:"ForeignKey:FacultyID;"`                                                               // 专业所属学院
@@ -58,23 +59,23 @@ type DirectionToSpecialty struct {
 
 //教师表
 type Teacher struct {
-	ID        int `json:"id" gorm:"primary_key;AUTO_INCREMENT=100000"`
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt gorm.DeletedAt `sql:"index"`
-	Name      string         `json:"name" gorm:"size:50;not null"`  // 教师姓名
-	Faculty   Faculty        `gorm:"foreignKey:FacultyID;"`         // 学院外键
-	FacultyID int            `json:"faculty_id" gorm:"index:f_id;"` // 学院ID
-	Title     Title          `gorm:"foreignKey:TitleID;"`           // 职称外键
-	TitleID   int            `json:"title_id" gorm:"index:t_id"`    // 职称ID
+	ID        int            `json:"id" gorm:"primary_key;AUTO_INCREMENT=100000"` // 教师ID
+	CreatedAt time.Time      ``                                                   // 记录创建时间
+	UpdatedAt time.Time      ``                                                   // 记录更新时间
+	DeletedAt gorm.DeletedAt `sql:"index"`                                        // 记录删除时间
+	Name      string         `json:"name" gorm:"size:50;not null"`                // 教师姓名
+	Faculty   Faculty        `gorm:"foreignKey:FacultyID;"`                       // 学院外键
+	FacultyID int            `json:"faculty_id" gorm:"index:f_id;"`               // 学院ID
+	Title     Title          `gorm:"foreignKey:TitleID;"`                         // 职称外键
+	TitleID   int            `json:"title_id" gorm:"index:t_id"`                  // 职称ID
 }
 
 //所有课程
 type Course struct {
-	RecordID     int `json:"id" gorm:"primary_key"` //记录id
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
-	DeletedAt    gorm.DeletedAt       `sql:"index"`
+	RecordID     int                  `json:"id" gorm:"primary_key"`                                               //记录id
+	CreatedAt    time.Time            ``                                                                           // 记录创建时间
+	UpdatedAt    time.Time            ``                                                                           // 记录更新时间
+	DeletedAt    gorm.DeletedAt       `sql:"index"`                                                                // 记录删除时间
 	ID           int                  `json:"course_id" gorm:"primary_key;type:int(11);not null;index:course_id;"` //课程号
 	CourseName   string               `json:"course_name" gorm:"type:varchar(60);not null;"`                       // 课程名
 	Credit       string               `json:"credit" gorm:"type:varchar(50);"`                                     // 学分
@@ -96,9 +97,10 @@ type Course struct {
 	StartWeek    int                  `json:"start_week" gorm:"type:int(11);"`                                     // 起始周数
 	EndWeek      int                  `json:"end_week" gorm:"type:int(11);"`                                       // 结束周数
 	CopyFlag     int                  `json:"copy_flag"`                                                           // 记录复制的Record_ID
-	Selectable   bool                 `json:"selectable"`                                                          //区分毕业设计与普通课程的标记
+	Selectable   bool                 `json:"selectable"`                                                          // 区分毕业设计与普通课程的标记
 }
 
+//换课申请
 type ApplyForCourseChange struct {
 	MyModel
 	Course            Course  `gorm:"ForeignKey:CourseID;"`                                               // 课程外键
@@ -123,10 +125,10 @@ type ApplyForCourseChange struct {
 
 //学生表
 type Student struct {
-	ID          int `json:"id" gorm:"primary_key;AUTO_INCREMENT=1000000"`
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
-	DeletedAt   gorm.DeletedAt       `sql:"index"`
+	ID          int                  `json:"id" gorm:"primary_key;AUTO_INCREMENT=1000000"`                       // 学生ID
+	CreatedAt   time.Time            ``                                                                          // 记录创建时间
+	UpdatedAt   time.Time            ``                                                                          // 记录更新时间
+	DeletedAt   gorm.DeletedAt       `sql:"index"`                                                               // 记录删除时间
 	Name        string               `json:"name" gorm:"type:varchar(50);not null;"`                             // 学生姓名
 	Faculty     Faculty              `gorm:"ForeignKey:FacultyID;"`                                              // 院系外键
 	FacultyID   int                  `json:"faculty_id" gorm:"index:faculty_id;"`                                // 所在院系
@@ -142,10 +144,10 @@ type Student struct {
 
 //学生成绩
 type Elective struct {
-	ID                 int `json:"id" gorm:"primary_key;" sql:"type:INT(11) NOT NULL"`
-	CreatedAt          time.Time
-	UpdatedAt          time.Time
-	DeletedAt          gorm.DeletedAt `sql:"index"`
+	ID                 int            `json:"id" gorm:"primary_key;" sql:"type:INT(11) NOT NULL"`                    // 成绩ID
+	CreatedAt          time.Time      ``                                                                             // 记录创建时间
+	UpdatedAt          time.Time      ``                                                                             // 记录更新时间
+	DeletedAt          gorm.DeletedAt `sql:"index"`                                                                  // 记录删除时间
 	Student            Student        `gorm:"ForeignKey:StudentID;"`                                                 // 学生外键
 	StudentID          int            `json:"student_id" gorm:"primary_Key:student_id;" sql:"type:INT(11) NOT NULL"` // 学号
 	Course             Course         `gorm:"ForeignKey:CourseID;"`                                                  // 课程外键
@@ -157,65 +159,71 @@ type Elective struct {
 	HomeworkPercentage int            `json:"homework_percentage" gorm:"size:3"`                                     // 作业分数占比
 }
 
+//用户表
 type User struct {
-	ID       int    `json:"id"`
-	Password string `json:"password" gorm:"size:60"`
+	ID       int    `json:"id"`                      // 用户ID
+	Password string `json:"password" gorm:"size:60"` // 用户密码
 }
 
+//作业提交记录表
 type HomeworkUploadRecord struct {
-	CreatedAt  time.Time
-	UpdatedAt  time.Time
-	DeletedAt  gorm.DeletedAt `sql:"index"`
-	Homework   Homework       `gorm:"ForeignKey:HomeworkID;-"`
+	CreatedAt  time.Time      ``                                                                   // 记录创建时间
+	UpdatedAt  time.Time      ``                                                                   // 记录更新时间
+	DeletedAt  gorm.DeletedAt `sql:"index"`                                                        // 记录删除时间
+	Homework   Homework       `gorm:"ForeignKey:HomeworkID;-"`                                     // 作业外键
 	HomeworkID int            `json:"homework_id" gorm:"primary_Key;" sql:"type:INT(11) NOT NULL"` // 课程号
 	QuestionID int            `json:"question_id" gorm:"primary_Key;" sql:"type:INT(11) NOT NULL"` // 课程号
 	RecordID   int            `json:"record_id" gorm:"primary_key"`                                // 记录id
-	Question   Question       `gorm:"ForeignKey:QuestionID;-"`
-	StudentID  int            `json:"student_id" gorm:"primary_Key;" sql:"type:INT(11) NOT NULL"`
-	Student    Student        `gorm:"ForeignKey:StudentNumber;-"`
-	Score      int            `json:"score" gorm:"" sql:"type:INT(11) NOT NULL"` // 课程号
-	IsScored   bool           `json:"is_scored" gorm:""`                         // 课程号
-	IsUpload   bool           `json:"is_upload" gorm:""`
+	Question   Question       `gorm:"ForeignKey:QuestionID;-"`                                     // 作业内问题外键
+	StudentID  int            `json:"student_id" gorm:"primary_Key;" sql:"type:INT(11) NOT NULL"`  // 学生ID
+	Student    Student        `gorm:"ForeignKey:StudentNumber;-"`                                  // 学生外键
+	Score      int            `json:"score" gorm:"" sql:"type:INT(11) NOT NULL"`                   // 作业成绩
+	IsScored   bool           `json:"is_scored" gorm:""`                                           // 课程号
+	IsUpload   bool           `json:"is_upload" gorm:""`                                           // 是否上传标识
 }
 
+//作业表
 type Homework struct {
-	ID               int `json:"id" gorm:"primary_key;" sql:"type:INT(11) NOT NULL"`
-	CreatedAt        time.Time
-	UpdatedAt        time.Time
-	DeletedAt        gorm.DeletedAt `sql:"index"`
-	Question         Question       `gorm:"ForeignKey:QuestionID;-"`
-	QuestionID       int            `json:"question_id" gorm:"primary_Key;" sql:"type:INT(11) NOT NULL"`
-	QuestionMaxScore int            `json:"question_max_score" gorm:"" sql:"type:INT(11) NOT NULL"`
-	DeadLine         time.Time      `json:"deadline"`
-	CourseID         int            `json:"course_id" gorm:"primary_Key;" sql:"type:INT(11) NOT NULL"`
-	Course           Course         `gorm:"ForeignKey:CourseID;-"`
-	HomeworkTitle    string         `json:"homework_title" gorm:"size:190"`
-	RecordID         int            `json:"record_id" gorm:"primary_key"` // 记录id
+	ID               int            `json:"id" gorm:"primary_key;" sql:"type:INT(11) NOT NULL"`          // 作业ID
+	CreatedAt        time.Time      ``                                                                   // 记录创建时间
+	UpdatedAt        time.Time      ``                                                                   // 记录更新时间
+	DeletedAt        gorm.DeletedAt `sql:"index"`                                                        // 记录删除时间
+	Question         Question       `gorm:"ForeignKey:QuestionID;-"`                                     // 作业内问题外键
+	QuestionID       int            `json:"question_id" gorm:"primary_Key;" sql:"type:INT(11) NOT NULL"` // 问题ID
+	QuestionMaxScore int            `json:"question_max_score" gorm:"" sql:"type:INT(11) NOT NULL"`      // 本体分值
+	DeadLine         time.Time      `json:"deadline"`                                                    // 作业提交截止日期
+	CourseID         int            `json:"course_id" gorm:"primary_Key;" sql:"type:INT(11) NOT NULL"`   // 课程号
+	Course           Course         `gorm:"ForeignKey:CourseID;-"`                                       // 课程外键
+	HomeworkTitle    string         `json:"homework_title" gorm:"size:190"`                              // 作业标题
+	RecordID         int            `json:"record_id" gorm:"primary_key"`                                // 记录id
 }
 
+//问题表
 type Question struct {
-	ID        int `json:"id" gorm:"primary_key;autoIncrement" sql:"type:INT(11) NOT NULL"`
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt gorm.DeletedAt `sql:"index"`
-	Content   string         `json:"content" gorm:"primary_Key;uniqueIndex:content;"`
+	ID        int            `json:"id" gorm:"primary_key;autoIncrement" sql:"type:INT(11) NOT NULL"` // 问题ID
+	CreatedAt time.Time      ``                                                                       // 记录创建时间
+	UpdatedAt time.Time      ``                                                                       // 记录更新时间
+	DeletedAt gorm.DeletedAt `sql:"index"`                                                            // 记录删除时间
+	Content   string         `json:"content" gorm:"primary_Key;uniqueIndex:content;"`                 // 问题内容
 }
 
+//学生选课记录表
 type Student2Course struct {
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt gorm.DeletedAt `sql:"index"`
+	CreatedAt time.Time      ``                                                                  // 记录创建时间
+	UpdatedAt time.Time      ``                                                                  // 记录更新时间
+	DeletedAt gorm.DeletedAt `sql:"index"`                                                       // 记录删除时间
 	StudentID int            `json:"student_id" gorm:"primary_Key;" sql:"type:INT(11) NOT NULL"` // 学生ID
-	Student   Student        `gorm:"ForeignKey:StudentID;"`
-	Course    Course         `gorm:"ForeignKey:CourseID;"`
-	CourseID  int            `json:"course_id" gorm:"primary_Key;" sql:"type:INT(11) NOT NULL"` //课程ID
-	RecordID  int            `json:"record_id" sql:"type:INT(11) NOT NULL"`                     // 课程列表号
+	Student   Student        `gorm:"ForeignKey:StudentID;"`                                      // 学生外键
+	Course    Course         `gorm:"ForeignKey:CourseID;"`                                       // 课程外键
+	CourseID  int            `json:"course_id" gorm:"primary_Key;" sql:"type:INT(11) NOT NULL"`  // 课程ID
+	RecordID  int            `json:"record_id" sql:"type:INT(11) NOT NULL"`                      // 课程列表号
 }
 
+//自主实习表
 type IndependentPractice struct {
-	CreatedAt      time.Time
-	UpdatedAt      time.Time
-	DeletedAt      gorm.DeletedAt `sql:"index"`
+	CreatedAt      time.Time      ``                                                                  // 记录创建时间
+	UpdatedAt      time.Time      ``                                                                  // 记录更新时间
+	DeletedAt      gorm.DeletedAt `sql:"index"`                                                       // 记录删除时间
 	StudentID      int            `json:"student_id" gorm:"primary_Key;" sql:"type:INT(11) NOT NULL"` // 学生ID
 	Student        Student        `gorm:"ForeignKey:StudentID;"`                                      // 学生外键
 	Phone          int            `json:"phone"`                                                      // 在外联系方式
@@ -229,11 +237,13 @@ type IndependentPractice struct {
 	Address        string         `json:"address" gorm:"varchar(60)"`                                 // 在外住宿地址
 }
 
+//处分等级表
 type PunishmentLevel struct {
 	MyModel
 	Level string `json:"level"` // 处分等级
 }
 
+//处分表
 type Punishment struct {
 	MyModel
 	StudentID         int             `json:"student_id" gorm:"primary_Key;" sql:"type:INT(11) NOT NULL"` // 学生ID
@@ -244,37 +254,43 @@ type Punishment struct {
 	IsCancelled       bool            `json:"is_cancelled"`                                               // 处分是否被清除
 }
 
+//通知表
 type Notification struct {
 	MyModel
-	Notification string `json:"notification" gorm:"type:longtext"`
+	Notification string `json:"notification" gorm:"type:longtext"` //进入系统通知内容
 }
 
+//
+//
+//以下结构体都不会被GORM建为表，仅是为了向前端发送数据时数据尽可能的少
+//
+//
 type HomeworkUploadRecordsForSelect struct {
-	QuestionID       int    `json:"question_id" gorm:"primary_Key;uniqueIndex:homework_id;" sql:"type:INT(11) NOT NULL"` // 课程号
-	Name             string `json:"name" gorm:"type:varchar(50);not null;"`                                              // 学生姓名
-	StudentID        int    `json:"student_id" gorm:"primary_Key;uniqueIndex:student_id;" sql:"type:INT(11) NOT NULL"`
-	Score            int    `json:"score" gorm:"uniqueIndex:score;" sql:"type:INT(11) NOT NULL"` // 课程号
-	IsScored         bool   `json:"is_scored" gorm:"uniqueIndex:is_scored;"`                     // 课程号
-	IsUpload         bool   `json:"is_upload" gorm:"uniqueIndex:is_upload;"`
-	Content          string `json:"content" gorm:"primary_Key;uniqueIndex:content;"`
-	QuestionMaxScore int    `json:"question_max_score" gorm:"uniqueIndex:question_max_score;" sql:"type:INT(11) NOT NULL"`
-	HomeworkTitle    string `json:"homework_title" gorm:"uniqueIndex:homework_title"`
-	RecordID         int    `json:"record_id" gorm:"primary_key"` // 记录id
+	QuestionID       int    `json:"question_id" gorm:"primary_Key;uniqueIndex:homework_id;" sql:"type:INT(11) NOT NULL"`   // 课程号
+	Name             string `json:"name" gorm:"type:varchar(50);not null;"`                                                // 学生姓名
+	StudentID        int    `json:"student_id" gorm:"primary_Key;uniqueIndex:student_id;" sql:"type:INT(11) NOT NULL"`     // 学生ID
+	Score            int    `json:"score" gorm:"uniqueIndex:score;" sql:"type:INT(11) NOT NULL"`                           // 课程号
+	IsScored         bool   `json:"is_scored" gorm:"uniqueIndex:is_scored;"`                                               // 课程号
+	IsUpload         bool   `json:"is_upload" gorm:"uniqueIndex:is_upload;"`                                               // 是否上传作业
+	Content          string `json:"content" gorm:"primary_Key;uniqueIndex:content;"`                                       // 问题内容
+	QuestionMaxScore int    `json:"question_max_score" gorm:"uniqueIndex:question_max_score;" sql:"type:INT(11) NOT NULL"` // 本题分值
+	HomeworkTitle    string `json:"homework_title" gorm:"uniqueIndex:homework_title"`                                      // 作业标题
+	RecordID         int    `json:"record_id" gorm:"primary_key"`                                                          // 记录id
 }
 
 type HomeworkForSelect struct {
-	ID               int `json:"id" gorm:"primary_key;" sql:"type:INT(11) NOT NULL"`
-	QuestionID       int `json:"question_id" gorm:"primary_Key;uniqueIndex:question_id;" sql:"type:INT(11) NOT NULL"`
-	QuestionMaxScore int `json:"question_max_score" gorm:"uniqueIndex:question_max_score;" sql:"type:INT(11) NOT NULL"`
-	DeadLine         time.Time
-	CourseID         int    `json:"course_id" gorm:"primary_Key;uniqueIndex:question_id;" sql:"type:INT(11) NOT NULL"`
-	HomeworkTitle    string `json:"homework_title" gorm:"uniqueIndex:homework_title"`
-	RecordID         int    `json:"record_id" gorm:"primary_key"` // 记录id
+	ID               int       `json:"id" gorm:"primary_key;" sql:"type:INT(11) NOT NULL"`                                    // 作业ID
+	QuestionID       int       `json:"question_id" gorm:"primary_Key;uniqueIndex:question_id;" sql:"type:INT(11) NOT NULL"`   // 问题ID
+	QuestionMaxScore int       `json:"question_max_score" gorm:"uniqueIndex:question_max_score;" sql:"type:INT(11) NOT NULL"` // 本题满分
+	DeadLine         time.Time ``                                                                                             // 作业提交截止时间
+	CourseID         int       `json:"course_id" gorm:"primary_Key;uniqueIndex:question_id;" sql:"type:INT(11) NOT NULL"`     // 课程ID
+	HomeworkTitle    string    `json:"homework_title" gorm:"uniqueIndex:homework_title"`                                      // 作业标题
+	RecordID         int       `json:"record_id" gorm:"primary_key"`                                                          // 记录id
 }
 
 type CourseForSelect struct {
-	RecordID     int    `json:"record_id" gorm:"primary_key"` // 记录id
-	ID           int    `json:"course_id" gorm:"primary_key;"`
+	RecordID     int    `json:"record_id" gorm:"primary_key"`                              // 记录id
+	ID           int    `json:"course_id" gorm:"primary_key;"`                             // 课程ID
 	CourseName   string `json:"course_name" gorm:"type:varchar(60);not null;"`             // 课程名
 	Credit       string `json:"credit" gorm:"type:varchar(50);"`                           // 学分
 	TeacherID    int    `json:"teacher_id" gorm:"type:int(11);not null;index:teacher_id;"` // 教师ID
@@ -290,61 +306,61 @@ type CourseForSelect struct {
 	EndWeek      int    `json:"end_week" gorm:"type:int(11);"`                             // 结束周数
 	DirectionID  int    `json:"direction_id" gorm:"index:direction_id;type:int(11)"`       // 学生所属方向
 	SpecialtyID  int    `json:"specialty_id" gorm:"index:special_id;type:int(11)"`         // 学生所属专业
-	CopyFlag     int    `json:"copy_flag"`
-	Selectable   bool   `json:"selectable"` //区分毕业设计与普通课程的标记
+	CopyFlag     int    `json:"copy_flag"`                                                 // 记录复制的Record_ID
+	Selectable   bool   `json:"selectable"`                                                // 区分毕业设计与普通课程的标记
 }
 
 type QuestionForSelect struct {
-	ID      int    `json:"id" gorm:"primary_key;autoIncrement" sql:"type:INT(11) NOT NULL"`
-	Content string `json:"content" gorm:"primary_Key;uniqueIndex:content;"`
+	ID      int    `json:"id" gorm:"primary_key;autoIncrement" sql:"type:INT(11) NOT NULL"` // 问题ID
+	Content string `json:"content" gorm:"primary_Key;uniqueIndex:content;"`                 // 问题内容
 }
 
 type HomeworkForCreate struct {
-	ID               int       `json:"id" gorm:"primary_key;" sql:"type:INT(11) NOT NULL"`
-	QuestionID       int       `json:"question_id" gorm:"primary_Key;uniqueIndex:question_id;" sql:"type:INT(11) NOT NULL"`
-	QuestionMaxScore int       `json:"question_max_score" gorm:"uniqueIndex:question_max_score;" sql:"type:INT(11) NOT NULL"`
-	DeadLine         time.Time `json:"deadline"`
-	CourseID         int       `json:"course_id" gorm:"primary_Key;uniqueIndex:question_id;" sql:"type:INT(11) NOT NULL"`
-	HomeworkTitle    string    `json:"homework_title" gorm:"uniqueIndex:homework_title"`
-	RecordID         int       `json:"record_id" gorm:"primary_key"` // 记录id
+	ID               int       `json:"id" gorm:"primary_key;" sql:"type:INT(11) NOT NULL"`                                    // 作业ID
+	QuestionID       int       `json:"question_id" gorm:"primary_Key;uniqueIndex:question_id;" sql:"type:INT(11) NOT NULL"`   // 问题ID
+	QuestionMaxScore int       `json:"question_max_score" gorm:"uniqueIndex:question_max_score;" sql:"type:INT(11) NOT NULL"` // 本题满分
+	DeadLine         time.Time `json:"deadline"`                                                                              // 作业提交截止时间
+	CourseID         int       `json:"course_id" gorm:"primary_Key;uniqueIndex:question_id;" sql:"type:INT(11) NOT NULL"`     // 课程ID
+	HomeworkTitle    string    `json:"homework_title" gorm:"uniqueIndex:homework_title"`                                      // 作业标题
+	RecordID         int       `json:"record_id" gorm:"primary_key"`                                                          // 记录id
 }
 
 type QuestionForCheck struct {
-	QuestionMaxScore int `json:"question_max_score" gorm:"uniqueIndex:question_max_score;" sql:"type:INT(11) NOT NULL"`
-	DeadLine         time.Time
-	HomeworkTitle    string `json:"homework_title" gorm:"uniqueIndex:homework_title"`
-	Content          string `json:"content" gorm:"primary_Key;uniqueIndex:content;"`
-	QuestionId       int    `json:"question_id"`
+	QuestionMaxScore int       `json:"question_max_score" gorm:"uniqueIndex:question_max_score;" sql:"type:INT(11) NOT NULL"` // 本题满分
+	DeadLine         time.Time ``                                                                                             // 作业提交截止时间
+	HomeworkTitle    string    `json:"homework_title" gorm:"uniqueIndex:homework_title"`                                      // 作业标题
+	Content          string    `json:"content" gorm:"primary_Key;uniqueIndex:content;"`                                       // 问题内容
+	QuestionId       int       `json:"question_id"`                                                                           // 问题ID
 }
 
 type QuestionForStudent struct {
-	RecordID         int `json:"record_id" gorm:"primary_key"` // 记录id
-	QuestionMaxScore int `json:"question_max_score" gorm:"uniqueIndex:question_max_score;" sql:"type:INT(11) NOT NULL"`
-	DeadLine         time.Time
-	HomeworkTitle    string `json:"homework_title" gorm:"uniqueIndex:homework_title"`
-	Content          string `json:"content" gorm:"primary_Key;uniqueIndex:content;"`
-	QuestionId       int    `json:"question_id"`
-	Uploaded         bool   `json:"uploaded"`
+	RecordID         int       `json:"record_id" gorm:"primary_key"`                                                          // 记录id
+	QuestionMaxScore int       `json:"question_max_score" gorm:"uniqueIndex:question_max_score;" sql:"type:INT(11) NOT NULL"` // 本题满分
+	DeadLine         time.Time ``                                                                                             // 作业提交截止时间
+	HomeworkTitle    string    `json:"homework_title" gorm:"uniqueIndex:homework_title"`                                      // 作业标题
+	Content          string    `json:"content" gorm:"primary_Key;uniqueIndex:content;"`                                       // 问题内容
+	QuestionId       int       `json:"question_id"`                                                                           // 问题ID
+	Uploaded         bool      `json:"uploaded"`                                                                              //作业是否上传
 }
 
 type RecordForReview struct {
-	QuestionID       int    `json:"question_id" gorm:"primary_Key;uniqueIndex:homework_id;" sql:"type:INT(11) NOT NULL"` // 课程号
-	Score            int    `json:"score" gorm:"uniqueIndex:score;" sql:"type:INT(11) NOT NULL"`                         // 课程号
-	IsScored         bool   `json:"is_scored" gorm:"uniqueIndex:is_scored;"`                                             // 课程号
-	Content          string `json:"content" gorm:"primary_Key;uniqueIndex:content;"`
-	QuestionMaxScore int    `json:"question_max_score" gorm:"uniqueIndex:question_max_score;" sql:"type:INT(11) NOT NULL"`
-	HomeworkTitle    string `json:"homework_title" gorm:"uniqueIndex:homework_title"`
+	QuestionID       int    `json:"question_id" gorm:"primary_Key;uniqueIndex:homework_id;" sql:"type:INT(11) NOT NULL"`   // 课程号
+	Score            int    `json:"score" gorm:"uniqueIndex:score;" sql:"type:INT(11) NOT NULL"`                           // 课程号
+	IsScored         bool   `json:"is_scored" gorm:"uniqueIndex:is_scored;"`                                               // 课程号
+	Content          string `json:"content" gorm:"primary_Key;uniqueIndex:content;"`                                       // 问题内容
+	QuestionMaxScore int    `json:"question_max_score" gorm:"uniqueIndex:question_max_score;" sql:"type:INT(11) NOT NULL"` // 本题满分
+	HomeworkTitle    string `json:"homework_title" gorm:"uniqueIndex:homework_title"`                                      // 作业标题
 }
 
 type TeacherForSelect struct {
-	ID        int    `json:"value"`
+	ID        int    `json:"value"`                         // 教师ID
 	Name      string `json:"name" gorm:"size:50;not null"`  // 教师姓名
 	FacultyID int    `json:"faculty_id" gorm:"index:f_id;"` // 学院ID
 	TitleID   int    `json:"title_id" gorm:"index:t_id"`    // 职称ID
 }
 
 type DirectionToSpecialtyForSelect struct {
-	ID            int    `form:"id" json:"value" gorm:"primary_key;type:int(11)"`
+	ID            int    `form:"id" json:"value" gorm:"primary_key;type:int(11)"`                                     // 学院-专业-方向ID
 	SpecialtyName string `form:"specialty_name" json:"specialty_name" gorm:"type:varchar(60)"`                        // 专业名称
 	DirectionID   int    `form:"direction_id" json:"direction_id" gorm:"primary_key;index:direction_id;type:int(11)"` // 学生所属方向
 	SpecialtyID   int    `form:"specialty_id" json:"specialty_id" gorm:"primary_key;index:special_id;type:int(11)"`   // 学生所属专业
@@ -354,12 +370,12 @@ type DirectionToSpecialtyForSelect struct {
 }
 
 type ClassroomForSelect struct {
-	ID   int    `json:"value" gorm:"primary_key;"`
+	ID   int    `json:"value" gorm:"primary_key;"`                      // 教室ID
 	Name string `json:"name" gorm:"size:30;not null;uniqueIndex:name;"` // 教室名
 }
 
 type Apply struct {
-	ID                int    `json:"id"`
+	ID                int    `json:"id"`                                                                 // 换课申请ID
 	CourseName        string `json:"course_name" gorm:"type:varchar(60);not null;"`                      // 课程名
 	Name              string `json:"name" gorm:"size:50;not null"`                                       // 教师姓名
 	Reason            string `json:"reason"`                                                             // 申请更改的理由
@@ -391,41 +407,41 @@ type ClassSheet struct {
 }
 
 type CourseForChoose struct {
-	RecordID     int    `json:"record_id" gorm:"primary_key"` // 记录id
-	ID           int    `json:"course_id" gorm:"primary_key;"`
+	RecordID     int    `json:"record_id" gorm:"primary_key"`                              // 记录id
+	CourseID     int    `json:"course_id" gorm:"primary_key;"`                             // 课程ID
 	CourseName   string `json:"course_name" gorm:"type:varchar(60);not null;"`             // 课程名
 	Credit       string `json:"credit" gorm:"type:varchar(50);"`                           // 学分
 	TeacherID    int    `json:"teacher_id" gorm:"type:int(11);not null;index:teacher_id;"` // 教师ID
-	TeacherName  string `json:"teacher_name"`
-	ClassroomID  int    `json:"classroom_id" gorm:"type:int(11);index:classroom_id;"` // 教室号
-	MaxChooseNum int    `json:"max_choose_num" gorm:"type:int(11);not null;"`         // 最大可选课人数
-	Selected     int    `json:"selected" gorm:"column:selected"`                      // 已选人数
-	StartTime    int    `json:"start_time" gorm:"type:datetime;"`                     // 开始时间
-	EndTime      int    `json:"end_time" gorm:"type:datetime;"`                       // 结束时间
-	Name         string `json:"name" gorm:"size:50;not null"`                         // 教师姓名
-	WeekTime     int    `json:"week_time" gorm:"type:int(2)"`                         // 上课星期数
-	FacultyID    int    `json:"faculty_id" gorm:"type:int(11)"`                       // 学院ID
-	StartWeek    int    `json:"start_week" gorm:"type:int(11);"`                      // 起始周数
-	EndWeek      int    `json:"end_week" gorm:"type:int(11);"`                        // 结束周数
-	DirectionID  int    `json:"direction_id" gorm:"index:direction_id;type:int(11)"`  // 学生所属方向
-	SpecialtyID  int    `json:"specialty_id" gorm:"index:special_id;type:int(11)"`    // 学生所属专业
-	CopyFlag     int    `json:"copy_flag"`
+	TeacherName  string `json:"teacher_name"`                                              // 教师姓名
+	ClassroomID  int    `json:"classroom_id" gorm:"type:int(11);index:classroom_id;"`      // 教室号
+	MaxChooseNum int    `json:"max_choose_num" gorm:"type:int(11);not null;"`              // 最大可选课人数
+	Selected     int    `json:"selected" gorm:"column:selected"`                           // 已选人数
+	StartTime    int    `json:"start_time" gorm:"type:datetime;"`                          // 开始时间
+	EndTime      int    `json:"end_time" gorm:"type:datetime;"`                            // 结束时间
+	Name         string `json:"name" gorm:"size:50;not null"`                              // 教师姓名
+	WeekTime     int    `json:"week_time" gorm:"type:int(2)"`                              // 上课星期数
+	FacultyID    int    `json:"faculty_id" gorm:"type:int(11)"`                            // 学院ID
+	StartWeek    int    `json:"start_week" gorm:"type:int(11);"`                           // 起始周数
+	EndWeek      int    `json:"end_week" gorm:"type:int(11);"`                             // 结束周数
+	DirectionID  int    `json:"direction_id" gorm:"index:direction_id;type:int(11)"`       // 学生所属方向
+	SpecialtyID  int    `json:"specialty_id" gorm:"index:special_id;type:int(11)"`         // 学生所属专业
+	CopyFlag     int    `json:"copy_flag"`                                                 // 记录复制的Record_ID
 }
 
 type Student2CourseForChoose struct {
 	StudentID int `json:"student_id" gorm:"primary_Key;" sql:"type:INT(11) NOT NULL"` // 学生ID
-	CourseID  int `json:"course_id" gorm:"primary_Key;" sql:"type:INT(11) NOT NULL"`  //课程ID
+	CourseID  int `json:"course_id" gorm:"primary_Key;" sql:"type:INT(11) NOT NULL"`  // 课程ID
 	RecordID  int `json:"record_id" sql:"type:INT(11) NOT NULL"`                      // 课程列表号
 }
 
 type SelectedCourseID struct {
-	ID int
+	ID int // 课程ID
 }
 
 type StudentHomeworkScore struct {
-	Name          string `json:"student_name"`
-	StudentID     int    `json:"student_id"`
-	HomeworkScore int    `json:"homework_score"`
+	Name          string `json:"student_name"`   // 学生姓名
+	StudentID     int    `json:"student_id"`     // 学生ID
+	HomeworkScore int    `json:"homework_score"` // 作业成绩
 }
 
 type ElectiveForSelect struct {
@@ -447,26 +463,26 @@ type TeacherForUserInfo struct {
 	Phone       string `json:"phone" gorm:"size:50;"`         // 电话
 	Password    string `json:"password" gorm:"size:50"`       // 密码
 	FacultyID   int    `json:"faculty_id" gorm:"index:f_id;"` // 学院ID
-	FacultyName string `json:"faculty_name"`                  //学院名称
+	FacultyName string `json:"faculty_name"`                  // 学院名称
 	Title       Title  `gorm:"foreignKey:TitleID;"`           // 职称外键
 	TitleID     int    `json:"title_id" gorm:"index:t_id"`    // 职称ID
 	TitleName   string `json:"title_name"`                    // 职称名
 }
 
 type StudentForUserInfo struct {
-	StudentID     int       `json:"student_id" gorm:"primary_Key:student_id;" sql:"type:INT(11) NOT NULL"`
-	Created       time.Time `json:"created"`
-	Name          string    `json:"name" gorm:"type:varchar(50);not null;"`                    // 学生姓名
-	FacultyID     int       `json:"faculty_id" gorm:"index:faculty_id;"`                       // 所在院系
-	FacultyName   string    `json:"faculty_name"`                                              //学院名称
-	Credit        float32   `json:"mark" gorm:"type:float(5,2);"`                              // 累计学分
-	DirectionID   int       `json:"direction_id" gorm:"index:direction_id;type:int(11)"`       // 学生所属方向
-	DirectionName string    `json:"direction_name"`                                            //学院名称
-	SpecialtyID   int       `json:"specialty_id" gorm:"index:special_id;type:int(11)"`         // 学生所属专业
-	SpecialtyName string    `json:"specialty_name"`                                            //专业名称
-	TeacherID     int       `json:"teacher_id" gorm:"type:int(11);not null;index:teacher_id;"` // 导师ID
-	Practice      int       `json:"practice"`                                                  //实习方式
-	TeacherFlag   bool      `json:"teacher_flag"`                                              // 表示老师是否同意作为导师
+	StudentID     int       `json:"student_id" gorm:"primary_Key:student_id;" sql:"type:INT(11) NOT NULL"` // 学生ID
+	Created       time.Time `json:"created"`                                                               // 记录创建时间
+	Name          string    `json:"name" gorm:"type:varchar(50);not null;"`                                // 学生姓名
+	FacultyID     int       `json:"faculty_id" gorm:"index:faculty_id;"`                                   // 所在院系
+	FacultyName   string    `json:"faculty_name"`                                                          // 学院名称
+	Credit        float32   `json:"mark" gorm:"type:float(5,2);"`                                          // 累计学分
+	DirectionID   int       `json:"direction_id" gorm:"index:direction_id;type:int(11)"`                   // 学生所属方向
+	DirectionName string    `json:"direction_name"`                                                        // 学院名称
+	SpecialtyID   int       `json:"specialty_id" gorm:"index:special_id;type:int(11)"`                     // 学生所属专业
+	SpecialtyName string    `json:"specialty_name"`                                                        // 专业名称
+	TeacherID     int       `json:"teacher_id" gorm:"type:int(11);not null;index:teacher_id;"`             // 导师ID
+	Practice      int       `json:"practice"`                                                              // 实习方式
+	TeacherFlag   bool      `json:"teacher_flag"`                                                          // 表示老师是否同意作为导师
 }
 
 type IndependentPracticeForSelect struct {
@@ -483,7 +499,7 @@ type IndependentPracticeForSelect struct {
 }
 
 type StudentForSelect struct {
-	ID           int     `json:"student_id"`
+	ID           int     `json:"student_id"`                                                // 学生ID
 	Name         string  `json:"name" gorm:"type:varchar(50);not null;"`                    // 学生姓名
 	Sex          string  `json:"sex" gorm:"type:varchar(10);"`                              // 性别
 	Password     string  `json:"password" gorm:"type:varchar(20);"`                         // 密码
@@ -505,11 +521,16 @@ type PunishmentForSelect struct {
 	MyModel
 	StudentID         int    `json:"student_id" gorm:"primary_Key;" sql:"type:INT(11) NOT NULL"` // 学生ID
 	Reason            string `json:"reason" gorm:"size:60"`                                      // 处分原因
-	PunishmentLevelID int    `json:"punishment_level_id"`                                        // 处分等级
-	Level             string `json:"punishment_name"`
-	IsCancelled       bool   `json:"is_cancelled"` // 处分是否被清除
+	PunishmentLevelID int    `json:"punishment_level_id"`                                        // 处分等级ID
+	Level             string `json:"punishment_name"`                                            // 处罚等级
+	IsCancelled       bool   `json:"is_cancelled"`                                               // 处分是否被清除
 }
 
+//
+//
+//以下为上面结构体的切片类型，可以将GORM查询到的多条记录存到以下类型的变量中
+//
+//
 type CourseForChooses []CourseForChoose
 type HomeworkUploadRecordsForSelects []HomeworkUploadRecordsForSelect
 type HomeworkUploadRecords []HomeworkUploadRecord
@@ -541,6 +562,7 @@ type Classrooms []Classroom
 type Titles []Title
 type Admins []Admin
 
+//初始化数据库
 func CreateDatabase(db *gorm.DB) {
 	db.AutoMigrate(&Notification{}, &User{}, &Title{}, &Faculty{}, &Teacher{}, &Elective{}, &Admin{}, &Classroom{}, &DirectionToSpecialty{}, &Course{}, &Student{}, &HomeworkUploadRecord{}, &Homework{}, &Question{}, &Student2Course{}, &ApplyForCourseChange{}, &IndependentPractice{}, &PunishmentLevel{}, &Punishment{})
 	db.Debug().Exec("alter table admins AUTO_INCREMENT=1;")
@@ -548,22 +570,22 @@ func CreateDatabase(db *gorm.DB) {
 	db.Debug().Exec("alter table students AUTO_INCREMENT=1000000;")
 	Password, _ := bcrypt.GenerateFromPassword([]byte("admin"), bcrypt.DefaultCost)
 	admin := Admin{
-		Name:     "Admin",
+		Name: "Admin",
 	}
 	user1 := User{
 		ID:       1,
 		Password: string(Password),
 	}
 	teacher := Teacher{
-		Name:      "无",
-		Faculty:   Faculty{
+		Name: "无",
+		Faculty: Faculty{
 			Name: "全体学院",
 		},
 		FacultyID: 0,
-		Title:     Title{
+		Title: Title{
 			Name: "讲师",
 		},
-		TitleID:   0,
+		TitleID: 0,
 	}
 	notification := Notification{
 		Notification: "",
