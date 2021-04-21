@@ -270,8 +270,6 @@ export default {
         this.current_time = response.data.current_time
         let year = this.current_time.substr(0, 4)
         let month = this.current_time.substr(5, 2)
-        year = "2020"
-        month = "09"
         this.getDirectionList();
         this.getTeacherList();
         if (year === (this.student_year + 2).toString() && month === "06") {

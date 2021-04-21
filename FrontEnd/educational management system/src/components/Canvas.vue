@@ -237,11 +237,11 @@
                       </div>
                     </v-row>
                     <v-row class="mr-0">
-                      <v-col class="col-8">
+                      <v-col class="col-7">
                         <v-text-field label="请输入成绩" hide-details class="pa-0 ma-0"
                                       v-model.number="SelectObjScore"></v-text-field>
                       </v-col>
-                      <v-col class="col-2">
+                      <v-col class="col-3">
                         <div class="py-2 align-center" style="font-size: 18px">/{{ SelectObj.question_max_score }}</div>
                       </v-col>
                       <v-col class="col-2">
