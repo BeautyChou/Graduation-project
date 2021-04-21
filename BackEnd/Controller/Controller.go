@@ -42,12 +42,12 @@ func Auth(db *gorm.DB) func(c *gin.Context) {
 				"msg": "加密失败！",
 			})
 		}
-		db.Debug().Model(&Model.User{}).Where("id = ?", user.ID).Find(&temp)
+		db.Model(&Model.User{}).Where("id = ?", user.ID).Find(&temp)
 		if err = bcrypt.CompareHashAndPassword([]byte(temp.Password), []byte(user.Password)); err == nil {
 			TokenString, _ := Middleware.GenToken(strconv.Itoa(user.ID))
 			if user.ID > 0 && user.ID < 100000 {
 				admin := &Model.Admin{}
-				db.Debug().Model(&Model.Admin{}).Where("id = ?", temp.ID).Scan(&admin)
+				db.Model(&Model.Admin{}).Where("id = ?", temp.ID).Scan(&admin)
 				c.JSON(http.StatusOK, gin.H{
 					"ID":       admin.ID,
 					"level":    3,
@@ -57,7 +57,7 @@ func Auth(db *gorm.DB) func(c *gin.Context) {
 				})
 			} else if user.ID >= 100000 && user.ID < 1000000 {
 				teacher := &Model.TeacherForSelect{}
-				db.Debug().Model(&Model.Teacher{}).Where("id = ?", temp.ID).Scan(&teacher)
+				db.Model(&Model.Teacher{}).Where("id = ?", temp.ID).Scan(&teacher)
 				c.JSON(http.StatusOK, gin.H{
 					"ID":         teacher.ID,
 					"level":      2,
@@ -68,7 +68,7 @@ func Auth(db *gorm.DB) func(c *gin.Context) {
 				})
 			} else {
 				student := &Model.StudentForSelect{}
-				db.Debug().Model(&Model.Student{}).Where("id = ?", temp.ID).Scan(&student)
+				db.Model(&Model.Student{}).Where("id = ?", temp.ID).Scan(&student)
 				c.JSON(http.StatusOK, gin.H{
 					"ID":           student.ID,
 					"level":        1,
@@ -118,9 +118,9 @@ func CheckedImage(db *gorm.DB) func(ctx *gin.Context) {
 			return
 		}
 		file.Filename = studentID + "-checked"
-		dst := fmt.Sprintf("D:/FinProject/BackEnd/images/%s/%s/%s", homeworkID, questionID, file.Filename)
+		dst := fmt.Sprintf("./images/%s/%s/%s", homeworkID, questionID, file.Filename)
 		c.SaveUploadedFile(file, dst)
-		db.Debug().Model(&Model.HomeworkUploadRecord{}).Where("homework_id = ? AND question_id = ? AND student_id = ?", homeworkID, questionID, studentID).Updates(&Model.HomeworkUploadRecord{
+		db.Model(&Model.HomeworkUploadRecord{}).Where("homework_id = ? AND question_id = ? AND student_id = ?", homeworkID, questionID, studentID).Updates(&Model.HomeworkUploadRecord{
 			Score:    scoreNum,
 			IsScored: true,
 		})
@@ -149,8 +149,8 @@ func HomeworkJudgeList(db *gorm.DB) func(*gin.Context) {
 		var HomeworkJudgeLists Model.HomeworkUploadRecordsForSelects
 		var checked int64
 		homework := c.Query("homework_id")
-		db.Debug().Raw("SELECT name,homework_upload_records.question_id,student_id,score,is_scored,content,question_max_score from homework_upload_records RIGHT JOIN questions ON homework_upload_records.question_id = questions.id LEFT JOIN students On students.id=homework_upload_records.student_id RIGHT JOIN homeworks on homeworks.id = homework_upload_records.homework_id AND homeworks.question_id = homework_upload_records.question_id where homework_id = ? AND homework_upload_records.deleted_at is null AND questions.deleted_at is null AND students.deleted_at is null AND homeworks.deleted_at is null", homework).Scan(&HomeworkJudgeLists)
-		db.Debug().Model(&Model.HomeworkUploadRecord{}).Where("homework_id = ? AND is_scored = 1", homework).Count(&checked)
+		db.Raw("SELECT name,homework_upload_records.question_id,student_id,score,is_scored,content,question_max_score from homework_upload_records RIGHT JOIN questions ON homework_upload_records.question_id = questions.id LEFT JOIN students On students.id=homework_upload_records.student_id RIGHT JOIN homeworks on homeworks.id = homework_upload_records.homework_id AND homeworks.question_id = homework_upload_records.question_id where homework_id = ? AND homework_upload_records.deleted_at is null AND questions.deleted_at is null AND students.deleted_at is null AND homeworks.deleted_at is null", homework).Scan(&HomeworkJudgeLists)
+		db.Model(&Model.HomeworkUploadRecord{}).Where("homework_id = ? AND is_scored = 1", homework).Count(&checked)
 		c.JSON(http.StatusOK, gin.H{
 			"lists":   HomeworkJudgeLists,
 			"checked": checked,
@@ -167,9 +167,9 @@ func GetCourseList(db *gorm.DB) func(c *gin.Context) {
 		var studentId = c.Query("student_id")
 		var courses Model.CourseForSelects
 		if studentId == "" {
-			db.Debug().Model(&Model.Course{}).Select("courses.id,course_name,credit,teacher_id,classroom_id,max_choose_num,selected_num,start_time,end_time,name,courses.record_id").Joins("right join teachers on courses.teacher_id = teachers.id").Where("teacher_id = ? AND copy_flag = 0", teacherId).Group("record_id").Count(&count).Offset((page - 1) * items).Limit(items).Scan(&courses)
+			db.Debug().Model(&Model.Course{}).Select("courses.id,course_name,credit,teacher_id,classroom_id,max_choose_num,selected_num,start_time,end_time,name,courses.record_id,start_week,end_week").Joins("right join teachers on courses.teacher_id = teachers.id").Where("teacher_id = ? AND copy_flag = 0", teacherId).Group("record_id").Count(&count).Offset((page - 1) * items).Limit(items).Scan(&courses)
 		} else {
-			db.Debug().Model(&Model.Student2Course{}).Select("courses.id,course_name,credit,teacher_id,classroom_id,max_choose_num,selected_num,start_time,end_time,name,courses.record_id").Joins("left join courses on courses.record_id = student2_courses.record_id right join teachers on courses.teacher_id = teachers.id").Where("student_id = ?", studentId).Count(&count).Offset((page - 1) * items).Limit(items).Scan(&courses)
+			db.Debug().Model(&Model.Student2Course{}).Select("courses.id,course_name,credit,teacher_id,classroom_id,max_choose_num,selected_num,start_time,end_time,name,courses.record_id,start_week,end_week").Joins("left join courses on courses.record_id = student2_courses.record_id right join teachers on courses.teacher_id = teachers.id").Where("student_id = ?", studentId).Count(&count).Offset((page - 1) * items).Limit(items).Scan(&courses)
 		}
 		c.JSON(http.StatusOK, gin.H{
 			"courses": courses,
@@ -186,8 +186,8 @@ func GetHomeworkList(db *gorm.DB) func(c *gin.Context) {
 		var courseId = c.Query("course_id")
 		var recordId = c.Query("record_id")
 		var homeworks Model.HomeworkForSelects
-		db.Debug().Model(&[]Model.Homework{}).Where("course_id = ? AND record_id = ?", courseId, recordId).Group("id").Count(&count).Offset((page - 1) * items).Limit(items).Scan(&homeworks)
-		//db.Debug().Raw("Select * from homeworks where course_id = ? AND deleted_at is NULL GROUP BY id", courseId).Scan(&homeworks)
+		db.Model(&[]Model.Homework{}).Where("course_id = ? AND record_id = ?", courseId, recordId).Group("id").Count(&count).Offset((page - 1) * items).Limit(items).Scan(&homeworks)
+		//db.Raw("Select * from homeworks where course_id = ? AND deleted_at is NULL GROUP BY id", courseId).Scan(&homeworks)
 		c.JSON(http.StatusOK, gin.H{
 			"homeworks": homeworks,
 			"time":      time.Now(),
@@ -199,7 +199,7 @@ func GetHomeworkList(db *gorm.DB) func(c *gin.Context) {
 func DeleteHomework(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var id = c.Query("id")
-		db.Debug().Where("id = ?", id).Delete(&Model.Homework{})
+		db.Where("id = ?", id).Delete(&Model.Homework{})
 		c.JSON(http.StatusOK, gin.H{
 			"id": id,
 		})
@@ -211,11 +211,11 @@ func PostQuestion(db *gorm.DB) func(c *gin.Context) {
 		var content = c.PostForm("content")
 		var question Model.Question
 		var newQuestion Model.Question
-		db.Debug().Last(&question)
+		db.Last(&question)
 		fmt.Println(question)
 		newQuestion.ID = question.ID + 1
 		newQuestion.Content = content
-		db.Debug().Create(&newQuestion)
+		db.Create(&newQuestion)
 		c.JSON(http.StatusOK, gin.H{
 			"id": newQuestion.ID,
 		})
@@ -225,7 +225,7 @@ func PostQuestion(db *gorm.DB) func(c *gin.Context) {
 func GetContentList(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var questions Model.QuestionForSelects
-		db.Debug().Raw("select * from questions").Scan(&questions)
+		db.Raw("select * from questions").Scan(&questions)
 		c.JSON(http.StatusOK, gin.H{
 			"questions": questions,
 		})
@@ -235,9 +235,10 @@ func GetContentList(db *gorm.DB) func(c *gin.Context) {
 func GetNewHomeworkID(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var homework Model.Homework
-		db.Debug().Unscoped().Order("id desc").Last(&homework)
+		db.Unscoped().Order("id desc").Last(&homework)
+		fmt.Println(homework.ID)
 		homework.ID++
-		db.Debug().Create(&homework)
+		db.Create(&homework)
 		c.JSON(http.StatusOK, gin.H{
 			"id": homework.ID,
 		})
@@ -251,17 +252,25 @@ func CreateHomework(db *gorm.DB) func(c *gin.Context) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		db.Debug().Unscoped().Where("id = ?", questions[0].ID).Delete(&Model.Homework{})
+		db.Unscoped().Where("id = ?", questions[0].ID).Delete(&Model.Homework{})
 		id := utils.ToString(questions[0].ID)
+		// 创建文件夹并修改权限
+		err1 := os.MkdirAll("./images/"+id, 0777)
+		err2 := os.Chmod("./images/"+id, 0777)
+		if err1 != nil || err2 != nil {
+			fmt.Println(err1, err2)
+			return
+		}
 		for _, item := range questions {
-			err := os.MkdirAll("./images/"+id+"/"+utils.ToString(item.QuestionID), 0666)
-			if err != nil {
-				fmt.Println(err)
+			err1 := os.MkdirAll("./images/"+id+"/"+utils.ToString(item.QuestionID), 0666)
+			err2 := os.Chmod("./images/"+id+"/"+utils.ToString(item.QuestionID), 0777)
+			if err1 != nil || err2 != nil {
+				fmt.Println(err1, err2)
 				return
 			}
 		}
 
-		db.Debug().Create(&questions)
+		db.Create(&questions)
 	}
 }
 
@@ -274,11 +283,11 @@ func GetQuestionList(db *gorm.DB) func(c *gin.Context) {
 		var records Model.HomeworkUploadRecordsForSelects
 		homeworkID := c.Query("homework_id")
 		studentId := c.Query("student_id")
-		db.Debug().Model(&Model.Homework{}).Select("dead_line,homework_title,question_max_score,content,question_id,record_id").Joins("right join questions on homeworks.question_id = questions.id ").Where("homeworks.id = ?", homeworkID).Count(&count).Offset((page - 1) * items).Limit(items).Scan(&questions)
-		//db.Debug().Raw("select dead_line,homework_title,question_max_score,content,question_id,record_id from homeworks right join questions on homeworks.question_id = questions.id where homeworks.id = ?", homeworkID).Count(&count).Offset((page - 1) * items).Limit(items).Scan(&questions)
+		db.Model(&Model.Homework{}).Select("dead_line,homework_title,question_max_score,content,question_id,record_id").Joins("right join questions on homeworks.question_id = questions.id ").Where("homeworks.id = ?", homeworkID).Count(&count).Offset((page - 1) * items).Limit(items).Scan(&questions)
+		//db.Raw("select dead_line,homework_title,question_max_score,content,question_id,record_id from homeworks right join questions on homeworks.question_id = questions.id where homeworks.id = ?", homeworkID).Count(&count).Offset((page - 1) * items).Limit(items).Scan(&questions)
 		if studentId != "" {
-			db.Debug().Model(&Model.HomeworkUploadRecord{}).Where("homework_id = ? AND student_id = ?", homeworkID, studentId).Count(&count).Offset((page - 1) * items).Limit(items).Scan(&records)
-			//db.Debug().Raw("select * from homework_upload_records where homework_id = ? AND student_id = ?", homeworkID, studentId).Count(&count).Offset((page - 1) * items).Limit(items).Scan(&records)
+			db.Model(&Model.HomeworkUploadRecord{}).Where("homework_id = ? AND student_id = ?", homeworkID, studentId).Count(&count).Offset((page - 1) * items).Limit(items).Scan(&records)
+			//db.Raw("select * from homework_upload_records where homework_id = ? AND student_id = ?", homeworkID, studentId).Count(&count).Offset((page - 1) * items).Limit(items).Scan(&records)
 			for _, value := range records {
 				for i, v := range questions {
 					fmt.Println(v.QuestionId == value.QuestionID)
@@ -320,8 +329,12 @@ func PostHomework(db *gorm.DB) func(c *gin.Context) {
 		}
 		file.Filename = studentID
 		dst := fmt.Sprintf("./images/%s/%s/%s", homeworkID, questionID, file.Filename)
-		_ = c.SaveUploadedFile(file, dst)
-		db.Debug().Create(&record)
+		err = c.SaveUploadedFile(file, dst)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		db.Create(&record)
 		c.JSON(http.StatusOK, gin.H{
 			"message": fmt.Sprintf("'%s' uploaded!", file.Filename),
 		})
@@ -333,7 +346,7 @@ func GetReviewList(db *gorm.DB) func(c *gin.Context) {
 		var reviwes Model.RecordForReviews
 		homeworkID := c.Query("homework_id")
 		studentId := c.Query("student_id")
-		db.Debug().Raw("select * from homework_upload_records right join homeworks h on h.id = homework_upload_records.homework_id AND h.question_id = homework_upload_records.question_id right join questions q on q.id = h.question_id where homework_id =? AND student_id = ?", homeworkID, studentId).Scan(&reviwes)
+		db.Raw("select * from homework_upload_records right join homeworks h on h.id = homework_upload_records.homework_id AND h.question_id = homework_upload_records.question_id right join questions q on q.id = h.question_id where homework_id =? AND student_id = ?", homeworkID, studentId).Scan(&reviwes)
 		c.JSON(http.StatusOK, gin.H{
 			"reviews": reviwes,
 		})
@@ -357,17 +370,17 @@ func GetClassesList(db *gorm.DB) func(c *gin.Context) {
 		fmt.Println(level)
 		if level == "2" {
 			tId := c.Query("teacher_id")
-			db.Debug().Find("teacher_id = ?", tId, &Model.Course{}).Count(&count).Offset((page - 1) * items).Limit(items).Scan(&classes)
+			db.Find("teacher_id = ?", tId, &Model.Course{}).Count(&count).Offset((page - 1) * items).Limit(items).Scan(&classes)
 			c.JSON(http.StatusOK, gin.H{
 				"classes": classes,
 			})
 		} else {
-			db.Debug().Find(&[]Model.Teacher{}).Where("title_id <> 0 AND teachers.id <> 100000").Scan(&teachers)
-			db.Debug().Find(&[]Model.Course{}).Order("id asc").Count(&count).Offset((page - 1) * items).Limit(items).Scan(&classes)
-			db.Debug().Find(&[]Model.Faculty{}).Where("id <> 1").Scan(&faculties)
-			db.Debug().Find(&[]Model.DirectionToSpecialty{}).Scan(&specialties)
-			db.Debug().Find(&[]Model.DirectionToSpecialty{}).Scan(&directions)
-			db.Debug().Find(&[]Model.Classroom{}).Scan(&classrooms)
+			db.Find(&[]Model.Teacher{}).Where("title_id <> 0 AND teachers.id <> 100000").Scan(&teachers)
+			db.Find(&[]Model.Course{}).Order("id asc").Count(&count).Offset((page - 1) * items).Limit(items).Scan(&classes)
+			db.Find(&[]Model.Faculty{}).Where("id <> 1").Scan(&faculties)
+			db.Find(&[]Model.DirectionToSpecialty{}).Scan(&specialties)
+			db.Find(&[]Model.DirectionToSpecialty{}).Scan(&directions)
+			db.Find(&[]Model.Classroom{}).Scan(&classrooms)
 			for _, v := range specialties {
 				facultyToSpecialty[v.FacultyID] = append(facultyToSpecialty[v.FacultyID], v)
 			}
@@ -409,30 +422,30 @@ func PostNewClass(db *gorm.DB) func(c *gin.Context) {
 		course.Selectable = c.PostForm("selectable") == "true"
 		flag := c.PostForm("flag")
 		if flag == "copy" || flag == "course" {
-			db.Debug().Select("id").Where("course_name = ?", course.CourseName).Last(&courseTemp)
+			db.Select("id").Where("course_name = ?", course.CourseName).Last(&courseTemp)
 		} else {
-			db.Debug().Unscoped().Select("id").Order("id desc").Limit(1).Find(&courseTemp)
+			db.Unscoped().Select("id").Order("id desc").Limit(1).Find(&courseTemp)
 			courseTemp.ID++
 		}
-		db.Debug().Unscoped().Select("record_id").Order("record_id desc").Limit(1).Find(&course)
+		db.Unscoped().Select("record_id").Order("record_id desc").Limit(1).Find(&course)
 		course.RecordID++
 		course.ID = courseTemp.ID
 		fmt.Println(course)
-		db.Debug().Create(&course)
+		db.Create(&course)
 		c.JSON(http.StatusOK, gin.H{
 			"snackbar":  "setSuccess",
 			"msg":       "添加课程成功",
 			"snackbar2": "closeSuccess",
 		})
 
-		//db.Debug().Create(&course)
+		//db.Create(&course)
 	}
 }
 
 func DeleteClass(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var id = c.Query("record_id")
-		result := db.Debug().Where("record_id = ? OR copy_flag = ?", id, id).Delete(&Model.Course{})
+		result := db.Where("record_id = ? OR copy_flag = ?", id, id).Delete(&Model.Course{})
 		fmt.Println(result.RowsAffected)
 		c.JSON(http.StatusOK, gin.H{
 			"snackbar":  "setSuccess",
@@ -457,7 +470,7 @@ func UploadClass(db *gorm.DB) func(c *gin.Context) {
 		}
 		for _, v := range classes {
 			fmt.Println(v)
-			db.Debug().Where("record_id = ?", v.RecordID).Updates(&Model.Course{
+			db.Where("record_id = ?", v.RecordID).Updates(&Model.Course{
 				CourseName:   v.CourseName,
 				Credit:       v.Credit,
 				TeacherID:    v.TeacherID,
@@ -486,7 +499,7 @@ func PostApply(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		apply := &Model.ApplyForCourseChange{}
 		c.ShouldBindJSON(&apply)
-		db.Debug().Create(&apply)
+		db.Create(&apply)
 		c.JSON(http.StatusOK, gin.H{
 			"snackbar":  "setSuccess",
 			"msg":       "提交请求成功！",
@@ -499,13 +512,13 @@ func GetApply(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		level, _ := strconv.Atoi(c.Query("level"))
 		classrooms := &Model.ClassroomForSelects{}
-		db.Debug().Find(&[]Model.Classroom{}).Scan(&classrooms)
+		db.Find(&[]Model.Classroom{}).Scan(&classrooms)
 		applies := &Model.Applies{}
 		if level < 3 {
 			teacherId := c.Query("teacher_id")
-			db.Debug().Model(&Model.ApplyForCourseChange{}).Select("apply_for_course_changes.*,t.name,c2.course_name").Joins("left join teachers t on t.id = apply_for_course_changes.teacher_id left join courses c2 on apply_for_course_changes.course_id = c2.id ").Where("c2.copy_flag = 0 AND c.teacher_id = ?", teacherId).Scan(&applies)
+			db.Model(&Model.ApplyForCourseChange{}).Select("apply_for_course_changes.*,t.name,c2.course_name").Joins("left join teachers t on t.id = apply_for_course_changes.teacher_id left join courses c2 on apply_for_course_changes.course_id = c2.id ").Where("c2.copy_flag = 0 AND c.teacher_id = ?", teacherId).Scan(&applies)
 		} else {
-			db.Debug().Model(&Model.ApplyForCourseChange{}).Select("apply_for_course_changes.*,t.name,c2.course_name").Joins("left join teachers t on t.id = apply_for_course_changes.teacher_id left join courses c2 on apply_for_course_changes.course_id = c2.id ").Where("copy_flag = 0").Group("apply_for_course_changes.id").Scan(&applies)
+			db.Model(&Model.ApplyForCourseChange{}).Select("apply_for_course_changes.*,t.name,c2.course_name").Joins("left join teachers t on t.id = apply_for_course_changes.teacher_id left join courses c2 on apply_for_course_changes.course_id = c2.id ").Where("copy_flag = 0").Group("apply_for_course_changes.id").Scan(&applies)
 		}
 		c.JSON(http.StatusOK, gin.H{
 			"applies":    applies,
@@ -518,23 +531,23 @@ func OperateApply(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		result, _ := strconv.Atoi(c.PostForm("result"))
 		id := c.PostForm("id") //course_id
-		db.Debug().Model(&Model.ApplyForCourseChange{}).Where("id = ?", id).Update("result", result)
+		db.Model(&Model.ApplyForCourseChange{}).Where("id = ?", id).Update("result", result)
 		if result == 1 {
 			apply := &Model.ApplyForCourseChange{}
 			course := &Model.Course{}
 			tempCourse := &Model.Course{}
-			db.Debug().Where("id = ?", id).Find(&apply)
-			db.Debug().Where("id = ? AND week_time = ? AND ( IF(start_time > ? ,start_time,?)<=IF(end_time<?,end_time,?) )", apply.CourseID, apply.BeforeWeekTime, apply.BeforeStartTime, apply.BeforeStartTime, apply.BeforeEndTime, apply.BeforeEndTime).Find(&course)
+			db.Where("id = ?", id).Find(&apply)
+			db.Where("id = ? AND week_time = ? AND ( IF(start_time > ? ,start_time,?)<=IF(end_time<?,end_time,?) )", apply.CourseID, apply.BeforeWeekTime, apply.BeforeStartTime, apply.BeforeStartTime, apply.BeforeEndTime, apply.BeforeEndTime).Find(&course)
 
 			if course.StartWeek == apply.BeforeStartWeek && course.EndWeek == apply.BeforeEndWeek {
-				db.Debug().Model(&Model.Course{}).Where("record_id = ?", course.RecordID).Update("start_time", apply.AfterStartTime).Update("end_time", apply.AfterEndWeek)
+				db.Debug().Model(&Model.Course{}).Where("record_id = ?", course.RecordID).Update("start_time", apply.AfterStartTime).Update("end_time", apply.AfterEndTime).Update("week_time", apply.AfterWeekTime)
 				c.JSON(http.StatusOK, 0)
 				return
 			} else if course.StartWeek == apply.BeforeStartWeek || course.EndWeek == apply.BeforeEndWeek {
 				if course.StartWeek == apply.BeforeStartWeek {
-					db.Debug().Model(&Model.Course{}).Where("record_id = ?", course.RecordID).Update("start_week", apply.BeforeEndWeek+1)
+					db.Model(&Model.Course{}).Where("record_id = ?", course.RecordID).Update("start_week", apply.BeforeEndWeek+1)
 				} else {
-					db.Debug().Model(&Model.Course{}).Where("record_id = ?", course.RecordID).Update("end_week", apply.BeforeStartWeek-1)
+					db.Model(&Model.Course{}).Where("record_id = ?", course.RecordID).Update("end_week", apply.BeforeStartWeek-1)
 				}
 			} else {
 				fmt.Println(course)
@@ -542,10 +555,10 @@ func OperateApply(db *gorm.DB) func(c *gin.Context) {
 				courseOBJ1.StartWeek = apply.BeforeEndWeek + 1
 				courseOBJ1.EndWeek = course.EndWeek
 				courseOBJ1.CopyFlag = course.RecordID
-				db.Debug().Unscoped().Select("record_id").Order("record_id desc").Limit(1).Find(&tempCourse)
-				db.Debug().Model(&Model.Course{}).Where("record_id = ?", course.RecordID).Update("end_week", apply.BeforeStartWeek-1)
+				db.Unscoped().Select("record_id").Order("record_id desc").Limit(1).Find(&tempCourse)
+				db.Model(&Model.Course{}).Where("record_id = ?", course.RecordID).Update("end_week", apply.BeforeStartWeek-1)
 				courseOBJ1.RecordID = tempCourse.RecordID + 1
-				db.Debug().Create(&courseOBJ1)
+				db.Create(&courseOBJ1)
 			}
 			courseOBJ2 := course
 			courseOBJ2.StartWeek = apply.AfterStartWeek
@@ -556,9 +569,9 @@ func OperateApply(db *gorm.DB) func(c *gin.Context) {
 			courseOBJ2.EndTime = apply.AfterEndTime
 			courseOBJ2.CopyFlag = course.RecordID
 			course = &Model.Course{}
-			db.Debug().Unscoped().Select("record_id").Order("record_id desc").Limit(1).Find(&course)
+			db.Unscoped().Select("record_id").Order("record_id desc").Limit(1).Find(&course)
 			courseOBJ2.RecordID = course.RecordID + 1
-			db.Debug().Create(courseOBJ2)
+			db.Create(courseOBJ2)
 		}
 		c.JSON(http.StatusOK, 0)
 	}
@@ -589,17 +602,17 @@ func ValidClassrooms(db *gorm.DB) func(c *gin.Context) {
 		if course.MaxChooseNum == 0 {
 			// 申请换课
 			class := &Model.Course{}
-			db.Debug().Model(&Model.Course{}).Where("record_id = ?", course.RecordID).Scan(&class)
-			db.Debug().Model(&Model.Classroom{}).Where("max_num < ?", class.MaxChooseNum).Scan(&tempClassrooms3)
+			db.Model(&Model.Course{}).Where("record_id = ?", course.RecordID).Scan(&class)
+			db.Model(&Model.Classroom{}).Where("max_num < ?", class.MaxChooseNum).Scan(&tempClassrooms3)
 		} else {
 			// 设置课程
-			db.Debug().Model(&Model.Classroom{}).Where("max_num < ?", course.MaxChooseNum).Scan(&tempClassrooms3)
+			db.Model(&Model.Classroom{}).Where("max_num < ?", course.MaxChooseNum).Scan(&tempClassrooms3)
 		}
 		timeNode := c.PostForm("time")
 		flag := c.PostForm("flag")
 		if timeNode == "after" || timeNode == "applyAfter" {
 			if timeNode == "applyAfter" {
-				db.Debug().Model(&Model.Course{}).Select("faculty_id,direction_id,specialty_id,teacher_id,record_id").Joins("left join classrooms c on c.id = courses.classroom_id").Where(" courses.id = ? AND start_time = ? and end_time = ? AND (IF(start_week > ? ,start_week,?)<=IF(end_week<?,end_week,?)) AND week_time = ?", course.ID, course.StartTime, course.EndTime, course.StartWeek, course.StartWeek, course.EndWeek, course.EndWeek, course.WeekTime).Group("c.name").Scan(&tempCourse)
+				db.Debug().Model(&Model.Course{}).Select("faculty_id,direction_id,specialty_id,teacher_id,record_id").Where(" courses.id = ?", course.ID).Scan(&tempCourse)
 				course.FacultyID = tempCourse.FacultyID
 				course.DirectionID = tempCourse.DirectionID
 				course.SpecialtyID = tempCourse.SpecialtyID
@@ -608,37 +621,37 @@ func ValidClassrooms(db *gorm.DB) func(c *gin.Context) {
 				if flag != "not" {
 					//判断教师、上课同学时间是否有冲突
 					if course.DirectionID == 0 && course.SpecialtyID == 0 {
-						db.Debug().Model(&Model.Classroom{}).Where("(select count(1) from courses where (IF(start_time > ? ,start_time,?)<=IF(end_time<?,end_time,?)) AND (IF(start_week > ? ,start_week,?)<=IF(end_week<?,end_week,?)) AND week_time = ? AND (teacher_id = ? OR(faculty_id = ? AND (specialty_id = 0) AND (direction_id = 0))) AND record_id <> ?) > 0", course.StartTime, course.StartTime, course.EndTime, course.EndTime, course.StartWeek, course.StartWeek, course.EndWeek, course.EndWeek, course.WeekTime, course.TeacherID, course.FacultyID, course.RecordID).Scan(&tempClassrooms1)
+						db.Debug().Model(&Model.Classroom{}).Where("(select count(1) from courses where (IF(start_time > ? ,start_time,?)<=IF(end_time<?,end_time,?)) AND (IF(start_week > ? ,start_week,?)<=IF(end_week<?,end_week,?)) AND week_time = ? AND courses.deleted_at IS NULL AND (teacher_id = ? OR(faculty_id = ? AND (specialty_id = 0) AND (direction_id = 0))) AND record_id <> ?) > 0", course.StartTime, course.StartTime, course.EndTime, course.EndTime, course.StartWeek, course.StartWeek, course.EndWeek, course.EndWeek, course.WeekTime, course.TeacherID, course.FacultyID, course.RecordID).Scan(&tempClassrooms1)
 					} else if course.DirectionID == 0 {
-						db.Debug().Model(&Model.Classroom{}).Where("(select count(1) from courses where (IF(start_time > ? ,start_time,?)<=IF(end_time<?,end_time,?)) AND (IF(start_week > ? ,start_week,?)<=IF(end_week<?,end_week,?)) AND week_time = ? AND (teacher_id = ? OR(faculty_id = ? AND (specialty_id = ? OR specialty_id = 0) AND (direction_id = 0))) AND record_id <> ? ) > 0", course.StartTime, course.StartTime, course.EndTime, course.EndTime, course.StartWeek, course.StartWeek, course.EndWeek, course.EndWeek, course.WeekTime, course.TeacherID, course.FacultyID, course.SpecialtyID, course.RecordID).Scan(&tempClassrooms1)
+						db.Debug().Model(&Model.Classroom{}).Where("(select count(1) from courses where (IF(start_time > ? ,start_time,?)<=IF(end_time<?,end_time,?)) AND (IF(start_week > ? ,start_week,?)<=IF(end_week<?,end_week,?)) AND week_time = ? AND courses.deleted_at IS NULL AND (teacher_id = ? OR(faculty_id = ? AND (specialty_id = ? OR specialty_id = 0) AND (direction_id = 0))) AND record_id <> ? ) > 0", course.StartTime, course.StartTime, course.EndTime, course.EndTime, course.StartWeek, course.StartWeek, course.EndWeek, course.EndWeek, course.WeekTime, course.TeacherID, course.FacultyID, course.SpecialtyID, course.RecordID).Scan(&tempClassrooms1)
 					} else if course.SpecialtyID == 0 {
-						db.Debug().Model(&Model.Classroom{}).Where("(select count(1) from courses where (IF(start_time > ? ,start_time,?)<=IF(end_time<?,end_time,?)) AND (IF(start_week > ? ,start_week,?)<=IF(end_week<?,end_week,?)) AND week_time = ? AND (teacher_id = ? OR(faculty_id = ? AND (specialty_id = 0) AND (direction_id = ? OR direction_id = 0))) AND record_id <> ? ) > 0", course.StartTime, course.StartTime, course.EndTime, course.EndTime, course.StartWeek, course.StartWeek, course.EndWeek, course.EndWeek, course.WeekTime, course.TeacherID, course.FacultyID, course.DirectionID, course.RecordID).Scan(&tempClassrooms1)
+						db.Debug().Model(&Model.Classroom{}).Where("(select count(1) from courses where (IF(start_time > ? ,start_time,?)<=IF(end_time<?,end_time,?)) AND (IF(start_week > ? ,start_week,?)<=IF(end_week<?,end_week,?)) AND week_time = ? AND courses.deleted_at IS NULL AND (teacher_id = ? OR(faculty_id = ? AND (specialty_id = 0) AND (direction_id = ? OR direction_id = 0))) AND record_id <> ? ) > 0", course.StartTime, course.StartTime, course.EndTime, course.EndTime, course.StartWeek, course.StartWeek, course.EndWeek, course.EndWeek, course.WeekTime, course.TeacherID, course.FacultyID, course.DirectionID, course.RecordID).Scan(&tempClassrooms1)
 					} else {
-						db.Debug().Model(&Model.Classroom{}).Where("(select count(1) from courses where (IF(start_time > ? ,start_time,?)<=IF(end_time<?,end_time,?)) AND (IF(start_week > ? ,start_week,?)<=IF(end_week<?,end_week,?)) AND week_time = ? AND (teacher_id = ? OR(faculty_id = ? AND (specialty_id = ? OR specialty_id = 0) AND (direction_id = ? OR direction_id = 0))) AND record_id <> ? ) > 0", course.StartTime, course.StartTime, course.EndTime, course.EndTime, course.StartWeek, course.StartWeek, course.EndWeek, course.EndWeek, course.WeekTime, course.TeacherID, course.FacultyID, course.SpecialtyID, course.DirectionID, course.RecordID).Scan(&tempClassrooms1)
+						db.Debug().Model(&Model.Classroom{}).Where("(select count(1) from courses where (IF(start_time > ? ,start_time,?)<=IF(end_time<?,end_time,?)) AND (IF(start_week > ? ,start_week,?)<=IF(end_week<?,end_week,?)) AND week_time = ? AND courses.deleted_at IS NULL AND (teacher_id = ? OR(faculty_id = ? AND (specialty_id = ? OR specialty_id = 0) AND (direction_id = ? OR direction_id = 0))) AND record_id <> ? ) > 0", course.StartTime, course.StartTime, course.EndTime, course.EndTime, course.StartWeek, course.StartWeek, course.EndWeek, course.EndWeek, course.WeekTime, course.TeacherID, course.FacultyID, course.SpecialtyID, course.DirectionID, course.RecordID).Scan(&tempClassrooms1)
 					}
 				} else {
 					//不可能有空教室的情况
 					if course.DirectionID == 0 && course.SpecialtyID == 0 {
-						db.Debug().Model(&Model.Classroom{}).Where("(select count(1) from courses where (IF(start_time > ? ,start_time,?)<=IF(end_time<?,end_time,?)) AND (IF(start_week > ? ,start_week,?)<=IF(end_week<?,end_week,?)) AND week_time = ? AND (teacher_id = ? OR(faculty_id = ? AND (specialty_id = 0) AND (direction_id = 0)))) > 0", course.StartTime, course.StartTime, course.EndTime, course.EndTime, course.StartWeek, course.StartWeek, course.EndWeek, course.EndWeek, course.WeekTime, course.TeacherID, course.FacultyID).Scan(&tempClassrooms1)
+						db.Model(&Model.Classroom{}).Where("(select count(1) from courses where (IF(start_time > ? ,start_time,?)<=IF(end_time<?,end_time,?)) AND (IF(start_week > ? ,start_week,?)<=IF(end_week<?,end_week,?)) AND week_time = ? AND (teacher_id = ? OR(faculty_id = ? AND (specialty_id = 0) AND (direction_id = 0)))) > 0", course.StartTime, course.StartTime, course.EndTime, course.EndTime, course.StartWeek, course.StartWeek, course.EndWeek, course.EndWeek, course.WeekTime, course.TeacherID, course.FacultyID).Scan(&tempClassrooms1)
 					} else if course.DirectionID == 0 {
-						db.Debug().Model(&Model.Classroom{}).Where("(select count(1) from courses where (IF(start_time > ? ,start_time,?)<=IF(end_time<?,end_time,?)) AND (IF(start_week > ? ,start_week,?)<=IF(end_week<?,end_week,?)) AND week_time = ? AND (teacher_id = ? OR(faculty_id = ? AND (specialty_id = ? OR specialty_id = 0) AND (direction_id = 0)))) > 0", course.StartTime, course.StartTime, course.EndTime, course.EndTime, course.StartWeek, course.StartWeek, course.EndWeek, course.EndWeek, course.WeekTime, course.TeacherID, course.FacultyID, course.SpecialtyID).Scan(&tempClassrooms1)
+						db.Model(&Model.Classroom{}).Where("(select count(1) from courses where (IF(start_time > ? ,start_time,?)<=IF(end_time<?,end_time,?)) AND (IF(start_week > ? ,start_week,?)<=IF(end_week<?,end_week,?)) AND week_time = ? AND (teacher_id = ? OR(faculty_id = ? AND (specialty_id = ? OR specialty_id = 0) AND (direction_id = 0)))) > 0", course.StartTime, course.StartTime, course.EndTime, course.EndTime, course.StartWeek, course.StartWeek, course.EndWeek, course.EndWeek, course.WeekTime, course.TeacherID, course.FacultyID, course.SpecialtyID).Scan(&tempClassrooms1)
 					} else if course.SpecialtyID == 0 {
-						db.Debug().Model(&Model.Classroom{}).Where("(select count(1) from courses where (IF(start_time > ? ,start_time,?)<=IF(end_time<?,end_time,?)) AND (IF(start_week > ? ,start_week,?)<=IF(end_week<?,end_week,?)) AND week_time = ? AND (teacher_id = ? OR(faculty_id = ? AND (specialty_id = 0) AND (direction_id = ? OR direction_id = 0)))) > 0", course.StartTime, course.StartTime, course.EndTime, course.EndTime, course.StartWeek, course.StartWeek, course.EndWeek, course.EndWeek, course.WeekTime, course.TeacherID, course.FacultyID, course.DirectionID).Scan(&tempClassrooms1)
+						db.Model(&Model.Classroom{}).Where("(select count(1) from courses where (IF(start_time > ? ,start_time,?)<=IF(end_time<?,end_time,?)) AND (IF(start_week > ? ,start_week,?)<=IF(end_week<?,end_week,?)) AND week_time = ? AND (teacher_id = ? OR(faculty_id = ? AND (specialty_id = 0) AND (direction_id = ? OR direction_id = 0)))) > 0", course.StartTime, course.StartTime, course.EndTime, course.EndTime, course.StartWeek, course.StartWeek, course.EndWeek, course.EndWeek, course.WeekTime, course.TeacherID, course.FacultyID, course.DirectionID).Scan(&tempClassrooms1)
 					} else {
-						db.Debug().Model(&Model.Classroom{}).Where("(select count(1) from courses where (IF(start_time > ? ,start_time,?)<=IF(end_time<?,end_time,?)) AND (IF(start_week > ? ,start_week,?)<=IF(end_week<?,end_week,?)) AND week_time = ? AND (teacher_id = ? OR(faculty_id = ? AND (specialty_id = ? OR specialty_id = 0) AND (direction_id = ? OR direction_id = 0)))) > 0", course.StartTime, course.StartTime, course.EndTime, course.EndTime, course.StartWeek, course.StartWeek, course.EndWeek, course.EndWeek, course.WeekTime, course.TeacherID, course.FacultyID, course.SpecialtyID, course.DirectionID).Scan(&tempClassrooms1)
+						db.Model(&Model.Classroom{}).Where("(select count(1) from courses where (IF(start_time > ? ,start_time,?)<=IF(end_time<?,end_time,?)) AND (IF(start_week > ? ,start_week,?)<=IF(end_week<?,end_week,?)) AND week_time = ? AND (teacher_id = ? OR(faculty_id = ? AND (specialty_id = ? OR specialty_id = 0) AND (direction_id = ? OR direction_id = 0)))) > 0", course.StartTime, course.StartTime, course.EndTime, course.EndTime, course.StartWeek, course.StartWeek, course.EndWeek, course.EndWeek, course.WeekTime, course.TeacherID, course.FacultyID, course.SpecialtyID, course.DirectionID).Scan(&tempClassrooms1)
 					}
 				}
 			} else if course.DirectionID == 0 && course.SpecialtyID == 0 {
-				db.Debug().Model(&Model.Classroom{}).Where("(select count(1) from courses where (IF(start_time > ? ,start_time,?)<=IF(end_time<?,end_time,?)) AND (IF(start_week > ? ,start_week,?)<=IF(end_week<?,end_week,?)) AND week_time = ? AND (teacher_id = ? OR(faculty_id = ? AND (specialty_id = 0) AND (direction_id = 0)))) > 0", course.StartTime, course.StartTime, course.EndTime, course.EndTime, course.StartWeek, course.StartWeek, course.EndWeek, course.EndWeek, course.WeekTime, course.TeacherID, course.FacultyID).Scan(&tempClassrooms1)
+				db.Model(&Model.Classroom{}).Where("(select count(1) from courses where (IF(start_time > ? ,start_time,?)<=IF(end_time<?,end_time,?)) AND (IF(start_week > ? ,start_week,?)<=IF(end_week<?,end_week,?)) AND week_time = ? AND courses.deleted_at IS NULL AND (teacher_id = ? OR(faculty_id = ? AND (specialty_id = 0) AND (direction_id = 0)))) > 0", course.StartTime, course.StartTime, course.EndTime, course.EndTime, course.StartWeek, course.StartWeek, course.EndWeek, course.EndWeek, course.WeekTime, course.TeacherID, course.FacultyID).Scan(&tempClassrooms1)
 			} else if course.DirectionID == 0 {
-				db.Debug().Model(&Model.Classroom{}).Where("(select count(1) from courses where (IF(start_time > ? ,start_time,?)<=IF(end_time<?,end_time,?)) AND (IF(start_week > ? ,start_week,?)<=IF(end_week<?,end_week,?)) AND week_time = ? AND (teacher_id = ? OR(faculty_id = ? AND (specialty_id = ? OR specialty_id = 0) AND (direction_id = 0)))) > 0", course.StartTime, course.StartTime, course.EndTime, course.EndTime, course.StartWeek, course.StartWeek, course.EndWeek, course.EndWeek, course.WeekTime, course.TeacherID, course.FacultyID, course.SpecialtyID).Scan(&tempClassrooms1)
+				db.Model(&Model.Classroom{}).Where("(select count(1) from courses where (IF(start_time > ? ,start_time,?)<=IF(end_time<?,end_time,?)) AND (IF(start_week > ? ,start_week,?)<=IF(end_week<?,end_week,?)) AND week_time = ? AND courses.deleted_at IS NULL AND (teacher_id = ? OR(faculty_id = ? AND (specialty_id = ? OR specialty_id = 0) AND (direction_id = 0)))) > 0", course.StartTime, course.StartTime, course.EndTime, course.EndTime, course.StartWeek, course.StartWeek, course.EndWeek, course.EndWeek, course.WeekTime, course.TeacherID, course.FacultyID, course.SpecialtyID).Scan(&tempClassrooms1)
 			} else if course.SpecialtyID == 0 {
-				db.Debug().Model(&Model.Classroom{}).Where("(select count(1) from courses where (IF(start_time > ? ,start_time,?)<=IF(end_time<?,end_time,?)) AND (IF(start_week > ? ,start_week,?)<=IF(end_week<?,end_week,?)) AND week_time = ? AND (teacher_id = ? OR(faculty_id = ? AND (specialty_id = 0) AND (direction_id = ? OR direction_id = 0)))) > 0", course.StartTime, course.StartTime, course.EndTime, course.EndTime, course.StartWeek, course.StartWeek, course.EndWeek, course.EndWeek, course.WeekTime, course.TeacherID, course.FacultyID, course.DirectionID).Scan(&tempClassrooms1)
+				db.Model(&Model.Classroom{}).Where("(select count(1) from courses where (IF(start_time > ? ,start_time,?)<=IF(end_time<?,end_time,?)) AND (IF(start_week > ? ,start_week,?)<=IF(end_week<?,end_week,?)) AND week_time = ? AND courses.deleted_at IS NULL AND (teacher_id = ? OR(faculty_id = ? AND (specialty_id = 0) AND (direction_id = ? OR direction_id = 0)))) > 0", course.StartTime, course.StartTime, course.EndTime, course.EndTime, course.StartWeek, course.StartWeek, course.EndWeek, course.EndWeek, course.WeekTime, course.TeacherID, course.FacultyID, course.DirectionID).Scan(&tempClassrooms1)
 			} else {
-				db.Debug().Model(&Model.Classroom{}).Where("(select count(1) from courses where (IF(start_time > ? ,start_time,?)<=IF(end_time<?,end_time,?)) AND (IF(start_week > ? ,start_week,?)<=IF(end_week<?,end_week,?)) AND week_time = ? AND (teacher_id = ? OR(faculty_id = ? AND (specialty_id = ? OR specialty_id = 0) AND (direction_id = ? OR direction_id = 0)))) > 0", course.StartTime, course.StartTime, course.EndTime, course.EndTime, course.StartWeek, course.StartWeek, course.EndWeek, course.EndWeek, course.WeekTime, course.TeacherID, course.FacultyID, course.SpecialtyID, course.DirectionID).Scan(&tempClassrooms1)
+				db.Model(&Model.Classroom{}).Where("(select count(1) from courses where (IF(start_time > ? ,start_time,?)<=IF(end_time<?,end_time,?)) AND (IF(start_week > ? ,start_week,?)<=IF(end_week<?,end_week,?)) AND week_time = ? AND courses.deleted_at IS NULL AND (teacher_id = ? OR(faculty_id = ? AND (specialty_id = ? OR specialty_id = 0) AND (direction_id = ? OR direction_id = 0)))) > 0", course.StartTime, course.StartTime, course.EndTime, course.EndTime, course.StartWeek, course.StartWeek, course.EndWeek, course.EndWeek, course.WeekTime, course.TeacherID, course.FacultyID, course.SpecialtyID, course.DirectionID).Scan(&tempClassrooms1)
 			}
-			db.Debug().Model(&Model.Course{}).Select("courses.classroom_id as id,c.name").Joins("left join classrooms c on c.id = courses.classroom_id").Where("(IF(start_time > ? ,start_time,?)<=IF(end_time<?,end_time,?)) AND (IF(start_week > ? ,start_week,?)<=IF(end_week<?,end_week,?)) AND week_time = ?", course.StartTime, course.StartTime, course.EndTime, course.EndTime, course.StartWeek, course.StartWeek, course.EndWeek, course.EndWeek, course.WeekTime).Group("c.name").Scan(&tempClassrooms2)
-			db.Debug().Model(&Model.Classroom{}).Not(tempClassrooms1, tempClassrooms2, tempClassrooms3).Scan(&classrooms)
+			db.Model(&Model.Course{}).Select("courses.classroom_id as id,c.name").Joins("left join classrooms c on c.id = courses.classroom_id").Where("(IF(start_time > ? ,start_time,?)<=IF(end_time<?,end_time,?)) AND (IF(start_week > ? ,start_week,?)<=IF(end_week<?,end_week,?)) AND week_time = ?", course.StartTime, course.StartTime, course.EndTime, course.EndTime, course.StartWeek, course.StartWeek, course.EndWeek, course.EndWeek, course.WeekTime).Group("c.name").Scan(&tempClassrooms2)
+			db.Model(&Model.Classroom{}).Not(tempClassrooms1, tempClassrooms2, tempClassrooms3).Scan(&classrooms)
 		} else {
 			db.Debug().Model(&Model.Course{}).Select("courses.classroom_id as id,c.name").Joins("left join classrooms c on c.id = courses.classroom_id").Where(" courses.id = ? AND start_time = ? and end_time = ? AND (IF(start_week > ? ,start_week,?)<=IF(end_week<?,end_week,?)) AND week_time = ? AND (record_id = ? OR copy_flag = ?)", course.ID, course.StartTime, course.EndTime, course.StartWeek, course.StartWeek, course.EndWeek, course.EndWeek, course.WeekTime, course.RecordID, course.RecordID).Group("c.name").Scan(&classrooms)
 		}
@@ -656,7 +669,7 @@ func GetClassSheet(db *gorm.DB) func(c *gin.Context) {
 		studentId := c.Query("student_id")
 		week := c.Query("week")
 		if teacherId == "" {
-			db.Debug().Model(&Model.Student2Course{}).Select("courses.*,t.name as teacher_name,c.name as classroom_name").Joins("left join courses on (courses.record_id = student2_Courses.record_id OR courses.copy_flag = student2_courses.record_id)").Joins("left join teachers t on t.id = courses.teacher_id").Joins("left join classrooms c on c.id = courses.classroom_id ").Where("student_id = ? AND start_week <= ? AND end_week >= ?", studentId, week, week).Scan(&courses)
+			db.Debug().Model(&Model.Student2Course{}).Select("courses.*,t.name as teacher_name,c.name as classroom_name").Joins("left join courses on (courses.record_id = student2_courses.record_id OR courses.copy_flag = student2_courses.record_id)").Joins("left join teachers t on t.id = courses.teacher_id").Joins("left join classrooms c on c.id = courses.classroom_id ").Where("student_id = ? AND start_week <= ? AND end_week >= ?", studentId, week, week).Scan(&courses)
 		} else {
 			db.Debug().Model(&Model.Course{}).Select("courses.*,t.name as teacher_name,c.name as classroom_name").Joins("left join teachers t on t.id = courses.teacher_id").Joins("left join classrooms c on c.id = courses.classroom_id ").Where("teacher_id = ? AND start_week <= ? AND end_week >= ?", teacherId, week, week).Scan(&courses)
 		}
@@ -688,18 +701,18 @@ func GetAvailableCourses(db *gorm.DB) func(c *gin.Context) {
 		specialtyId := c.Query("specialty_id")
 		courses := &Model.CourseForChooses{}
 		tempCourses := Model.Student2CourseForChooses{}
-		db.Debug().Model(&Model.Student2Course{}).Select("course_id").Where("student_id = ?", studentId).Scan(&tempCourses)
+		db.Model(&Model.Student2Course{}).Select("course_id").Where("student_id = ?", studentId).Scan(&tempCourses)
 		tempIDs := make(Model.SelectedCourseIDs, len(tempCourses))
 		for i, v := range tempCourses {
 			tempIDs[i].ID = v.CourseID
 		}
 		fmt.Println(tempCourses)
 		if directionId == "0" {
-			db.Debug().Table("(?) as F", db.Debug().Model(&Model.Course{}).Select("courses.*,count(s2c.record_id) as selected").Joins("left join student2_courses s2c on courses.record_id = s2c.record_id").Where("courses.deleted_at is null AND (courses.faculty_id = ? OR courses.faculty_id = 0) AND (courses.direction_id = 0) AND (courses.specialty_id = ? OR courses.specialty_id = 0) AND copy_flag = 0 AND selectable = 1", facultyId, specialtyId).Group("s2c.record_id")).Joins("left join teachers t on f.teacher_id = t.id").Where("F.selected_num <max_choose_num").Not(tempIDs).Count(&count).Offset((page - 1) * items).Limit(items).Scan(&courses)
-			//db.Debug().Raw("select * from (select student2_courses.record_id,count(student2_courses.record_id) from student2_courses group by record_id) F left join courses c on c.record_id = F.record_id where deleted_at is null AND (faculty_id = ? OR faculty_id = 0) AND (direction_id = 0) AND (specialty_id = ? OR specialty_id = 0) AND copy_flag = 0",facultyId,specialtyId).Joins("left join teachers on teachers.teacher_id = courses.teacher_id").Joins("left join teachers on teachers.teacher_id = courses.teacher_id").Not(tempCourses).Scan(&courses)
+			db.Debug().Table("(?) as F", db.Model(&Model.Course{}).Select("courses.*,count(s2c.record_id) as selected,courses.id as course_id").Joins("left join student2_courses s2c on courses.record_id = s2c.record_id").Where("courses.deleted_at is null AND (courses.faculty_id = ? OR courses.faculty_id = 0) AND (courses.direction_id = 0) AND (courses.specialty_id = ? OR courses.specialty_id = 0) AND copy_flag = 0 AND selectable = 1", facultyId, specialtyId).Group("courses.record_id")).Joins("left join teachers t on F.teacher_id = t.id").Where("F.selected_num <max_choose_num").Not(tempIDs).Count(&count).Offset((page - 1) * items).Limit(items).Scan(&courses)
+			//db.Raw("select * from (select student2_courses.record_id,count(student2_courses.record_id) from student2_courses group by record_id) F left join courses c on c.record_id = F.record_id where deleted_at is null AND (faculty_id = ? OR faculty_id = 0) AND (direction_id = 0) AND (specialty_id = ? OR specialty_id = 0) AND copy_flag = 0",facultyId,specialtyId).Joins("left join teachers on teachers.teacher_id = courses.teacher_id").Joins("left join teachers on teachers.teacher_id = courses.teacher_id").Not(tempCourses).Scan(&courses)
 		} else {
-			db.Debug().Table("(?) as F", db.Debug().Model(&Model.Course{}).Select("courses.*,count(s2c.record_id) as selected").Joins("left join student2_courses s2c on courses.record_id = s2c.record_id").Where("courses.deleted_at is null AND (courses.faculty_id = ? OR courses.faculty_id = 0) AND (courses.direction_id = 0 OR direction_id = ? ) AND (courses.specialty_id = ? OR courses.specialty_id = 0) AND copy_flag = 0 AND selectable = 1", facultyId, directionId, specialtyId).Group("s2c.record_id")).Joins("left join teachers t on f.teacher_id = t.id").Where("AND F.selected_num <max_choose_num").Not(tempIDs).Count(&count).Offset((page - 1) * items).Limit(items).Scan(&courses)
-			//db.Debug().Table("(?) as F",db.Debug().Model(&Model.Student2Course{}).Select("student2_courses.record_id,count(student2_courses.record_id) as selected_num").Group("record_id")).Select("F.*,c.*,t.*,F.selected_num selected_num").Joins("left join courses c on c.record_id = F.record_id").Joins("left join teachers t on t.id = c.teacher_id").Where("c.deleted_at is null AND (c.faculty_id = ? OR c.faculty_id = 0) AND (c.direction_id = 0 OR direction_id = ? ) AND (c.specialty_id = ? OR c.specialty_id = 0) AND copy_flag = 0 AND F.selected_num <c.max_choose_num",facultyId,directionId,specialtyId).Not(tempCourses).Scan(&courses)
+			db.Debug().Table("(?) as F", db.Model(&Model.Course{}).Select("courses.*,count(s2c.record_id) as selected,courses.id as course_id").Joins("left join student2_courses s2c on courses.record_id = s2c.record_id").Where("courses.deleted_at is null AND (courses.faculty_id = ? OR courses.faculty_id = 0) AND (courses.direction_id = 0 OR direction_id = ? ) AND (courses.specialty_id = ? OR courses.specialty_id = 0) AND copy_flag = 0 AND selectable = 1", facultyId, directionId, specialtyId).Group("courses.record_id")).Joins("left join teachers t on F.teacher_id = t.id").Where("AND F.selected_num <max_choose_num").Not(tempIDs).Count(&count).Offset((page - 1) * items).Limit(items).Scan(&courses)
+			//db.Table("(?) as F",db.Model(&Model.Student2Course{}).Select("student2_courses.record_id,count(student2_courses.record_id) as selected_num").Group("record_id")).Select("F.*,c.*,t.*,F.selected_num selected_num").Joins("left join courses c on c.record_id = F.record_id").Joins("left join teachers t on t.id = c.teacher_id").Where("c.deleted_at is null AND (c.faculty_id = ? OR c.faculty_id = 0) AND (c.direction_id = 0 OR direction_id = ? ) AND (c.specialty_id = ? OR c.specialty_id = 0) AND copy_flag = 0 AND F.selected_num <c.max_choose_num",facultyId,directionId,specialtyId).Not(tempCourses).Scan(&courses)
 		}
 		c.JSON(http.StatusOK, gin.H{
 			"total":   count,
@@ -716,9 +729,9 @@ func ChooseCourse(db *gorm.DB) func(c *gin.Context) {
 		record.RecordID, _ = strconv.Atoi(c.PostForm("record_id"))
 		record.StudentID, _ = strconv.Atoi(c.PostForm("student_id"))
 		record.CourseID, _ = strconv.Atoi(c.PostForm("course_id"))
-		db.Debug().Model(&Model.Course{}).Select("max_choose_num").Where("record_id = ?", record.RecordID).Scan(&course)
-		db.Debug().Create(&record)
-		db.Debug().Model(&Model.Student2Course{}).Select("count(1)").Where("record_id = ?", record.RecordID).Count(&count)
+		db.Model(&Model.Course{}).Select("max_choose_num").Where("record_id = ?", record.RecordID).Scan(&course)
+		db.Create(&record)
+		db.Model(&Model.Student2Course{}).Select("count(1)").Where("record_id = ?", record.RecordID).Count(&count)
 		fmt.Println(count, int64(course.MaxChooseNum))
 		if count <= int64(course.MaxChooseNum) {
 			c.JSON(http.StatusOK, gin.H{
@@ -727,7 +740,7 @@ func ChooseCourse(db *gorm.DB) func(c *gin.Context) {
 				"snackbar2": "closeSuccess",
 			})
 		} else {
-			db.Debug().Unscoped().Model(&Model.Student2Course{}).Delete(record)
+			db.Unscoped().Model(&Model.Student2Course{}).Delete(record)
 			c.JSON(http.StatusOK, gin.H{
 				"snackbar":  "setError",
 				"msg":       "添加课程失败!人数已满！",
@@ -745,7 +758,7 @@ func GetChosenCourse(db *gorm.DB) func(c *gin.Context) {
 		var count int64
 		studentId := c.Query("student_id")
 		courses := &Model.CourseForChooses{}
-		db.Debug().Model(&Model.Student2Course{}).Select("courses.*,student2_courses.*,teachers.*").Joins("left join courses on courses.record_id = student2_courses.record_id left join teachers on teachers.id = courses.teacher_id").Where("courses.deleted_at IS NULL AND student_id = ?", studentId).Count(&count).Offset((page - 1) * items).Limit(items).Scan(&courses)
+		db.Model(&Model.Student2Course{}).Select("courses.*,student2_courses.*,teachers.*").Joins("left join courses on courses.record_id = student2_courses.record_id left join teachers on teachers.id = courses.teacher_id").Where("courses.deleted_at IS NULL AND student_id = ?", studentId).Count(&count).Offset((page - 1) * items).Limit(items).Scan(&courses)
 		c.JSON(http.StatusOK, gin.H{
 			"total":   count,
 			"courses": courses,
@@ -759,9 +772,9 @@ func QuitCourse(db *gorm.DB) func(c *gin.Context) {
 		StudentID := c.Query("student_id")
 		CourseID := c.Query("course_id")
 		RecordID := c.Query("record_id")
-		db.Debug().Unscoped().Where("student_id = ? AND course_id = ? AND record_id = ?",
+		db.Unscoped().Where("student_id = ? AND course_id = ? AND record_id = ?",
 			StudentID, CourseID, RecordID).Delete(&Model.Student2Course{})
-		fmt.Println(db.Debug().RowsAffected)
+		fmt.Println(db.RowsAffected)
 		c.JSON(http.StatusOK, gin.H{
 			"snackbar":  "setSuccess",
 			"msg":       "退课成功!",
@@ -775,9 +788,9 @@ func GetStudentScore(db *gorm.DB) func(c *gin.Context) {
 		var count int64
 		scores := &Model.StudentHomeworkScores{}
 		recordID := c.Query("record_id")
-		db.Debug().Model(&Model.Homework{}).Select("count(distinct id)").Where("record_id = ?", recordID).Count(&count)
+		db.Model(&Model.Homework{}).Select("count(distinct id)").Where("record_id = ?", recordID).Count(&count)
 		fmt.Println(count)
-		db.Debug().Table(" (?) as T", db.Debug().Model(&Model.Homework{}).Joins("left join homework_upload_records on homework_id = homeworks.id AND homeworks.question_id = homework_upload_records.question_id").Select("homework_upload_records.student_id,homework_upload_records.homework_id,sum(score) total_score,homeworks.record_id").Group("id")).Select("name,T.student_id,T.homework_id,round(sum(total_score)/?,0) homework_score", count).Joins("left join students on student_id = students.id").Where("record_id = ?", recordID).Group("student_id").Scan(&scores)
+		db.Table(" (?) as T", db.Model(&Model.Homework{}).Joins("left join homework_upload_records on homework_id = homeworks.id AND homeworks.question_id = homework_upload_records.question_id").Select("homework_upload_records.student_id,homework_upload_records.homework_id,sum(score) total_score,homeworks.record_id").Group("id")).Select("name,T.student_id,T.homework_id,round(sum(total_score)/?,0) homework_score", count).Joins("left join students on student_id = students.id").Where("record_id = ?", recordID).Group("student_id").Scan(&scores)
 		c.JSON(http.StatusOK, gin.H{
 			"scores": scores,
 		})
@@ -796,13 +809,13 @@ func PostScore(db *gorm.DB) func(c *gin.Context) {
 			})
 			return
 		}
-		if err := db.Debug().Where("course_id = ? AND student_id = ?", scores[0].CourseID, scores[0].StudentID).First(&temp).Error; err != nil {
+		if err := db.Where("course_id = ? AND student_id = ?", scores[0].CourseID, scores[0].StudentID).First(&temp).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
-				db.Debug().Create(&scores)
+				db.Create(&scores)
 			}
 		} else {
 			for _, v := range scores {
-				db.Debug().Model(&Model.Elective{}).Where("course_id = ? AND student_id = ?", v.CourseID, v.StudentID).Updates(map[string]interface{}{
+				db.Model(&Model.Elective{}).Where("course_id = ? AND student_id = ?", v.CourseID, v.StudentID).Updates(map[string]interface{}{
 					"HomeworkScore":      v.HomeworkScore,
 					"TestScore":          v.TestScore,
 					"BehaviorScore":      v.BehaviorScore,
@@ -826,7 +839,7 @@ func GetScore(db *gorm.DB) func(c *gin.Context) {
 		var count int64
 		studentId := c.Query("student_id")
 		electives := &Model.ElectiveForSelects{}
-		db.Debug().Model(&Model.Elective{}).Select("*").Joins("left join courses on courses.id = electives.course_id").Where("student_id = ?", studentId).Group("course_id").Count(&count).Offset((page - 1) * items).Limit(items).Scan(&electives)
+		db.Debug().Model(&Model.Elective{}).Select("student_id,course_id,course_name,homework_score,test_score,behavior_score,percentage,homework_percentage").Joins("left join courses on courses.id = electives.course_id").Where("student_id = ?", studentId).Group("course_id").Count(&count).Offset((page - 1) * items).Limit(items).Scan(&electives)
 		c.JSON(http.StatusOK, gin.H{
 			"total":     count,
 			"electives": electives,
@@ -845,10 +858,10 @@ func GetUserInfo(db *gorm.DB) func(c *gin.Context) {
 		if studentID == "" {
 			bTime := time.Date(currentTime.Year()-4, 6, 1, 0, 0, 0, 00, time.Local)
 			tTime := time.Date(currentTime.Year()-4, 8, 31, 23, 59, 59, 99, time.Local)
-			db.Debug().Model(&Model.Teacher{}).Select("teachers.*,faculties.name faculty_name").Where("teachers.id = ?", teacherID).Joins("left join faculties on faculties.id = teachers.faculty_id").Find(&teacher)
-			db.Debug().Model(&Model.Student{}).Where("teacher_id = ? AND created_at >= ? AND created_at <= ?", teacherID, bTime, tTime).Scan(&students)
+			db.Model(&Model.Teacher{}).Select("teachers.*,faculties.name faculty_name").Where("teachers.id = ?", teacherID).Joins("left join faculties on faculties.id = teachers.faculty_id").Find(&teacher)
+			db.Model(&Model.Student{}).Where("teacher_id = ? AND created_at >= ? AND created_at <= ?", teacherID, bTime, tTime).Scan(&students)
 		} else {
-			db.Debug().Model(&Model.Student{}).Select("students.created_at created,faculties.name faculty_name,direction_to_specialties.*,students.*").Where("students.id = ?", studentID).Joins("left join faculties on faculties.id = students.faculty_id left join direction_to_specialties on direction_to_specialties.faculty_id = students.faculty_id AND direction_to_specialties.specialty_id = students.specialty_id AND direction_to_specialties.direction_id = students.direction_id").Find(&student)
+			db.Model(&Model.Student{}).Select("students.created_at created,faculties.name faculty_name,direction_to_specialties.*,students.*").Where("students.id = ?", studentID).Joins("left join faculties on faculties.id = students.faculty_id left join direction_to_specialties on direction_to_specialties.faculty_id = students.faculty_id AND direction_to_specialties.specialty_id = students.specialty_id AND direction_to_specialties.direction_id = students.direction_id").Find(&student)
 		}
 		c.JSON(http.StatusOK, gin.H{
 			"student":      student,
@@ -864,7 +877,7 @@ func GetDirectionList(db *gorm.DB) func(c *gin.Context) {
 		facultyID := c.Query("faculty_id")
 		specialtyID := c.Query("specialty_id")
 		directions := &Model.DirectionToSpecialtyForSelects{}
-		db.Debug().Model(&Model.DirectionToSpecialty{}).Where("faculty_id = ? AND specialty_id = ? AND direction_id <> 0", facultyID, specialtyID).Scan(&directions)
+		db.Model(&Model.DirectionToSpecialty{}).Where("faculty_id = ? AND specialty_id = ? AND direction_id <> 0", facultyID, specialtyID).Scan(&directions)
 		c.JSON(http.StatusOK, gin.H{
 			"directions": directions,
 		})
@@ -875,7 +888,7 @@ func GetTeacherList(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		facultyID := c.Query("faculty_id")
 		teachers := &Model.TeacherForSelects{}
-		db.Debug().Model(&Model.Teacher{}).Where("faculty_id = ? AND teachers.id <> 100000", facultyID).Scan(&teachers)
+		db.Model(&Model.Teacher{}).Where("faculty_id = ? AND teachers.id <> 100000", facultyID).Scan(&teachers)
 		c.JSON(http.StatusOK, gin.H{
 			"teachers": teachers,
 		})
@@ -886,7 +899,7 @@ func PostDirection(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		directionID, _ := strconv.Atoi(c.PostForm("direction_id"))
 		studentID := c.PostForm("student_id")
-		db.Debug().Model(&Model.Student{}).Where("id = ?", studentID).Updates(&Model.Student{
+		db.Model(&Model.Student{}).Where("id = ?", studentID).Updates(&Model.Student{
 			DirectionID: directionID,
 		})
 		c.JSON(http.StatusOK, gin.H{
@@ -901,7 +914,7 @@ func PostTeacher(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		teacherID, _ := strconv.Atoi(c.PostForm("teacher_id"))
 		studentID := c.PostForm("student_id")
-		db.Debug().Model(&Model.Student{}).Where("id = ?", studentID).Updates(&Model.Student{
+		db.Model(&Model.Student{}).Where("id = ?", studentID).Updates(&Model.Student{
 			TeacherID: teacherID,
 		})
 		c.JSON(http.StatusOK, gin.H{
@@ -916,7 +929,7 @@ func PutPractice(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		practice, _ := strconv.Atoi(c.PostForm("practice"))
 		studentID := c.PostForm("student_id")
-		db.Debug().Model(&Model.Student{}).Where("id = ?", studentID).Updates(&Model.Student{
+		db.Model(&Model.Student{}).Where("id = ?", studentID).Updates(&Model.Student{
 			Practice: practice,
 		})
 		c.JSON(http.StatusOK, gin.H{
@@ -940,12 +953,12 @@ func PostPractice(db *gorm.DB) func(c *gin.Context) {
 			return
 		}
 		fmt.Println(practice.Phone)
-		if err := db.Debug().Where("student_id = ?", practice.StudentID).First(&temp).Error; err != nil {
+		if err := db.Where("student_id = ?", practice.StudentID).First(&temp).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
-				db.Debug().Model(&Model.IndependentPractice{}).Create(&practice)
+				db.Model(&Model.IndependentPractice{}).Create(&practice)
 			}
 		} else {
-			db.Debug().Model(&Model.IndependentPractice{}).Where("student_id = ?", practice.StudentID).Updates(&practice)
+			db.Model(&Model.IndependentPractice{}).Where("student_id = ?", practice.StudentID).Updates(&practice)
 		}
 		c.JSON(http.StatusOK, gin.H{
 			"snackbar":  "setSuccess",
@@ -964,13 +977,13 @@ func ApplyTeacher(db *gorm.DB) func(c *gin.Context) {
 			course := &Model.CourseForSelect{}
 			record := &Model.Student2Course{}
 			var count int64
-			db.Debug().Model(&Model.Course{}).Where("teacher_id = ? AND selectable = 0", teacherID).Order("record_id desc").Limit(1).Scan(&course)
+			db.Model(&Model.Course{}).Where("teacher_id = ? AND selectable = 0", teacherID).Order("record_id desc").Limit(1).Scan(&course)
 			record.StudentID, _ = strconv.Atoi(studentID)
 			record.CourseID = course.ID
 			record.RecordID = course.RecordID
-			db.Debug().Model(&Model.Course{}).Select("max_choose_num").Where("record_id = ?", course.RecordID).Scan(&course)
-			db.Debug().Create(&record)
-			db.Debug().Model(&Model.Student2Course{}).Select("count(1)").Where("record_id = ?", record.RecordID).Count(&count)
+			db.Model(&Model.Course{}).Select("max_choose_num").Where("record_id = ?", course.RecordID).Scan(&course)
+			db.Create(&record)
+			db.Model(&Model.Student2Course{}).Select("count(1)").Where("record_id = ?", record.RecordID).Count(&count)
 			fmt.Println(count, int64(course.MaxChooseNum))
 			if count <= int64(course.MaxChooseNum) {
 				c.JSON(http.StatusOK, gin.H{
@@ -978,18 +991,18 @@ func ApplyTeacher(db *gorm.DB) func(c *gin.Context) {
 					"msg":       "添加课程成功",
 					"snackbar2": "closeSuccess",
 				})
-				db.Debug().Model(&Model.Student{}).Where("id = ?", studentID).Update("teacher_flag", 1)
+				db.Model(&Model.Student{}).Where("id = ?", studentID).Update("teacher_flag", 1)
 			} else {
-				db.Debug().Unscoped().Model(&Model.Student2Course{}).Delete(record)
+				db.Unscoped().Model(&Model.Student2Course{}).Delete(record)
 				c.JSON(http.StatusOK, gin.H{
 					"snackbar":  "setError",
 					"msg":       "添加课程失败!人数已满！",
 					"snackbar2": "closeError",
 				})
-				db.Debug().Model(&Model.Student{}).Where("id = ?", studentID).Update("teacher_id", 0)
+				db.Model(&Model.Student{}).Where("id = ?", studentID).Update("teacher_id", 0)
 			}
 		} else {
-			db.Debug().Model(&Model.Student{}).Where("id = ?", studentID).Update("teacher_id", 0)
+			db.Model(&Model.Student{}).Where("id = ?", studentID).Update("teacher_id", 0)
 		}
 	}
 }
@@ -1008,18 +1021,18 @@ func GetStudentList(db *gorm.DB) func(c *gin.Context) {
 		facultyToSpecialty := make(map[int]Model.DirectionToSpecialtyForSelects)
 		SpecialtyToDirection := make(map[int]Model.DirectionToSpecialtyForSelects)
 		PunishmentLevel := &Model.PunishmentLevels{}
-		db.Debug().Find(&[]Model.DirectionToSpecialty{}).Where("direction_id <> 0").Scan(&directions)
-		db.Debug().Model(&Model.PunishmentLevel{}).Scan(&PunishmentLevel)
-		db.Debug().Find(&[]Model.DirectionToSpecialty{}).Where("specialty_id <> 0").Scan(&specialties)
-		db.Debug().Find(&[]Model.Faculty{}).Where("id <> 1").Scan(&faculties)
+		db.Find(&[]Model.DirectionToSpecialty{}).Where("direction_id <> 0").Scan(&directions)
+		db.Model(&Model.PunishmentLevel{}).Scan(&PunishmentLevel)
+		db.Find(&[]Model.DirectionToSpecialty{}).Where("specialty_id <> 0").Scan(&specialties)
+		db.Find(&[]Model.Faculty{}).Where("id <> 1").Scan(&faculties)
 		if facultyId != "" {
 			if specialtyId != "" {
-				db.Debug().Model(&Model.Student{}).Select("students.ID student_id,students.created_at created,f.name faculty_name,dts.*,students.*").Where(" students.faculty_id = ? AND students.specialty_id = ?", facultyId, specialtyId).Joins("left join direction_to_specialties dts on( dts.direction_id = students.direction_id and students.specialty_id = dts.specialty_id and students.direction_id = dts.direction_id and dts.faculty_id = students.faculty_id) left join faculties f on f.id = students.faculty_id ").Count(&count).Offset((page - 1) * items).Limit(items).Scan(&students)
+				db.Model(&Model.Student{}).Select("students.ID student_id,students.created_at created,f.name faculty_name,dts.*,students.*").Where(" students.faculty_id = ? AND students.specialty_id = ?", facultyId, specialtyId).Joins("left join direction_to_specialties dts on( dts.direction_id = students.direction_id and students.specialty_id = dts.specialty_id and students.direction_id = dts.direction_id and dts.faculty_id = students.faculty_id) left join faculties f on f.id = students.faculty_id ").Count(&count).Offset((page - 1) * items).Limit(items).Scan(&students)
 			} else {
-				db.Debug().Model(&Model.Student{}).Select("students.ID student_id,students.created_at created,f.name faculty_name,dts.*,students.*").Where(" students.faculty_id = ?", facultyId).Joins("left join direction_to_specialties dts on( dts.direction_id = students.direction_id and students.specialty_id = dts.specialty_id and students.direction_id = dts.direction_id and dts.faculty_id = students.faculty_id) left join faculties f on f.id = students.faculty_id ").Count(&count).Offset((page - 1) * items).Limit(items).Scan(&students)
+				db.Model(&Model.Student{}).Select("students.ID student_id,students.created_at created,f.name faculty_name,dts.*,students.*").Where(" students.faculty_id = ?", facultyId).Joins("left join direction_to_specialties dts on( dts.direction_id = students.direction_id and students.specialty_id = dts.specialty_id and students.direction_id = dts.direction_id and dts.faculty_id = students.faculty_id) left join faculties f on f.id = students.faculty_id ").Count(&count).Offset((page - 1) * items).Limit(items).Scan(&students)
 			}
 		} else {
-			db.Debug().Model(&Model.Student{}).Select("students.ID student_id,students.created_at created,f.name faculty_name,dts.*,students.*").Joins("left join direction_to_specialties dts on( dts.direction_id = students.direction_id and students.specialty_id = dts.specialty_id and students.direction_id = dts.direction_id and dts.faculty_id = students.faculty_id) left join faculties f on f.id = students.faculty_id ").Count(&count).Offset((page - 1) * items).Limit(items).Scan(&students)
+			db.Model(&Model.Student{}).Select("students.ID student_id,students.created_at created,f.name faculty_name,dts.*,students.*").Joins("left join direction_to_specialties dts on( dts.direction_id = students.direction_id and students.specialty_id = dts.specialty_id and students.direction_id = dts.direction_id and dts.faculty_id = students.faculty_id) left join faculties f on f.id = students.faculty_id ").Count(&count).Offset((page - 1) * items).Limit(items).Scan(&students)
 		}
 		for _, v := range specialties {
 			facultyToSpecialty[v.FacultyID] = append(facultyToSpecialty[v.FacultyID], v)
@@ -1041,8 +1054,8 @@ func GetStudentList(db *gorm.DB) func(c *gin.Context) {
 func DeleteStudent(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		StudentID := c.Query("student_id")
-		db.Debug().Unscoped().Where("id = ?", StudentID).Delete(&Model.Student{})
-		db.Debug().Where("id = ?", StudentID).Delete(&Model.User{})
+		db.Unscoped().Where("id = ?", StudentID).Delete(&Model.Student{})
+		db.Where("id = ?", StudentID).Delete(&Model.User{})
 
 		c.JSON(http.StatusOK, gin.H{
 			"snackbar":  "setSuccess",
@@ -1056,7 +1069,7 @@ func GetPunishment(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		StudentID := c.Query("student_id")
 		Punishments := &Model.PunishmentForSelects{}
-		db.Debug().Model(&Model.Punishment{}).Select("punishments.*,pl.level Level").Joins("left join punishment_levels pl on pl.id = punishments.punishment_level_id").Where("student_id = ? ", StudentID).Scan(&Punishments)
+		db.Model(&Model.Punishment{}).Select("punishments.*,pl.level Level").Joins("left join punishment_levels pl on pl.id = punishments.punishment_level_id").Where("student_id = ? ", StudentID).Scan(&Punishments)
 		c.JSON(http.StatusOK, gin.H{
 			"punishments": Punishments,
 		})
@@ -1072,17 +1085,17 @@ func PutStudent(db *gorm.DB) func(c *gin.Context) {
 		directionID := c.PostForm("direction_id")
 		if password != "" {
 			hash, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-			db.Debug().Model(&Model.User{}).Where("id = ?", studentId).Update("password", string(hash))
+			db.Model(&Model.User{}).Where("id = ?", studentId).Update("password", string(hash))
 		}
 		if facultyID != "null" {
 			if specialtyID != "null" {
 				if directionID != "null" {
-					db.Debug().Model(&Model.Student{}).Where("id = ?", studentId).Updates(map[string]interface{}{"faculty_id": facultyID, "specialty_id": specialtyID, "direction_id": directionID})
+					db.Model(&Model.Student{}).Where("id = ?", studentId).Updates(map[string]interface{}{"faculty_id": facultyID, "specialty_id": specialtyID, "direction_id": directionID})
 				} else {
-					db.Debug().Model(&Model.Student{}).Where("id = ?", studentId).Updates(map[string]interface{}{"faculty_id": facultyID, "specialty_id": specialtyID})
+					db.Model(&Model.Student{}).Where("id = ?", studentId).Updates(map[string]interface{}{"faculty_id": facultyID, "specialty_id": specialtyID})
 				}
 			} else {
-				db.Debug().Model(&Model.Student{}).Where("id = ?", studentId).Updates(map[string]interface{}{"faculty_id": facultyID})
+				db.Model(&Model.Student{}).Where("id = ?", studentId).Updates(map[string]interface{}{"faculty_id": facultyID})
 			}
 		}
 		c.JSON(http.StatusOK, gin.H{
@@ -1099,7 +1112,7 @@ func PunishStudent(db *gorm.DB) func(c *gin.Context) {
 		Punishment.StudentID, _ = strconv.Atoi(c.PostForm("student_id"))
 		Punishment.PunishmentLevelID, _ = strconv.Atoi(c.PostForm("punishment_level"))
 		Punishment.Reason = c.PostForm("punishment_content")
-		db.Debug().Create(&Punishment)
+		db.Create(&Punishment)
 		c.JSON(http.StatusOK, gin.H{
 			"snackbar":  "setSuccess",
 			"msg":       "添加处分纪录成功！",
@@ -1111,7 +1124,7 @@ func PunishStudent(db *gorm.DB) func(c *gin.Context) {
 func DeletePunishment(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		PunishmentID := c.Query("punishment_id")
-		db.Debug().Model(&Model.Punishment{}).Where("id = ?", PunishmentID).Update("is_cancelled", true)
+		db.Model(&Model.Punishment{}).Where("id = ?", PunishmentID).Update("is_cancelled", true)
 		c.JSON(http.StatusOK, gin.H{
 			"snackbar":  "setSuccess",
 			"msg":       "取消处分成功！",
@@ -1133,10 +1146,11 @@ func AddStudent(db *gorm.DB) func(c *gin.Context) {
 		student.FacultyID, _ = strconv.Atoi(c.PostForm("faculty_id"))
 		student.SpecialtyID, _ = strconv.Atoi(c.PostForm("specialty_id"))
 		student.DirectionID, _ = strconv.Atoi(c.PostForm("direction_id"))
-		db.Debug().Create(&student)
+		student.TeacherID = 100000
+		db.Create(&student)
 		user.ID = student.ID
 		user.Password = string(Password)
-		db.Debug().Create(&user)
+		db.Create(&user)
 		c.JSON(http.StatusOK, gin.H{
 			"snackbar":  "setSuccess",
 			"msg":       "创建学生成功！",
@@ -1149,7 +1163,7 @@ func GetPracticeInfo(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		StudentID := c.Query("student_id")
 		independentPractice := &Model.IndependentPracticeForSelect{}
-		db.Debug().Model(&Model.IndependentPractice{}).Where("student_id = ?", StudentID).Scan(&independentPractice)
+		db.Model(&Model.IndependentPractice{}).Where("student_id = ?", StudentID).Scan(&independentPractice)
 		c.JSON(http.StatusOK, gin.H{
 			"independent_practice": independentPractice,
 		})
@@ -1167,20 +1181,20 @@ func GetTeacherListForManage(db *gorm.DB) func(c *gin.Context) {
 		titles := &Model.Titles{}
 		faculties := Model.Faculties{}
 		PunishmentLevel := &Model.PunishmentLevels{}
-		db.Debug().Model(&Model.PunishmentLevel{}).Scan(&PunishmentLevel)
-		db.Debug().Find(&[]Model.Faculty{}).Where("id <> 1").Scan(&faculties)
-		db.Debug().Model(&Model.Title{}).Where("id <> 0").Scan(&titles)
+		db.Model(&Model.PunishmentLevel{}).Scan(&PunishmentLevel)
+		db.Find(&[]Model.Faculty{}).Where("id <> 1").Scan(&faculties)
+		db.Model(&Model.Title{}).Where("id <> 0").Scan(&titles)
 		if facultyId != "" {
 			if titleID != "" {
-				db.Debug().Model(&Model.Teacher{}).Select("teachers.*,f.*,t.*,teachers.ID ID,teachers.name name,f.name faculty_name,t.name title_name").Where(" teachers.faculty_id = ? AND teachers.title_id = ? AND teachers.id <> 100000", facultyId, titleID).Joins("left join faculties f on f.id = teachers.faculty_id left join titles t on t.id = teachers.title_id ").Count(&count).Offset((page - 1) * items).Limit(items).Scan(&teachers)
+				db.Model(&Model.Teacher{}).Select("teachers.*,f.*,t.*,teachers.ID ID,teachers.name name,f.name faculty_name,t.name title_name").Where(" teachers.faculty_id = ? AND teachers.title_id = ? AND teachers.id <> 100000", facultyId, titleID).Joins("left join faculties f on f.id = teachers.faculty_id left join titles t on t.id = teachers.title_id ").Count(&count).Offset((page - 1) * items).Limit(items).Scan(&teachers)
 			} else {
-				db.Debug().Model(&Model.Teacher{}).Select("teachers.*,f.*,t.*,teachers.ID ID,teachers.name name,f.name faculty_name,t.name title_name").Where(" teachers.faculty_id = ? AND teachers.id <> 100000", facultyId).Joins("left join faculties f on f.id = teachers.faculty_id left join titles t on t.id = teachers.title_id ").Count(&count).Offset((page - 1) * items).Limit(items).Scan(&teachers)
+				db.Model(&Model.Teacher{}).Select("teachers.*,f.*,t.*,teachers.ID ID,teachers.name name,f.name faculty_name,t.name title_name").Where(" teachers.faculty_id = ? AND teachers.id <> 100000", facultyId).Joins("left join faculties f on f.id = teachers.faculty_id left join titles t on t.id = teachers.title_id ").Count(&count).Offset((page - 1) * items).Limit(items).Scan(&teachers)
 			}
 		} else {
 			if titleID != "" {
-				db.Debug().Model(&Model.Teacher{}).Select("teachers.*,f.*,t.*,teachers.ID ID,teachers.name name,f.name faculty_name,t.name title_name").Where("teachers.title_id = ? AND teachers.id <> 100000", titleID).Joins("left join faculties f on f.id = teachers.faculty_id left join titles t on t.id = teachers.title_id ").Count(&count).Offset((page - 1) * items).Limit(items).Scan(&teachers)
+				db.Model(&Model.Teacher{}).Select("teachers.*,f.*,t.*,teachers.ID ID,teachers.name name,f.name faculty_name,t.name title_name").Where("teachers.title_id = ? AND teachers.id <> 100000", titleID).Joins("left join faculties f on f.id = teachers.faculty_id left join titles t on t.id = teachers.title_id ").Count(&count).Offset((page - 1) * items).Limit(items).Scan(&teachers)
 			} else {
-				db.Debug().Model(&Model.Teacher{}).Select("teachers.*,f.*,t.*,teachers.ID ID,teachers.name name,f.name faculty_name,t.name title_name").Where("teachers.id <> 100000").Joins("left join faculties f on f.id = teachers.faculty_id left join titles t on t.id = teachers.title_id ").Count(&count).Offset((page - 1) * items).Limit(items).Scan(&teachers)
+				db.Model(&Model.Teacher{}).Select("teachers.*,f.*,t.*,teachers.ID ID,teachers.name name,f.name faculty_name,t.name title_name").Where("teachers.id <> 100000").Joins("left join faculties f on f.id = teachers.faculty_id left join titles t on t.id = teachers.title_id ").Count(&count).Offset((page - 1) * items).Limit(items).Scan(&teachers)
 			}
 		}
 		c.JSON(http.StatusOK, gin.H{
@@ -1195,8 +1209,8 @@ func GetTeacherListForManage(db *gorm.DB) func(c *gin.Context) {
 func DeleteTeacher(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		teacherID := c.Query("teacher_id")
-		db.Debug().Unscoped().Where("id = ?", teacherID).Delete(&Model.Teacher{})
-		db.Debug().Where("id = ?", teacherID).Delete(&Model.User{})
+		db.Unscoped().Where("id = ?", teacherID).Delete(&Model.Teacher{})
+		db.Where("id = ?", teacherID).Delete(&Model.User{})
 		c.JSON(http.StatusOK, gin.H{
 			"snackbar":  "setSuccess",
 			"msg":       "删除教师成功！",
@@ -1213,17 +1227,17 @@ func PutTeacher(db *gorm.DB) func(c *gin.Context) {
 		titleID := c.PostForm("title_id")
 		if password != "" {
 			hash, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-			db.Debug().Model(&Model.User{}).Where("id = ?", teacherID).Update("password", string(hash))
+			db.Model(&Model.User{}).Where("id = ?", teacherID).Update("password", string(hash))
 		}
 		if facultyID != "null" {
 			if titleID != "null" {
-				db.Debug().Model(&Model.Teacher{}).Where("id = ?", teacherID).Updates(map[string]interface{}{"faculty_id": facultyID, "title_id": titleID})
+				db.Model(&Model.Teacher{}).Where("id = ?", teacherID).Updates(map[string]interface{}{"faculty_id": facultyID, "title_id": titleID})
 			} else {
-				db.Debug().Model(&Model.Teacher{}).Where("id = ?", teacherID).Updates(map[string]interface{}{"faculty_id": facultyID})
+				db.Model(&Model.Teacher{}).Where("id = ?", teacherID).Updates(map[string]interface{}{"faculty_id": facultyID})
 			}
 		} else {
 			if titleID != "null" {
-				db.Debug().Model(&Model.Teacher{}).Where("id = ?", teacherID).Updates(map[string]interface{}{"title_id": titleID})
+				db.Model(&Model.Teacher{}).Where("id = ?", teacherID).Updates(map[string]interface{}{"title_id": titleID})
 			}
 		}
 		c.JSON(http.StatusOK, gin.H{
@@ -1242,10 +1256,10 @@ func AddTeacher(db *gorm.DB) func(c *gin.Context) {
 		Password, _ := bcrypt.GenerateFromPassword([]byte(c.PostForm("password")), bcrypt.DefaultCost)
 		teacher.FacultyID, _ = strconv.Atoi(c.PostForm("faculty_id"))
 		teacher.TitleID, _ = strconv.Atoi(c.PostForm("title_id"))
-		db.Debug().Create(&teacher)
+		db.Create(&teacher)
 		user.ID = teacher.ID
 		user.Password = string(Password)
-		db.Debug().Create(&user)
+		db.Create(&user)
 		c.JSON(http.StatusOK, gin.H{
 			"snackbar":  "setSuccess",
 			"msg":       "创建教师成功！",
@@ -1260,7 +1274,7 @@ func GetAdminList(db *gorm.DB) func(c *gin.Context) {
 		items, _ := strconv.Atoi(c.Query("items"))
 		var count int64
 		admins := &Model.Admins{}
-		db.Debug().Model(&Model.Admin{}).Count(&count).Offset((page - 1) * items).Limit(items).Find(&admins)
+		db.Model(&Model.Admin{}).Count(&count).Offset((page - 1) * items).Limit(items).Find(&admins)
 		c.JSON(http.StatusOK, gin.H{
 			"admins": admins,
 			"total":  count,
@@ -1273,8 +1287,8 @@ func DeleteAdmin(db *gorm.DB) func(c *gin.Context) {
 		fmt.Println(c.Copy())
 		adminID := c.Query("admin_id")
 		fmt.Println(adminID)
-		db.Debug().Where("id = ?", adminID).Delete(&Model.Admin{})
-		db.Debug().Where("id = ?", adminID).Delete(&Model.User{})
+		db.Where("id = ?", adminID).Delete(&Model.Admin{})
+		db.Where("id = ?", adminID).Delete(&Model.User{})
 		c.JSON(http.StatusOK, gin.H{
 			"snackbar":  "setSuccess",
 			"msg":       "删除管理员成功！",
@@ -1288,7 +1302,7 @@ func PutAdmin(db *gorm.DB) func(c *gin.Context) {
 		adminID := c.PostForm("admin_id")
 		password := c.PostForm("password")
 		hash, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-		db.Debug().Model(&Model.User{}).Where("id = ?", adminID).Update("password", string(hash))
+		db.Model(&Model.User{}).Where("id = ?", adminID).Update("password", string(hash))
 		c.JSON(http.StatusOK, gin.H{
 			"snackbar":  "setSuccess",
 			"msg":       "修改管理员信息成功！",
@@ -1304,10 +1318,10 @@ func AddAdmin(db *gorm.DB) func(c *gin.Context) {
 		user := &Model.User{}
 		admin.Name = c.PostForm("name")
 		Password, _ := bcrypt.GenerateFromPassword([]byte(c.PostForm("password")), bcrypt.DefaultCost)
-		db.Debug().Create(&admin)
+		db.Create(&admin)
 		user.ID = int(admin.ID)
 		user.Password = string(Password)
-		db.Debug().Create(&user)
+		db.Create(&user)
 		c.JSON(http.StatusOK, gin.H{
 			"snackbar":  "setSuccess",
 			"msg":       "创建管理员成功！",
@@ -1319,7 +1333,7 @@ func AddAdmin(db *gorm.DB) func(c *gin.Context) {
 func GetTitleList(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		titles := &Model.Titles{}
-		db.Debug().Model(&Model.Title{}).Where("id <> 0").Find(&titles)
+		db.Model(&Model.Title{}).Where("id <> 0").Find(&titles)
 		c.JSON(http.StatusOK, gin.H{
 			"titles": titles,
 		})
@@ -1329,7 +1343,7 @@ func GetTitleList(db *gorm.DB) func(c *gin.Context) {
 func DeleteTitle(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		titleID := c.Query("title_id")
-		db.Debug().Unscoped().Where("id = ?", titleID).Delete(&Model.Title{})
+		db.Unscoped().Where("id = ?", titleID).Delete(&Model.Title{})
 		c.JSON(http.StatusOK, gin.H{
 			"snackbar":  "setSuccess",
 			"msg":       "删除职称成功！",
@@ -1342,7 +1356,7 @@ func PutTitle(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		titleID := c.PostForm("title_id")
 		titleName := c.PostForm("name")
-		db.Debug().Model(&Model.Title{}).Where("id = ?", titleID).Update("name", titleName)
+		db.Model(&Model.Title{}).Where("id = ?", titleID).Update("name", titleName)
 		c.JSON(http.StatusOK, gin.H{
 			"snackbar":  "setSuccess",
 			"msg":       "修改职称成功！",
@@ -1355,7 +1369,7 @@ func AddTitle(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		title := &Model.Title{}
 		title.Name = c.PostForm("name")
-		db.Debug().Create(&title)
+		db.Create(&title)
 		c.JSON(http.StatusOK, gin.H{
 			"snackbar":  "setSuccess",
 			"msg":       "创建职称成功！",
@@ -1367,7 +1381,7 @@ func AddTitle(db *gorm.DB) func(c *gin.Context) {
 func GetPunishLevelList(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		punishLevels := &Model.PunishmentLevels{}
-		db.Debug().Model(&Model.PunishmentLevel{}).Find(&punishLevels)
+		db.Model(&Model.PunishmentLevel{}).Find(&punishLevels)
 		c.JSON(http.StatusOK, gin.H{
 			"punish_levels": punishLevels,
 		})
@@ -1377,7 +1391,7 @@ func GetPunishLevelList(db *gorm.DB) func(c *gin.Context) {
 func DeletePunishLevel(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		levelID := c.Query("level_id")
-		db.Debug().Where("id = ?", levelID).Delete(&Model.PunishmentLevel{})
+		db.Where("id = ?", levelID).Delete(&Model.PunishmentLevel{})
 		c.JSON(http.StatusOK, gin.H{
 			"snackbar":  "setSuccess",
 			"msg":       "删除处分等级成功！",
@@ -1390,7 +1404,7 @@ func PutPunishLevel(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		levelID := c.PostForm("level_id")
 		levelName := c.PostForm("name")
-		db.Debug().Model(&Model.PunishmentLevel{}).Where("id = ?", levelID).Update("level", levelName)
+		db.Model(&Model.PunishmentLevel{}).Where("id = ?", levelID).Update("level", levelName)
 		c.JSON(http.StatusOK, gin.H{
 			"snackbar":  "setSuccess",
 			"msg":       "修改处分等级成功！",
@@ -1403,7 +1417,7 @@ func AddPunishLevel(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		punishLevel := &Model.PunishmentLevel{}
 		punishLevel.Level = c.PostForm("name")
-		db.Debug().Create(&punishLevel)
+		db.Create(&punishLevel)
 		c.JSON(http.StatusOK, gin.H{
 			"snackbar":  "setSuccess",
 			"msg":       "创建处分等级成功！",
@@ -1418,7 +1432,7 @@ func GetClassroomList(db *gorm.DB) func(c *gin.Context) {
 		items, _ := strconv.Atoi(c.Query("items"))
 		var count int64
 		classrooms := &Model.Classrooms{}
-		db.Debug().Model(&Model.Classroom{}).Count(&count).Offset((page - 1) * items).Limit(items).Find(&classrooms)
+		db.Model(&Model.Classroom{}).Count(&count).Offset((page - 1) * items).Limit(items).Find(&classrooms)
 		c.JSON(http.StatusOK, gin.H{
 			"classrooms": classrooms,
 			"total":      count,
@@ -1429,7 +1443,7 @@ func GetClassroomList(db *gorm.DB) func(c *gin.Context) {
 func DeleteClassroom(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		classroomID := c.Query("classroom_id")
-		db.Debug().Unscoped().Where("id = ?", classroomID).Delete(&Model.Classroom{})
+		db.Unscoped().Where("id = ?", classroomID).Delete(&Model.Classroom{})
 		c.JSON(http.StatusOK, gin.H{
 			"snackbar":  "setSuccess",
 			"msg":       "删除教室成功！",
@@ -1444,9 +1458,9 @@ func PutClassroom(db *gorm.DB) func(c *gin.Context) {
 		classroomName := c.PostForm("name")
 		classroomMaxNum, _ := strconv.Atoi(c.PostForm("max_num"))
 		if classroomName == "null" {
-			db.Debug().Model(&Model.Classroom{}).Where("id = ?", classroomID).Updates(map[string]interface{}{"max_num": classroomMaxNum})
+			db.Model(&Model.Classroom{}).Where("id = ?", classroomID).Updates(map[string]interface{}{"max_num": classroomMaxNum})
 		} else {
-			db.Debug().Model(&Model.Classroom{}).Where("id = ?", classroomID).Updates(map[string]interface{}{"name": classroomName, "max_num": classroomMaxNum})
+			db.Model(&Model.Classroom{}).Where("id = ?", classroomID).Updates(map[string]interface{}{"name": classroomName, "max_num": classroomMaxNum})
 		}
 		c.JSON(http.StatusOK, gin.H{
 			"snackbar":  "setSuccess",
@@ -1461,7 +1475,7 @@ func AddClassroom(db *gorm.DB) func(c *gin.Context) {
 		classroom := &Model.Classroom{}
 		classroom.Name = c.PostForm("name")
 		classroom.MaxNum, _ = strconv.Atoi(c.PostForm("max_num"))
-		db.Debug().Create(&classroom)
+		db.Create(&classroom)
 		c.JSON(http.StatusOK, gin.H{
 			"snackbar":  "setSuccess",
 			"msg":       "创建教室成功！",
@@ -1483,18 +1497,18 @@ func GetDirectionSpecialtyFacultyList(db *gorm.DB) func(c *gin.Context) {
 		directions := Model.DirectionToSpecialtyForSelects{}
 		facultyToSpecialty := make(map[int]Model.DirectionToSpecialtyForSelects)
 		SpecialtyToDirection := make(map[int]Model.DirectionToSpecialtyForSelects)
-		db.Debug().Find(&[]Model.DirectionToSpecialty{}).Where("direction_id <> 0").Scan(&directions)
-		db.Debug().Find(&[]Model.DirectionToSpecialty{}).Where("specialty_id <> 0").Scan(&specialties)
-		db.Debug().Find(&[]Model.Faculty{}).Where("id <> 1").Scan(&faculties)
-		db.Debug().Model(&Model.DirectionToSpecialty{}).Count(&count)
+		db.Find(&[]Model.DirectionToSpecialty{}).Where("direction_id <> 0").Scan(&directions)
+		db.Find(&[]Model.DirectionToSpecialty{}).Where("specialty_id <> 0").Scan(&specialties)
+		db.Find(&[]Model.Faculty{}).Where("id <> 1").Scan(&faculties)
+		db.Model(&Model.DirectionToSpecialty{}).Count(&count)
 		if facultyId != "" {
 			if specialtyId != "" {
-				db.Debug().Find(&[]Model.DirectionToSpecialty{}).Select("f.name faculty_name,direction_to_specialties.*").Where("faculty_id = ? AND specialty_id = ?", facultyId, specialtyId).Joins("left join faculties f on f.id = direction_to_specialties.faculty_id").Offset((page - 1) * items).Limit(items).Scan(&facultySpecialtyDirection)
+				db.Find(&[]Model.DirectionToSpecialty{}).Select("f.name faculty_name,direction_to_specialties.*").Where("faculty_id = ? AND specialty_id = ?", facultyId, specialtyId).Joins("left join faculties f on f.id = direction_to_specialties.faculty_id").Offset((page - 1) * items).Limit(items).Scan(&facultySpecialtyDirection)
 			} else {
-				db.Debug().Find(&[]Model.DirectionToSpecialty{}).Select("f.name faculty_name,direction_to_specialties.*").Where("faculty_id = ?", facultyId).Joins("left join faculties f on f.id = direction_to_specialties.faculty_id").Offset((page - 1) * items).Limit(items).Scan(&facultySpecialtyDirection)
+				db.Find(&[]Model.DirectionToSpecialty{}).Select("f.name faculty_name,direction_to_specialties.*").Where("faculty_id = ?", facultyId).Joins("left join faculties f on f.id = direction_to_specialties.faculty_id").Offset((page - 1) * items).Limit(items).Scan(&facultySpecialtyDirection)
 			}
 		} else {
-			db.Debug().Find(&[]Model.DirectionToSpecialty{}).Select("f.name faculty_name,direction_to_specialties.*").Joins("left join faculties f on f.id = direction_to_specialties.faculty_id").Offset((page - 1) * items).Limit(items).Scan(&facultySpecialtyDirection)
+			db.Find(&[]Model.DirectionToSpecialty{}).Select("f.name faculty_name,direction_to_specialties.*").Joins("left join faculties f on f.id = direction_to_specialties.faculty_id").Offset((page - 1) * items).Limit(items).Scan(&facultySpecialtyDirection)
 		}
 		for _, v := range specialties {
 			facultyToSpecialty[v.FacultyID] = append(facultyToSpecialty[v.FacultyID], v)
@@ -1520,10 +1534,10 @@ func AddFacultySpecialtyDirection(db *gorm.DB) func(c *gin.Context) {
 		if facultySpecialtyDirection.FacultyID != 0 {
 			if facultySpecialtyDirection.SpecialtyID != 0 {
 				//新建方向
-				db.Debug().Model(&Model.DirectionToSpecialty{}).Where("faculty_id = ? AND specialty_id = ?", facultySpecialtyDirection.FacultyID, facultySpecialtyDirection.SpecialtyID).Order("direction_id desc").Limit(1).Scan(&facultySpecialtyDirectionTemp)
+				db.Model(&Model.DirectionToSpecialty{}).Where("faculty_id = ? AND specialty_id = ?", facultySpecialtyDirection.FacultyID, facultySpecialtyDirection.SpecialtyID).Order("direction_id desc").Limit(1).Scan(&facultySpecialtyDirectionTemp)
 				facultySpecialtyDirection.DirectionID = facultySpecialtyDirectionTemp.DirectionID + 1
 			} else {
-				db.Debug().Model(&Model.DirectionToSpecialty{}).Where("faculty_id = ?", facultySpecialtyDirection.FacultyID).Order("specialty_id desc").Limit(1).Scan(&facultySpecialtyDirectionTemp)
+				db.Model(&Model.DirectionToSpecialty{}).Where("faculty_id = ?", facultySpecialtyDirection.FacultyID).Order("specialty_id desc").Limit(1).Scan(&facultySpecialtyDirectionTemp)
 				facultySpecialtyDirection.SpecialtyID = facultySpecialtyDirectionTemp.SpecialtyID + 1
 				facultySpecialtyDirection.DirectionName = "全体专业学生"
 				//新建专业
@@ -1532,7 +1546,7 @@ func AddFacultySpecialtyDirection(db *gorm.DB) func(c *gin.Context) {
 			facultySpecialtyDirection.SpecialtyName = "全体学院学生"
 			facultySpecialtyDirection.DirectionName = "全体专业学生"
 		}
-		db.Debug().Model(&Model.DirectionToSpecialty{}).Create(&facultySpecialtyDirection)
+		db.Model(&Model.DirectionToSpecialty{}).Create(&facultySpecialtyDirection)
 		c.JSON(http.StatusOK, gin.H{
 			"snackbar":  "setSuccess",
 			"msg":       "添加成功！",
@@ -1549,14 +1563,14 @@ func DeleteFacultySpecialtyDirection(db *gorm.DB) func(c *gin.Context) {
 		fmt.Println(facultyID, specialtyID, directionID)
 		if specialtyID == "" {
 			//删除学院
-			db.Debug().Model(&Model.Faculty{}).Delete("id = ?", facultyID)
-			db.Debug().Where("faculty_id = ?", facultyID).Delete(&Model.DirectionToSpecialty{})
+			db.Model(&Model.Faculty{}).Delete("id = ?", facultyID)
+			db.Where("faculty_id = ?", facultyID).Delete(&Model.DirectionToSpecialty{})
 		} else if directionID == "" {
 			//删除专业
-			db.Debug().Where("faculty_id = ? AND specialty_id = ?", facultyID, specialtyID).Delete(&Model.DirectionToSpecialty{})
+			db.Where("faculty_id = ? AND specialty_id = ?", facultyID, specialtyID).Delete(&Model.DirectionToSpecialty{})
 		} else {
 			//删除方向
-			db.Debug().Where("faculty_id = ? AND specialty_id = ? AND direction_id = ?", facultyID, specialtyID, directionID).Delete(&Model.DirectionToSpecialty{})
+			db.Where("faculty_id = ? AND specialty_id = ? AND direction_id = ?", facultyID, specialtyID, directionID).Delete(&Model.DirectionToSpecialty{})
 		}
 		c.JSON(http.StatusOK, gin.H{
 			"snackbar":  "setSuccess",
@@ -1569,7 +1583,7 @@ func DeleteFacultySpecialtyDirection(db *gorm.DB) func(c *gin.Context) {
 func GetNotification(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		notification := &Model.Notification{}
-		db.Debug().Model(&Model.Notification{}).First(&notification)
+		db.Model(&Model.Notification{}).First(&notification)
 		c.JSON(http.StatusOK, gin.H{
 			"notification": notification,
 		})
@@ -1579,7 +1593,7 @@ func GetNotification(db *gorm.DB) func(c *gin.Context) {
 func PutNotification(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		content := c.PostForm("notification")
-		db.Debug().Model(&Model.Notification{}).Where("id = 1").Update("notification", content)
+		db.Model(&Model.Notification{}).Where("id = 1").Update("notification", content)
 		c.JSON(http.StatusOK, gin.H{
 			"snackbar":  "setSuccess",
 			"msg":       "修改通知成功！",

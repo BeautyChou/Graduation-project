@@ -10,6 +10,8 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/utils"
+	"io"
+	"os"
 )
 
 type Config struct {
@@ -34,7 +36,7 @@ func main() {
 	}
 
 	//连接数据库
-	dsn := "root:123456@tcp(127.0.0.1:3306)/" + Conf.DatabaseName + "?charset=utf8mb4&parseTime=True&loc=Local"
+	dsn := "root:123456789@tcp(127.0.0.1:3306)/" + Conf.DatabaseName + "?charset=utf8mb4&parseTime=True&loc=Local"
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		fmt.Println(err)
@@ -47,6 +49,9 @@ func main() {
 		err = viper.WriteConfigAs("config.yaml")
 	}
 	//启动服务
+	f, _ := os.Create("gin.log")
+	gin.DefaultWriter = io.MultiWriter(f)
+
 	r := gin.Default()
 	r.Use(Middleware.Cors())
 	r.POST("/login", Controller.Auth(db))

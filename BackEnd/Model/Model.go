@@ -392,7 +392,7 @@ type ClassSheet struct {
 
 type CourseForChoose struct {
 	RecordID     int    `json:"record_id" gorm:"primary_key"` // 记录id
-	ID           int    `json:"course_id" gorm:"primary_key;"`
+	CourseID     int    `json:"course_id" gorm:"primary_key;"`
 	CourseName   string `json:"course_name" gorm:"type:varchar(60);not null;"`             // 课程名
 	Credit       string `json:"credit" gorm:"type:varchar(50);"`                           // 学分
 	TeacherID    int    `json:"teacher_id" gorm:"type:int(11);not null;index:teacher_id;"` // 教师ID
@@ -548,22 +548,22 @@ func CreateDatabase(db *gorm.DB) {
 	db.Debug().Exec("alter table students AUTO_INCREMENT=1000000;")
 	Password, _ := bcrypt.GenerateFromPassword([]byte("admin"), bcrypt.DefaultCost)
 	admin := Admin{
-		Name:     "Admin",
+		Name: "Admin",
 	}
 	user1 := User{
 		ID:       1,
 		Password: string(Password),
 	}
 	teacher := Teacher{
-		Name:      "无",
-		Faculty:   Faculty{
+		Name: "无",
+		Faculty: Faculty{
 			Name: "全体学院",
 		},
 		FacultyID: 0,
-		Title:     Title{
+		Title: Title{
 			Name: "讲师",
 		},
-		TitleID:   0,
+		TitleID: 0,
 	}
 	notification := Notification{
 		Notification: "",

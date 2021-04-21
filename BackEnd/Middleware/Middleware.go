@@ -2,6 +2,7 @@ package Middleware
 
 import (
 	"errors"
+	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -72,6 +73,7 @@ func JWTAuthMiddleWare() func(c *gin.Context) {
 	return func(c *gin.Context) {
 		authHeader := c.Request.Header.Get("Token")
 		if authHeader == "" {
+			fmt.Println("请求头中Token为空")
 			c.JSON(http.StatusOK, gin.H{
 				"msg": "请求头中Token为空",
 			})
@@ -80,6 +82,7 @@ func JWTAuthMiddleWare() func(c *gin.Context) {
 		}
 		parts := strings.SplitN(authHeader, " ", 2)
 		if !(len(parts) == 2 && parts[0] == "8a54sh") {
+			fmt.Println("Token格式错误")
 			c.JSON(http.StatusOK, gin.H{
 				"msg": "Token格式错误",
 			})
@@ -88,6 +91,7 @@ func JWTAuthMiddleWare() func(c *gin.Context) {
 		}
 		_, err := ParseToken(parts[1])
 		if err != nil {
+			fmt.Println("Token无效")
 			c.JSON(http.StatusOK, gin.H{
 				"msg": "Token无效",
 			})
