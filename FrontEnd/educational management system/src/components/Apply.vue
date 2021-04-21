@@ -248,8 +248,8 @@ export default {
       formdata.append('result', 1)
       formdata.append('id', applyObj.id)
       this.$axios({
-        method: "post",
-        url: "http://127.0.0.1:9000/operateApply",
+        method: "PUT",
+        url: "Apply",
         data: formdata,
         headers: {
           "Content-Type": "multipart/form-data",

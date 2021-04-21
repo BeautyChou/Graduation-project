@@ -235,7 +235,7 @@ export default {
       handler(newValue, oldValue) {
         this.$axios({
           method: "get",
-          url: 'http://127.0.0.1:9000/getHomeworkList',
+          url: 'Homework',
           params: {
             'course_id': newValue,
             'record_id': this.$store.state.recordId,

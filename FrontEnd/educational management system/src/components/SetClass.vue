@@ -563,7 +563,12 @@ export default {
         this.addClass = false
         this.copyFlag = false
         this.copyCourseFlag = false
-        if (response.data.snackbar === 'setSuccess') {this.classes.push(this.newClass);this.newClass = {};console.log(this.classes)}
+        if (response.data.snackbar === 'setSuccess') {
+          this.classes.push(this.newClass);
+          this.newClass = {};
+          console.log(this.classes)
+          this.getClass()
+        }
       })
     },
     deleteClass(RecordID){

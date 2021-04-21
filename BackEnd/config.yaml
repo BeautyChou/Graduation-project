@@ -6,3 +6,9 @@ database_name: tttt
 init_database: 0
 #后端运行端口号
 port: 9000
+#登录mysql用户名
+mysql_username: root
+#登录mysql密码
+mysql_password: 123456
+#mysql端口号
+mysql_port: 3306

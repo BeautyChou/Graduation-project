@@ -78,6 +78,10 @@ export default new Vuex.Store({
     setSuccess(state, str) {
       state.successFlag = true
       state.successMsg = str
+      setTimeout(()=>{
+        state.successFlag = false
+        state.successMsg = null
+      },3000)
     },
     closeSuccess(state) {
       state.successFlag = false
@@ -90,6 +94,10 @@ export default new Vuex.Store({
     setError(state, str) {
       state.errorFlag = true
       state.errorMsg = str
+      setTimeout(()=>{
+        state.errorFlag = false
+        state.errorMsg = null
+      },3000)
     },
     modifyHomework(state) {
       state.modifyHomeworkFlag = true

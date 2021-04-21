@@ -98,7 +98,7 @@ func JWTAuthMiddleWare() func(c *gin.Context) {
 			c.Abort()
 			return
 		}
-		//c.Set("c", c.Copy())
+		fmt.Println("Token验证成功")
 		c.Next()
 	}
 }

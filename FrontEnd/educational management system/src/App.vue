@@ -248,7 +248,7 @@ export default {
           'Token': "8a54sh " + this.$store.state.Jwt
         }
       }).then((response)=>{
-        if (response.data.msg === "Token无效" ){
+        if (response.data.msg === "Token无效" || response.data.msg === "Token格式错误" ){
           this.jwtInvalid()
         }else{
           this.dialog = false

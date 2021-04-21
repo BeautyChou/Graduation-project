@@ -17,7 +17,7 @@
         <v-tooltip v-if="$store.state.level===2" bottom>
           <template v-slot:activator="{ on,attrs }">
             <v-btn icon color="primary" v-bind="attrs" v-on="on" x-large
-                   @click="changeClass = true ;selectId = item.course_id;selectRecordID = item.record_id;getInfo()">
+                   @click="changeClass = true ;selectId = item.course_id;selectRecordID = item.record_id;selectEndWeek = item.end_week;getInfo()">
               <v-icon>
                 mdi-tools
               </v-icon>
@@ -200,12 +200,13 @@ export default {
       total:null,
       course: null,
       courses: [],
+      selectEndWeek:null,
       headers: [
         {text: '课程名', align: 'start', sortable: false, value: 'course_name'},
         {text: '教师', sortable: false, value: 'name'},
         //学年由上传年份决定
-        {text: '开始周', sortable: false, value: 'start_time'},
-        {text: '结束周', sortable: false, value: 'end_time'},
+        {text: '开始周', sortable: false, value: 'start_week'},
+        {text: '结束周', sortable: false, value: 'end_week'},
         {text: '操作', sortable: false, value: 'operation'}
       ],
       changeClass: false,
@@ -368,7 +369,7 @@ export default {
     getInfo() {
       this.$axios({
         method: "get",
-        url: 'http://127.0.0.1:9000/getClassesList',
+        url: 'Class',
         params: {
           'level': this.$store.state.level
         },
@@ -425,7 +426,7 @@ export default {
       formdata.append('classroom_id', this.apply.after_classroom_id)
       formdata.append('time', "applyAfter")
       console.log(this.apply.before_week_time, this.apply.after_week_time , this.apply.before_start_time, this.apply.after_start_time)
-      if (this.apply.before_week_time === this.apply.after_week_time && this.apply.before_start_week< this.apply.after_start_week) formdata.append('flag',"not")
+      if ((this.apply.before_week_time === this.apply.after_week_time )&&(this.apply.before_start_week >= this.apply.after_start_week || (this.apply.after_start_week <= this.selectEndWeek && this.apply.after_start_time === this.apply.before_start_time)  )) formdata.append('flag',"not")
         this.$axios({
         method: "post",
         url: "http://127.0.0.1:9000/validClassrooms",

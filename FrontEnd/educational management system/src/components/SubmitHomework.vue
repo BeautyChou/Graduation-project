@@ -35,7 +35,7 @@ export default {
   created() {
     this.$axios({
       method: "get",
-      url: 'http://127.0.0.1:9000http://127.0.0.1:9000/getQuestionList',
+      url: 'SelectedQuestion',
       params: {
         'homework_id': this.$store.state.homeworkId,
         'student_id': this.$store.state.studentId,
@@ -94,7 +94,7 @@ export default {
       handler(newValue, oldValue) {
           this.$axios({
             method: "get",
-            url: 'http://127.0.0.1:9000/getQuestionList',
+            url: 'SelectedQuestion',
             params: {
               'homework_id': newValue,
               'student_id': this.$store.state.studentId,
@@ -121,7 +121,7 @@ export default {
           this.$store.commit('nextPage')
           this.$axios({
             method: "get",
-            url: 'http://127.0.0.1:9000/getQuestionList',
+            url: 'SelectedQuestion',
             params: {
               'homework_id': this.$store.state.homeworkId,
               'student_id': this.$store.state.studentId,

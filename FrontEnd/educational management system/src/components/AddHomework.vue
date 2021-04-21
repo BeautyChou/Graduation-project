@@ -83,7 +83,7 @@
         color="green"
         class="mr-2"
         @click.native="createHomework();"
-        to="/SelectHomework">
+        >
 
         <v-icon>mdi-upload</v-icon>
         <span>
@@ -100,7 +100,7 @@
           </v-btn>
         </template>
         <v-list>
-          <v-list-item @click.stop="getContentList()">
+          <v-list-item @click.stop="alreadyQuestion = true;getContentList();">
             <v-list-item-title>使用已有题目</v-list-item-title>
           </v-list-item>
           <v-list-item @click.stop="newQuestion = true">
@@ -113,7 +113,6 @@
               选择已有题目
             </v-card-title>
             <v-card-text>
-              {{ selectQuestion }}
               <v-autocomplete
                 v-model="selectQuestion"
                 :items="contentList"
@@ -213,6 +212,7 @@
       </template>
 
     </v-data-table>
+    <div> {{ this.questions }}</div>
   </v-card>
 </template>
 
@@ -221,11 +221,12 @@ export default {
   name: "AddHomework",
   created() {
     this.getQuestionList()
+    this.getContentList()
   },
   data() {
     return {
       options: {},
-      totals: null,
+      totals: 0,
       successText: null,
       errorText: null,
       homeworkTitle: null,
@@ -242,7 +243,6 @@ export default {
       headers: [
         {text: '题目', align: 'start', sortable: false, value: 'content', width: '60%'},
         {text: '分值(仅限正整数)(%)', sortable: false, value: 'question_max_score', width: '30%'},
-        //学年由上传年份决定
         {text: '操作', sortable: false, value: 'operation', width: '10%'},
       ],
       questions: [],
@@ -268,12 +268,16 @@ export default {
           this.$emit('func')
           return
         }
-        this.questions = response.data.questions
         console.log(response)
-        this.deadlineTime = response.data.questions[0].DeadLine.substr(11, 5)
-        this.deadlineDate = response.data.questions[0].DeadLine.substr(0, 10)
-        this.homeworkTitle = response.data.questions[0].homework_title
-        this.totals = response.data.total
+        if ( response.data.questions !== null)
+        {
+          console.log(123456)
+          this.questions = response.data.questions
+          this.deadlineTime = response.data.questions[0].DeadLine.substr(11, 5)
+          this.deadlineDate = response.data.questions[0].DeadLine.substr(0, 10)
+          this.homeworkTitle = response.data.questions[0].homework_title
+          this.totals = response.data.total
+        }
       })
     },
     allowedDates(val) {
@@ -328,6 +332,7 @@ export default {
           setTimeout(() => {
             this.$store.commit("closeSuccess")
           }, 3000)
+          this.$router.push({path:'/selectHomework'})
         })
           .catch((res) => {
             console.log(res)
@@ -346,6 +351,9 @@ export default {
       })
       if (flag) {
         this.$store.commit("setError", '你的作业中已经有这道题了！')
+        setTimeout(() => {
+          this.$store.commit("closeError")
+        }, 3000)
         return
       }
       this.questions.push({
@@ -353,6 +361,8 @@ export default {
         content: this.selectQuestion.content,
         question_max_score: 0
       })
+      this.totals++
+      console.log(this.questions)
       this.selectQuestion = null
       this.alreadyQuestion = false
       this.$store.commit("setSuccess", "添加至作业成功！")
@@ -361,7 +371,6 @@ export default {
       }, 3000)
     },
     getContentList() {
-      this.alreadyQuestion = true
       this.$axios({
         method: "get",
         url: 'Question',
@@ -374,7 +383,6 @@ export default {
           return
         }
         this.contentList = response.data.questions
-        this.contentList.header = null
         console.log(response)
       })
     },
@@ -407,6 +415,7 @@ export default {
           this.$store.commit("closeSuccess")
         }, 3000)
         this.questions.push({question_id: response.data.id, content: this.content, question_max_score: 0})
+        this.totals++
         this.content = null
       })
     },
@@ -440,13 +449,17 @@ export default {
             this.$emit('func')
             return
           }
-          this.questions = response.data.questions
           console.log(response)
-          this.deadlineTime = response.data.questions[0].DeadLine.substr(11, 5)
-          this.deadlineDate = response.data.questions[0].DeadLine.substr(0, 10)
-          this.homeworkTitle = response.data.questions[0].homework_title
-          this.totals = response.data.total
+          if (response.data.questions !== null)
+          {
+            this.questions = response.data.questions
+            this.deadlineTime = response.data.questions[0].DeadLine.substr(11, 5)
+            this.deadlineDate = response.data.questions[0].DeadLine.substr(0, 10)
+            this.homeworkTitle = response.data.questions[0].homework_title
+            this.totals = response.data.total
+          }
         })
+        this.getContentList()
       }
     },
     '$store.state.refreshFlag': {
