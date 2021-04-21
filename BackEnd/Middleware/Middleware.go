@@ -19,7 +19,7 @@ type Myclaims struct {
 	jwt.StandardClaims
 }
 
-//解决跨域问题的中间件
+// Cors 解决跨域问题的中间件
 func Cors() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		origin := c.Request.Header.Get("origin")

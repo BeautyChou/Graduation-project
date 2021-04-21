@@ -15,9 +15,12 @@ import (
 )
 
 type Config struct {
-	Port         int    `mapstructure:"port"`
-	InitDatabase int    `mapstructure:"init_database"`
-	DatabaseName string `mapstructure:"database_name"`
+	Port          int    `mapstructure:"port"`
+	InitDatabase  int    `mapstructure:"init_database"`
+	DatabaseName  string `mapstructure:"database_name"`
+	MysqlUsername string `mapstructure:"mysql_username"`
+	MysqlPassword string `mapstructure:"mysql_password"`
+	MysqlPort     string `mapstructure:"mysql_port"`
 }
 
 var Conf = new(Config)
@@ -36,7 +39,7 @@ func main() {
 	}
 
 	//连接数据库
-	dsn := "root:123456789@tcp(127.0.0.1:3306)/" + Conf.DatabaseName + "?charset=utf8mb4&parseTime=True&loc=Local"
+	dsn := Conf.MysqlUsername + ":" + Conf.MysqlPassword + "@tcp(127.0.0.1:" + Conf.MysqlPort + ")/" + Conf.DatabaseName + "?charset=utf8mb4&parseTime=True&loc=Local"
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		fmt.Println(err)

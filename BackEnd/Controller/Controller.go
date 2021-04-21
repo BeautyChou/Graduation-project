@@ -15,12 +15,6 @@ import (
 	"time"
 )
 
-func Test(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
-		"msg": "ok",
-	})
-}
-
 func Auth(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		user := &Model.User{}
