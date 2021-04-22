@@ -226,7 +226,6 @@
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld';
 import Canvas from "./components/Canvas";
 import ClassSheet from "./components/SetClass";
 import SelectCourse from "./components/SelectCourse";
@@ -262,7 +261,6 @@ export default {
     }
   },
   components: {
-    HelloWorld,
     Canvas,
     ClassSheet,
     SelectCourse,
@@ -289,7 +287,7 @@ export default {
     jwtInvalid() {
       document.getElementById("blur").style.filter = "blur(0px)"
       this.$store.commit('setError','登录失效，请重新登录！')
-      this.$router.replace('/HelloWorld')
+      this.$router.replace('/UserInfo')
       this.$store.commit('jwtInvalid')
       setTimeout(()=>{
         this.exit()

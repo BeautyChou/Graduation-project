@@ -212,7 +212,6 @@
       </template>
 
     </v-data-table>
-    <div> {{ this.questions }}</div>
   </v-card>
 </template>
 

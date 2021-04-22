@@ -18,9 +18,15 @@ Vue.config.productionTip = false
 /* eslint-disable no-new */
 //读取配置文件中的baseURL
 const configArray =config.split("\n")
-const baseURL_databaseName = configArray[configArray.indexOf("#前端请求API端口")+1]
-console.log(baseURL_databaseName.split(": ")[1])
-axios.defaults.baseURL= baseURL_databaseName.split(": ")[1]
+let baseUrl
+configArray.some((val,index)=>{
+  if (val.indexOf("baseurl") !== -1){
+    baseUrl = val
+  }
+  return val.indexOf("baseurl") !== -1
+})
+console.log(baseUrl.split(": ")[1])
+axios.defaults.baseURL= baseUrl.split(": ")[1]
 
 new Vue({
   el: '#app',

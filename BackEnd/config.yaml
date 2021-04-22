@@ -9,6 +9,6 @@ port: 9000
 #登录mysql用户名
 mysql_username: root
 #登录mysql密码
-mysql_password: 123456
+mysql_password: 123456789
 #mysql端口号
 mysql_port: 3306

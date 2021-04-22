@@ -174,18 +174,26 @@ func GetCourseList(db *gorm.DB) func(c *gin.Context) {
 
 func GetHomeworkList(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
+		temp := &Model.Elective{}
 		page, _ := strconv.Atoi(c.Query("page"))
 		items, _ := strconv.Atoi(c.Query("items"))
 		var count int64
+		var unchangeable = true
 		var courseId = c.Query("course_id")
 		var recordId = c.Query("record_id")
 		var homeworks Model.HomeworkForSelects
 		db.Model(&[]Model.Homework{}).Where("course_id = ? AND record_id = ?", courseId, recordId).Group("id").Count(&count).Offset((page - 1) * items).Limit(items).Scan(&homeworks)
+		if err := db.Model(&Model.Elective{}).Where("record_id = ?", recordId).First(&temp).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				unchangeable = false
+			}
+		}
 		//db.Raw("Select * from homeworks where course_id = ? AND deleted_at is NULL GROUP BY id", courseId).Scan(&homeworks)
 		c.JSON(http.StatusOK, gin.H{
-			"homeworks": homeworks,
-			"time":      time.Now(),
-			"total":     count,
+			"homeworks":    homeworks,
+			"time":         time.Now(),
+			"total":        count,
+			"unchangeable": unchangeable,
 		})
 	}
 }
@@ -364,7 +372,7 @@ func GetClassesList(db *gorm.DB) func(c *gin.Context) {
 		fmt.Println(level)
 		if level == "2" {
 			tId := c.Query("teacher_id")
-			db.Find("teacher_id = ?", tId, &Model.Course{}).Count(&count).Offset((page - 1) * items).Limit(items).Scan(&classes)
+			db.Model(&Model.Course{}).Find("teacher_id = ?", tId).Count(&count).Offset((page - 1) * items).Limit(items).Scan(&classes)
 			c.JSON(http.StatusOK, gin.H{
 				"classes": classes,
 			})
@@ -784,7 +792,7 @@ func GetStudentScore(db *gorm.DB) func(c *gin.Context) {
 		recordID := c.Query("record_id")
 		db.Model(&Model.Homework{}).Select("count(distinct id)").Where("record_id = ?", recordID).Count(&count)
 		fmt.Println(count)
-		db.Table(" (?) as T", db.Model(&Model.Homework{}).Joins("left join homework_upload_records on homework_id = homeworks.id AND homeworks.question_id = homework_upload_records.question_id").Select("homework_upload_records.student_id,homework_upload_records.homework_id,sum(score) total_score,homeworks.record_id").Group("id")).Select("name,T.student_id,T.homework_id,round(sum(total_score)/?,0) homework_score", count).Joins("left join students on student_id = students.id").Where("record_id = ?", recordID).Group("student_id").Scan(&scores)
+		db.Debug().Table(" (?) as T", db.Model(&Model.Homework{}).Joins("left join homework_upload_records on homework_id = homeworks.id AND homeworks.question_id = homework_upload_records.question_id").Select("homework_upload_records.student_id,homework_upload_records.homework_id,sum(score) total_score,homeworks.record_id").Group("id")).Select("name,T.student_id,T.homework_id,round(sum(total_score)/?,0) homework_score", count).Joins("left join students on student_id = students.id").Where("record_id = ? AND student_id IS NOT NULL", recordID).Group("student_id").Scan(&scores)
 		c.JSON(http.StatusOK, gin.H{
 			"scores": scores,
 		})
@@ -993,10 +1001,10 @@ func ApplyTeacher(db *gorm.DB) func(c *gin.Context) {
 					"msg":       "添加课程失败!人数已满！",
 					"snackbar2": "closeError",
 				})
-				db.Model(&Model.Student{}).Where("id = ?", studentID).Update("teacher_id", 0)
+				db.Model(&Model.Student{}).Where("id = ?", studentID).Update("teacher_id", 100000)
 			}
 		} else {
-			db.Model(&Model.Student{}).Where("id = ?", studentID).Update("teacher_id", 0)
+			db.Debug().Model(&Model.Student{}).Where("id = ?", studentID).Update("teacher_id", 100000)
 		}
 	}
 }

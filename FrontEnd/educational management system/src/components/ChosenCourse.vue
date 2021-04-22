@@ -14,8 +14,14 @@
       <template v-slot:item.operation="{ item }">
         <v-tooltip v-if="$store.state.level===2||true" bottom>
           <template v-slot:activator="{ on,attrs }">
-            <v-btn icon color="red" v-bind="attrs" v-on="on" x-large
-                   @click="quitCourse(item)">
+            <v-btn icon
+                   color="red"
+                   v-bind="attrs"
+                   v-on="on"
+                   x-large
+                   @click="quitCourse(item)"
+                   :disabled="!item.selectable"
+            >
               <v-icon>
                 mdi-exit-to-app
               </v-icon>

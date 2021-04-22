@@ -44,9 +44,10 @@
         <v-card>
           <v-card-title>选择导师</v-card-title>
           <v-select outlined :items="teachers" item-text="name" item-value="value" v-model="teacher_id"></v-select>
-          <v-btn block x-large class="ma-0" @click="postTeacher" :disabled="(student.teacher_id!==0)">提交</v-btn>
+          <v-btn block x-large class="ma-0" @click="postTeacher" :disabled="(student.teacher_id!==100000)">提交</v-btn>
           <v-overlay :absolute="true" :value="teacher_invalid||teacher_flag">
-            <v-card-title class="font-weight-bold">在第七学期9月开放</v-card-title>
+            <v-card-title class="font-weight-bold" v-if="!teacher_flag">在第七学期9月开放</v-card-title>
+            <v-card-title class="font-weight-bold" v-if="teacher_flag">已经选择了导师，不可更改</v-card-title>
           </v-overlay>
 
         </v-card>
@@ -243,58 +244,65 @@ export default {
     }
   },
   created() {
-    this.$axios({
-      method: 'get',
-      url: "UserInfo/UserInfo",
-      params: {
-        student_id: this.$store.state.studentId,
-        teacher_id: this.$store.state.teacherId,
-      },
-      headers: {
-        'Token': "8a54sh " + this.$store.state.Jwt
-      }
-    }).then((response) => {
-      console.log(response)
-      if (response.data.msg === "Token无效") {
-        this.$emit('func')
-        return
-      }
-      if (response.data.teacher.name === "") {
-        //学生查询
-        this.student = response.data.student
-        this.name = response.data.student.name
-        this.faculty = response.data.student.faculty_name
-        this.specialty = response.data.student.specialty_name
-        this.student_year = parseInt(response.data.student.created.substr(0, 4))
-        this.teacher_flag = response.data.student.teacher_flag
-        this.current_time = response.data.current_time
-        let year = this.current_time.substr(0, 4)
-        let month = this.current_time.substr(5, 2)
-        this.getDirectionList();
-        this.getTeacherList();
-        if (year === (this.student_year + 2).toString() && month === "06") {
-          this.direction_invalid = false
-        }
-        if (year === (this.student_year + 3).toString() && month === "09") {
-          this.teacher_invalid = false
-        }
-        if ((year === (this.student_year + 3).toString() && month >= "09" && month <= "12") || (year === (this.student_year + 4).toString() && month === "01")) {
-          this.practice_invalid = false
-        }
-        this.direction_id = response.data.student.direction_id
-        this.teacher_id = response.data.student.teacher_id
-        this.practice = parseInt(response.data.student.practice)
-      } else {
-        //老师查询
-        this.teacher = response.data.teacher
-        this.name = response.data.teacher.name
-        this.faculty = response.data.teacher.faculty_name
-        this.students = response.data.students
-
-      }
-    })
+    this.getUserInfo()
   },
   methods: {
+    getUserInfo(){
+      this.$axios({
+        method: 'get',
+        url: "UserInfo/UserInfo",
+        params: {
+          student_id: this.$store.state.studentId,
+          teacher_id: this.$store.state.teacherId,
+        },
+        headers: {
+          'Token': "8a54sh " + this.$store.state.Jwt
+        }
+      }).then((response) => {
+        console.log(response)
+        if (response.data.msg === "Token无效") {
+          this.$emit('func')
+          return
+        }
+        if (response.data.teacher.name === "") {
+          //学生查询
+          this.student = response.data.student
+          this.name = response.data.student.name
+          this.faculty = response.data.student.faculty_name
+          this.specialty = response.data.student.specialty_name
+          this.student_year = parseInt(response.data.student.created.substr(0, 4))
+          this.teacher_flag = response.data.student.teacher_flag
+          this.current_time = response.data.current_time
+          let year = this.current_time.substr(0, 4)
+          let month = this.current_time.substr(5, 2)
+          this.getDirectionList();
+          this.getTeacherList();
+          // year = '2019'
+          // month = '06'
+          year = '2020'
+          month = '09'
+          if (year === (this.student_year + 2).toString() && month === "06") {
+            this.direction_invalid = false
+          }
+          if (year === (this.student_year + 3).toString() && month === "09") {
+            this.teacher_invalid = false
+          }
+          if ((year === (this.student_year + 3).toString() && month >= "09" && month <= "12") || (year === (this.student_year + 4).toString() && month === "01")) {
+            this.practice_invalid = false
+          }
+          this.direction_id = response.data.student.direction_id
+          this.teacher_id = response.data.student.teacher_id
+          this.practice = parseInt(response.data.student.practice)
+        } else {
+          //老师查询
+          this.teacher = response.data.teacher
+          this.name = response.data.teacher.name
+          this.faculty = response.data.teacher.faculty_name
+          this.students = response.data.students
+
+        }
+      })
+    },
     getDirectionList() {
       this.$axios({
         url: "UserInfo/Direction",
@@ -451,6 +459,10 @@ export default {
             this.students.splice(i, 1)
           }
         })
+        this.$store.commit(response.data.snackbar, response.data.msg)
+        setTimeout(() => {
+          this.$store.commit(response.data.snackbar2)
+        }, 3000)
       })
     },
     denied(studentOBJ) {
@@ -481,59 +493,7 @@ export default {
   watch: {
     "$route.path": {
       handler(newVal, oldVal) {
-        this.$axios({
-          method: 'get',
-          url: "UserInfo/UserInfo",
-          params: {
-            student_id: this.$store.state.studentId,
-            teacher_id: this.$store.state.teacherId,
-          },
-          headers: {
-            'Token': "8a54sh " + this.$store.state.Jwt
-          }
-        }).then((response) => {
-          if (response.data.msg === "Token无效") {
-            this.$emit('func')
-            return
-          }
-          console.log(response)
-          if (response.data.teacher.name === "") {
-            //学生查询
-            this.student = response.data.student
-            this.name = response.data.student.name
-            this.faculty = response.data.student.faculty_name
-            this.specialty = response.data.student.specialty_name
-            this.student_year = parseInt(response.data.student.created.substr(0, 4))
-            this.teacher_flag = response.data.student.teacher_flag
-            this.current_time = response.data.current_time
-            let year = this.current_time.substr(0, 4)
-            let month = this.current_time.substr(5, 2)
-            year = "2020"
-            month = "09"
-            this.getDirectionList();
-            this.getTeacherList();
-            if (year === (this.student_year + 2).toString() && month === "06") {
-              this.direction_invalid = false
-            }
-            if (year === (this.student_year + 3).toString() && month === "09") {
-              this.teacher_invalid = false
-            }
-            if ((year === (this.student_year + 3).toString() && month >= "09" && month <= "12") || (year === (this.student_year + 4).toString() && month === "01")) {
-              this.practice_invalid = false
-            }
-            this.direction_id = response.data.student.direction_id
-            this.teacher_id = response.data.student.teacher_id
-            this.practice = parseInt(response.data.student.practice)
-          } else {
-            //老师查询
-            this.specialty_flag = false
-            this.teacher = response.data.teacher
-            this.name = response.data.teacher.name
-            this.faculty = response.data.teacher.faculty_name
-            this.students = response.data.students
-
-          }
-        })
+        this.getUserInfo()
       },
     }
   }

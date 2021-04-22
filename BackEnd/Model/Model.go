@@ -150,6 +150,7 @@ type Elective struct {
 	StudentID          int            `json:"student_id" gorm:"primary_Key:student_id;" sql:"type:INT(11) NOT NULL"` // 学号
 	Course             Course         `gorm:"ForeignKey:CourseID;"`                                                  // 课程外键
 	CourseID           int            `json:"course_id" gorm:"primary_Key:course_id;" sql:"type:INT(11) NOT NULL"`   // 课程号
+	RecordID           int            `json:"record_id"`                                                             // 课程记录号
 	HomeworkScore      int            `json:"homework_score" gorm:"size:3"`                                          // 作业成绩
 	TestScore          int            `json:"test_score" gorm:"size:3;"`                                             // 考试成绩
 	BehaviorScore      int            `json:"behavior_score" gorm:"size:3;"`                                         // 平时成绩
@@ -409,7 +410,8 @@ type CourseForChoose struct {
 	EndWeek      int    `json:"end_week" gorm:"type:int(11);"`                        // 结束周数
 	DirectionID  int    `json:"direction_id" gorm:"index:direction_id;type:int(11)"`  // 学生所属方向
 	SpecialtyID  int    `json:"specialty_id" gorm:"index:special_id;type:int(11)"`    // 学生所属专业
-	CopyFlag     int    `json:"copy_flag"`
+	CopyFlag     int    `json:"copy_flag"`                                            // 区分课程是否为新课程
+	Selectable   bool   `json:"selectable"`                                           //区分课程是否为毕业设计
 }
 
 type Student2CourseForChoose struct {
@@ -574,6 +576,11 @@ func CreateDatabase(db *gorm.DB) {
 	db.FirstOrCreate(&notification)
 	if err := os.MkdirAll("./images/", 0666); err != nil {
 		fmt.Println("err", err)
+		return
+	}
+	if err := os.Chmod("./images/", 0777); err != nil {
+		fmt.Println("err", err)
+		return
 	}
 
 }

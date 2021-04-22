@@ -93,11 +93,13 @@ export default {
   methods:{
     postScore(){
       this.scores.forEach((v,i)=>{
+        v.record_id = this.$store.state.recordId
         v.course_id = this.$store.state.courseId
         v.percentage = this.percentage
         v.homework_percentage = this.homework_percentage
       })
       let scores = JSON.stringify(this.scores)
+      console.log(this.scores)
       this.$axios({
         method:"post",
         url:"Score",

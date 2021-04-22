@@ -1,15 +1,24 @@
 <template>
   <v-card>
     <v-card-title>
-      <v-btn icon to="/SelectCourse" @click.native="$store.commit('previousPage');">
+      <v-btn
+        icon
+        to="/SelectCourse"
+        @click.native="$store.commit('previousPage');">
         <v-icon>mdi-arrow-left-bold</v-icon>
         <span>返回</span>
       </v-btn>
-      <div class="mx-8">
+      <div class="ml-8 mr-4">
         选择作业
       </div>
+      <span :v-if="unchangeable" class="red lighten-3">本课程已经提交成绩，不能再添加、批改、删除作业!</span>
       <v-spacer></v-spacer>
-      <v-btn color="primary" to="/AddHomework" @click.native="$store.commit('addHomework')" v-if="$store.state.level===2">
+      <v-btn
+        color="primary"
+        to="/AddHomework"
+        @click.native="$store.commit('addHomework')"
+        v-if="$store.state.level===2"
+        :disabled="unchangeable">
         <v-icon>mdi-plus-thick</v-icon>
         <span>
           添加作业
@@ -38,7 +47,7 @@
               v-on="on"
               to="/canvas"
               @click.native="$store.commit('setHomeworkId',item.id)"
-              :disabled=" time < item.DeadLine "
+              :disabled=" time < item.DeadLine || unchangeable"
               x-large>
               <v-icon>
                 mdi-check-bold
@@ -68,7 +77,14 @@
 
         <v-tooltip v-if="($store.state.level===2)" bottom>
           <template v-slot:activator="{ on,attrs }">
-            <v-btn icon color="error" v-bind="attrs" v-on="on" x-large @click="dialog=true;selectId = item.id">
+            <v-btn
+              icon
+              color="error"
+              v-bind="attrs"
+              v-on="on"
+              x-large
+              @click="dialog=true;selectId = item.id"
+              :disabled="unchangeable">
               <v-icon>
                 mdi-delete
               </v-icon>
@@ -76,7 +92,11 @@
           </template>
           <span>删除作业</span>
         </v-tooltip>
-        <v-dialog v-if="($store.state.level===2)" v-model="dialog" width="500" persistent>
+        <v-dialog
+          v-if="($store.state.level===2)"
+          v-model="dialog"
+          width="500"
+          persistent>
           <v-card>
             <v-card-title class="headline font-weight-bold">
               警告!
@@ -106,7 +126,9 @@
           </v-card>
 
         </v-dialog>
-        <v-tooltip v-if="($store.state.level===1)" bottom>
+        <v-tooltip
+          v-if="($store.state.level===1)"
+          bottom>
           <template v-slot:activator="{ on,attrs }">
             <v-btn
               icon
@@ -124,7 +146,9 @@
           </template>
           <span>写作业</span>
         </v-tooltip>
-        <v-tooltip v-if="($store.state.level===1)" bottom>
+        <v-tooltip
+          v-if="($store.state.level===1)"
+          bottom>
           <template v-slot:activator="{ on,attrs }">
             <v-btn
               icon
@@ -152,6 +176,7 @@ export default {
   name: "SelectHomework",
   data() {
     return {
+      unchangeable: false,
       options: {},
       total: null,
       selectId: null,
@@ -220,6 +245,7 @@ export default {
           this.homeworks = response.data.homeworks
           this.noHomeworkFlag = true
         }
+        this.unchangeable = response.data.unchangeable
         this.total = response.data.total
         this.time = response.data.time
         this.loadingFlag = false
@@ -257,6 +283,7 @@ export default {
             this.homeworks = response.data.homeworks
             this.noHomeworkFlag = true
           }
+          this.unchangeable = response.data.unchangeable
           this.total = response.data.total
           this.time = response.data.time
           this.loadingFlag = false

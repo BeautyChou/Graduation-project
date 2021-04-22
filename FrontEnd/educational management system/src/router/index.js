@@ -1,6 +1,5 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-import HelloWorld from '../components/HelloWorld'
 import canvas from '../components/Canvas'
 import SetClass from "../components/SetClass";
 import SelectCourse from "../components/SelectCourse";
@@ -21,11 +20,6 @@ Vue.use(Router)
 
 export default new Router({
   routes: [
-    {
-      path: '/',
-      name: 'HelloWorld',
-      component: HelloWorld
-    },
     {
       path: '/canvas',
       name: 'canvas',
@@ -102,7 +96,8 @@ export default new Router({
     {
       path:'/UserInfo',
       name:'UserInfo',
-      component:UserInfo
+      component:UserInfo,
+      alias:'/'
     },
     {
       path:'/Manage',
