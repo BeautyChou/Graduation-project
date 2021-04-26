@@ -6,12 +6,13 @@ import (
 	"BackEnd/Model"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
 	"github.com/spf13/viper"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/utils"
 	"io"
-	"os"
+	"time"
 )
 
 type Config struct {
@@ -53,10 +54,15 @@ func main() {
 	//定期清理上学期课程
 	go Controller.StartPeriodicityTask(db)
 
-	//启动服务
-	f, _ := os.Create("gin.log")
-	gin.DefaultWriter = io.MultiWriter(f)
+	//设置日志输出
+	writer, _ := rotatelogs.New(
+		"./Logs/gin%Y%m%d%H%M.log",
+		rotatelogs.WithRotationTime(time.Hour*24),
+		rotatelogs.WithRotationCount(60),
+	)
+	gin.DefaultWriter = io.MultiWriter(writer)
 
+	//启动服务
 	r := gin.Default()
 	r.Use(Middleware.Cors())
 	r.POST("/login", Controller.Auth(db))

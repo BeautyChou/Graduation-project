@@ -101,7 +101,7 @@ func CheckedImage(db *gorm.DB) func(ctx *gin.Context) {
 			return
 		}
 		file.Filename = studentID + "-checked"
-		dst := fmt.Sprintf("./images/%s/%s/%s", homeworkID, questionID, file.Filename)
+		dst := fmt.Sprintf("./Images/%s/%s/%s", homeworkID, questionID, file.Filename)
 		c.SaveUploadedFile(file, dst)
 		db.Model(&Model.HomeworkUploadRecord{}).Where("homework_id = ? AND question_id = ? AND student_id = ?", homeworkID, questionID, studentID).Updates(&Model.HomeworkUploadRecord{
 			Score:    scoreNum,
@@ -117,14 +117,14 @@ func ImageSend(c *gin.Context) {
 	homeworkid := c.Query("homework")
 	questionid := c.Query("question")
 	studentid := c.Query("student")
-	c.File("./images/" + homeworkid + "/" + questionid + "/" + studentid)
+	c.File("./Images/" + homeworkid + "/" + questionid + "/" + studentid)
 }
 
 func SendCheckedImage(c *gin.Context) {
 	homeworkid := c.Query("homework")
 	questionid := c.Query("question")
 	studentid := c.Query("student")
-	c.File("./images/" + homeworkid + "/" + questionid + "/" + studentid + "-checked")
+	c.File("./Images/" + homeworkid + "/" + questionid + "/" + studentid + "-checked")
 }
 
 func HomeworkJudgeList(db *gorm.DB) func(*gin.Context) {
@@ -246,15 +246,15 @@ func CreateHomework(db *gorm.DB) func(c *gin.Context) {
 		db.Unscoped().Where("id = ?", questions[0].ID).Delete(&Model.Homework{})
 		id := utils.ToString(questions[0].ID)
 		// 创建文件夹并修改权限
-		err1 := os.MkdirAll("./images/"+id, 0777)
-		err2 := os.Chmod("./images/"+id, 0777)
+		err1 := os.MkdirAll("./Images/"+id, 0777)
+		err2 := os.Chmod("./Images/"+id, 0777)
 		if err1 != nil || err2 != nil {
 			fmt.Println(err1, err2)
 			return
 		}
 		for _, item := range questions {
-			err1 := os.MkdirAll("./images/"+id+"/"+utils.ToString(item.QuestionID), 0666)
-			err2 := os.Chmod("./images/"+id+"/"+utils.ToString(item.QuestionID), 0777)
+			err1 := os.MkdirAll("./Images/"+id+"/"+utils.ToString(item.QuestionID), 0666)
+			err2 := os.Chmod("./Images/"+id+"/"+utils.ToString(item.QuestionID), 0777)
 			if err1 != nil || err2 != nil {
 				fmt.Println(err1, err2)
 				return
@@ -319,7 +319,7 @@ func PostHomework(db *gorm.DB) func(c *gin.Context) {
 			return
 		}
 		file.Filename = studentID
-		dst := fmt.Sprintf("./images/%s/%s/%s", homeworkID, questionID, file.Filename)
+		dst := fmt.Sprintf("./Images/%s/%s/%s", homeworkID, questionID, file.Filename)
 		err = c.SaveUploadedFile(file, dst)
 		if err != nil {
 			fmt.Println(err)
@@ -1629,14 +1629,14 @@ func DeleteCourse(db *gorm.DB) {
 }
 
 func StartPeriodicityTask(db *gorm.DB) {
-	ticker := time.NewTicker(time.Hour*24)
+	ticker := time.NewTicker(time.Hour * 24)
 	protector := 0
-	for range ticker.C{
+	for range ticker.C {
 		now := time.Now()
-		if protector > 0{
+		if protector > 0 {
 			protector--
 		}
-		if (now.Month()== 2 || now.Month() == 7)&&(protector == 0){
+		if (now.Month() == 2 || now.Month() == 7) && (protector == 0) {
 			go DeleteCourse(db)
 			protector = 62
 		}

@@ -576,13 +576,20 @@ func CreateDatabase(db *gorm.DB) {
 	db.FirstOrCreate(&user1)
 	db.FirstOrCreate(&teacher)
 	db.FirstOrCreate(&notification)
-	if err := os.MkdirAll("./images/", 0666); err != nil {
+	if err := os.MkdirAll("./Images/", 0666); err != nil {
 		fmt.Println("err", err)
 		return
 	}
-	if err := os.Chmod("./images/", 0777); err != nil {
+	if err := os.Chmod("./Images/", 0777); err != nil {
 		fmt.Println("err", err)
 		return
 	}
-
+	if err := os.MkdirAll("./Logs/", 0666); err != nil {
+		fmt.Println("err", err)
+		return
+	}
+	if err := os.Chmod("./Logs/", 0777); err != nil {
+		fmt.Println("err", err)
+		return
+	}
 }
