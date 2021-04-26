@@ -9,14 +9,20 @@
       class="elevation-1"
     >
       <template v-slot:item.course_name="{ item }">
-        <router-link to="/SelectHomework" @click.native="$store.commit('setRecordId',item.record_id);$store.commit('setCourseId',item.course_id);">
+        <router-link to="/SelectHomework"
+                     @click.native="$store.commit('setRecordId',item.record_id);$store.commit('setCourseId',item.course_id);">
           {{ item.course_name }}
         </router-link>
       </template>
       <template v-slot:item.operation="{ item }" v-if="$store.state.level===2">
         <v-tooltip v-if="$store.state.level===2" bottom>
           <template v-slot:activator="{ on,attrs }">
-            <v-btn icon color="primary" v-bind="attrs" v-on="on" x-large
+            <v-btn icon
+                   color="primary"
+                   v-bind="attrs"
+                   v-on="on"
+                   x-large
+                   :disabled="item.deleted_at !== null"
                    @click="changeClass = true ;selectId = item.course_id;selectRecordID = item.record_id;selectEndWeek = item.end_week;getInfo()">
               <v-icon>
                 mdi-tools
@@ -28,7 +34,13 @@
         </v-tooltip>
         <v-tooltip v-if="$store.state.level===2" bottom>
           <template v-slot:activator="{ on,attrs }">
-            <v-btn to="/RecordGrades" icon color="primary" v-bind="attrs" v-on="on" x-large
+            <v-btn to="/RecordGrades"
+                   icon
+                   color="primary"
+                   v-bind="attrs"
+                   v-on="on"
+                   x-large
+                   :disabled="item.deleted_at !== null"
                    @click.native="$store.commit('setRecordId',item.record_id);$store.commit('setCourseId',item.course_id);">
               <v-icon>
                 mdi-pencil-circle
@@ -196,11 +208,11 @@ export default {
   name: "SelectCourse",
   data() {
     return {
-      options:{},
-      total:null,
+      options: {},
+      total: null,
       course: null,
       courses: [],
-      selectEndWeek:null,
+      selectEndWeek: null,
       headers: [
         {text: '课程名', align: 'start', sortable: false, value: 'course_name'},
         {text: '教师', sortable: false, value: 'name'},
@@ -279,16 +291,16 @@ export default {
       faculties: [],
       directions: [],
       apply: {
-        'after_end_time':null,
-        'after_end_week':null,
-        'after_start_week':null,
-        'after_start_time':null,
-        'after_week_time':null,
-        'before_end_week':null,
-        'before_start_week':null,
-        'before_end_time':null,
-        'before_start_time':null,
-        'before_week_time':null,
+        'after_end_time': null,
+        'after_end_week': null,
+        'after_start_week': null,
+        'after_start_time': null,
+        'after_week_time': null,
+        'before_end_week': null,
+        'before_start_week': null,
+        'before_end_time': null,
+        'before_start_time': null,
+        'before_week_time': null,
         'before_classroom_id': null,
         'after_classroom_id': null,
       },
@@ -296,7 +308,7 @@ export default {
       afterClass: {},
       selectId: null,
       submitFlag1: false,
-      selectRecordID:null,
+      selectRecordID: null,
     }
   },
   created() {
@@ -310,11 +322,11 @@ export default {
         this.getClass()
       },
     },
-    options:{
-      handler(){
+    options: {
+      handler() {
         this.getClass()
       },
-      deep:true,
+      deep: true,
     },
   },
   methods: {
@@ -325,10 +337,10 @@ export default {
         params: {
           'teacher_id': this.$store.state.teacherId,
           'student_id': this.$store.state.studentId,
-          "page":this.options.page,
-          "items":this.options.itemsPerPage,
+          "page": this.options.page,
+          "items": this.options.itemsPerPage,
         },
-        headers:{
+        headers: {
           'Token': "8a54sh " + this.$store.state.Jwt
         }
       }).then((response) => {
@@ -358,9 +370,9 @@ export default {
           return
         }
         this.$store.commit(response.data.snackbar, response.data.msg)
-        setTimeout(()=>{
+        setTimeout(() => {
           this.$store.commit(response.data.snackbar2)
-        },3000)
+        }, 3000)
         this.changeClass = false
         this.apply = {}
         console.log(response)
@@ -373,7 +385,7 @@ export default {
         params: {
           'level': this.$store.state.level
         },
-        headers:{
+        headers: {
           'Token': "8a54sh " + this.$store.state.Jwt
         }
       }).then((response) => {
@@ -387,7 +399,7 @@ export default {
     validBeforeClassrooms() {
       if (this.apply.before_week_time == null || this.apply.before_start_time == null || this.apply.before_end_time == null || this.apply.before_start_week == null || this.apply.before_end_week == null) return
       const formdata = new FormData
-      formdata.append('record_id',this.selectRecordID)
+      formdata.append('record_id', this.selectRecordID)
       formdata.append('course_id', this.selectId)
       formdata.append('week_time', this.apply.before_week_time)
       formdata.append('start_time', this.apply.before_start_time)
@@ -410,8 +422,11 @@ export default {
           return
         }
         this.before_classrooms = response.data.classrooms
-        if (this.before_classrooms.length === 0) this.$set(this.apply, 'before_classroom_id', null)
-        console.log(response)
+        if (this.before_classrooms.length !== 0) {
+          this.before_classrooms.forEach((v, i) => {
+            v.name = "教室号：" + v.name + "  人数：" + v.max_num
+          })
+        } else this.$set(this.apply, 'before_classroom_id', null)
       })
     },
     validAfterClassrooms() {
@@ -425,9 +440,9 @@ export default {
       formdata.append('end_week', this.apply.after_end_week)
       formdata.append('classroom_id', this.apply.after_classroom_id)
       formdata.append('time', "applyAfter")
-      console.log(this.apply.before_week_time, this.apply.after_week_time , this.apply.before_start_time, this.apply.after_start_time)
-      if ((this.apply.before_week_time === this.apply.after_week_time )&&(this.apply.before_start_week >= this.apply.after_start_week || (this.apply.after_start_week <= this.selectEndWeek && this.apply.after_start_time === this.apply.before_start_time)  )) formdata.append('flag',"not")
-        this.$axios({
+      console.log(this.apply.before_week_time, this.apply.after_week_time, this.apply.before_start_time, this.apply.after_start_time)
+      if ((this.apply.before_week_time === this.apply.after_week_time) && (this.apply.before_start_week >= this.apply.after_start_week || (this.apply.after_start_week <= this.selectEndWeek && this.apply.after_start_time === this.apply.before_start_time))) formdata.append('flag', "not")
+      this.$axios({
         method: "post",
         url: "http://127.0.0.1:9000/validClassrooms",
         data: formdata,
@@ -436,12 +451,16 @@ export default {
           'Token': "8a54sh " + this.$store.state.Jwt
         }
       }).then((response) => {
-          if (response.data.msg === "Token无效") {
-            this.$emit('func')
-            return
-          }
+        if (response.data.msg === "Token无效") {
+          this.$emit('func')
+          return
+        }
         this.after_classrooms = response.data.classrooms
-        if (this.after_classrooms.length === 0) this.$set(this.apply, 'after_classroom_id', null)
+        if (this.after_classrooms.length !== 0) {
+          this.after_classrooms.forEach((v, i) => {
+            v.name = "教室号:" + v.name + "  人数：" + v.max_num
+          })
+        } else this.$set(this.apply, 'after_classroom_id', null)
         console.log(response)
       })
     },

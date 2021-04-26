@@ -26,7 +26,6 @@ type Config struct {
 var Conf = new(Config)
 
 func main() {
-
 	//读取配置文件并进行配置
 	viper.AddConfigPath("./")
 	viper.SetConfigFile("config.yaml")
@@ -51,6 +50,9 @@ func main() {
 		viper.Set("init_database", 0)
 		err = viper.WriteConfigAs("config.yaml")
 	}
+	//定期清理上学期课程
+	go Controller.StartPeriodicityTask(db)
+
 	//启动服务
 	f, _ := os.Create("gin.log")
 	gin.DefaultWriter = io.MultiWriter(f)

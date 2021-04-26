@@ -96,7 +96,7 @@ type Course struct {
 	StartWeek    int                  `json:"start_week" gorm:"type:int(11);"`                                     // 起始周数
 	EndWeek      int                  `json:"end_week" gorm:"type:int(11);"`                                       // 结束周数
 	CopyFlag     int                  `json:"copy_flag"`                                                           // 记录复制的Record_ID
-	Selectable   bool                 `json:"selectable"`                                                          //区分毕业设计与普通课程的标记
+	Selectable   bool                 `json:"selectable"`                                                          // 区分毕业设计与普通课程的标记
 }
 
 type ApplyForCourseChange struct {
@@ -274,25 +274,26 @@ type HomeworkForSelect struct {
 }
 
 type CourseForSelect struct {
-	RecordID     int    `json:"record_id" gorm:"primary_key"` // 记录id
-	ID           int    `json:"course_id" gorm:"primary_key;"`
-	CourseName   string `json:"course_name" gorm:"type:varchar(60);not null;"`             // 课程名
-	Credit       string `json:"credit" gorm:"type:varchar(50);"`                           // 学分
-	TeacherID    int    `json:"teacher_id" gorm:"type:int(11);not null;index:teacher_id;"` // 教师ID
-	ClassroomID  int    `json:"classroom_id" gorm:"type:int(11);index:classroom_id;"`      // 教室号
-	MaxChooseNum int    `json:"max_choose_num" gorm:"type:int(11);not null;"`              // 最大可选课人数
-	SelectedNum  int    `json:"selected_num" gorm:"type:int(11);default:0;"`               // 已选人数
-	StartTime    int    `json:"start_time" gorm:"type:datetime;"`                          // 开始时间
-	EndTime      int    `json:"end_time" gorm:"type:datetime;"`                            // 结束时间
-	Name         string `json:"name" gorm:"size:50;not null"`                              // 教师姓名
-	WeekTime     int    `json:"week_time" gorm:"type:int(2)"`                              // 上课星期数
-	FacultyID    int    `json:"faculty_id" gorm:"type:int(11)"`                            // 学院ID
-	StartWeek    int    `json:"start_week" gorm:"type:int(11);"`                           // 起始周数
-	EndWeek      int    `json:"end_week" gorm:"type:int(11);"`                             // 结束周数
-	DirectionID  int    `json:"direction_id" gorm:"index:direction_id;type:int(11)"`       // 学生所属方向
-	SpecialtyID  int    `json:"specialty_id" gorm:"index:special_id;type:int(11)"`         // 学生所属专业
-	CopyFlag     int    `json:"copy_flag"`
-	Selectable   bool   `json:"selectable"` //区分毕业设计与普通课程的标记
+	DeletedAt    gorm.DeletedAt `json:"deleted_at" sql:"index"`                                    // 记录课程是否被删除
+	RecordID     int            `json:"record_id" gorm:"primary_key"`                              // 记录id
+	ID           int            `json:"course_id" gorm:"primary_key;"`                             // 课程ID
+	CourseName   string         `json:"course_name" gorm:"type:varchar(60);not null;"`             // 课程名
+	Credit       string         `json:"credit" gorm:"type:varchar(50);"`                           // 学分
+	TeacherID    int            `json:"teacher_id" gorm:"type:int(11);not null;index:teacher_id;"` // 教师ID
+	ClassroomID  int            `json:"classroom_id" gorm:"type:int(11);index:classroom_id;"`      // 教室号
+	MaxChooseNum int            `json:"max_choose_num" gorm:"type:int(11);not null;"`              // 最大可选课人数
+	SelectedNum  int            `json:"selected_num" gorm:"type:int(11);default:0;"`               // 已选人数
+	StartTime    int            `json:"start_time" gorm:"type:datetime;"`                          // 开始时间
+	EndTime      int            `json:"end_time" gorm:"type:datetime;"`                            // 结束时间
+	Name         string         `json:"name" gorm:"size:50;not null"`                              // 教师姓名
+	WeekTime     int            `json:"week_time" gorm:"type:int(2)"`                              // 上课星期数
+	FacultyID    int            `json:"faculty_id" gorm:"type:int(11)"`                            // 学院ID
+	StartWeek    int            `json:"start_week" gorm:"type:int(11);"`                           // 起始周数
+	EndWeek      int            `json:"end_week" gorm:"type:int(11);"`                             // 结束周数
+	DirectionID  int            `json:"direction_id" gorm:"index:direction_id;type:int(11)"`       // 学生所属方向
+	SpecialtyID  int            `json:"specialty_id" gorm:"index:special_id;type:int(11)"`         // 学生所属专业
+	CopyFlag     int            `json:"copy_flag"`                                                 // 记录复制的Record_ID
+	Selectable   bool           `json:"selectable"`                                                // 区分毕业设计与普通课程的标记
 }
 
 type QuestionForSelect struct {
@@ -355,12 +356,13 @@ type DirectionToSpecialtyForSelect struct {
 }
 
 type ClassroomForSelect struct {
-	ID   int    `json:"value" gorm:"primary_key;"`
-	Name string `json:"name" gorm:"size:30;not null;uniqueIndex:name;"` // 教室名
+	ID     int    `json:"value" gorm:"primary_key;"`                      // 教室id
+	Name   string `json:"name" gorm:"size:30;not null;uniqueIndex:name;"` // 教室名
+	MaxNum int    `json:"max_num"`                                        // 教室最大人数
 }
 
 type Apply struct {
-	ID                int    `json:"id"`
+	ID                int    `json:"id"`                                                                 // 申请id
 	CourseName        string `json:"course_name" gorm:"type:varchar(60);not null;"`                      // 课程名
 	Name              string `json:"name" gorm:"size:50;not null"`                                       // 教师姓名
 	Reason            string `json:"reason"`                                                             // 申请更改的理由
@@ -392,31 +394,31 @@ type ClassSheet struct {
 }
 
 type CourseForChoose struct {
-	RecordID     int    `json:"record_id" gorm:"primary_key"` // 记录id
-	CourseID     int    `json:"course_id" gorm:"primary_key;"`
+	RecordID     int    `json:"record_id" gorm:"primary_key"`                              // 记录id
+	CourseID     int    `json:"course_id" gorm:"primary_key;"`                             // 课程id
 	CourseName   string `json:"course_name" gorm:"type:varchar(60);not null;"`             // 课程名
 	Credit       string `json:"credit" gorm:"type:varchar(50);"`                           // 学分
 	TeacherID    int    `json:"teacher_id" gorm:"type:int(11);not null;index:teacher_id;"` // 教师ID
-	TeacherName  string `json:"teacher_name"`
-	ClassroomID  int    `json:"classroom_id" gorm:"type:int(11);index:classroom_id;"` // 教室号
-	MaxChooseNum int    `json:"max_choose_num" gorm:"type:int(11);not null;"`         // 最大可选课人数
-	Selected     int    `json:"selected" gorm:"column:selected"`                      // 已选人数
-	StartTime    int    `json:"start_time" gorm:"type:datetime;"`                     // 开始时间
-	EndTime      int    `json:"end_time" gorm:"type:datetime;"`                       // 结束时间
-	Name         string `json:"name" gorm:"size:50;not null"`                         // 教师姓名
-	WeekTime     int    `json:"week_time" gorm:"type:int(2)"`                         // 上课星期数
-	FacultyID    int    `json:"faculty_id" gorm:"type:int(11)"`                       // 学院ID
-	StartWeek    int    `json:"start_week" gorm:"type:int(11);"`                      // 起始周数
-	EndWeek      int    `json:"end_week" gorm:"type:int(11);"`                        // 结束周数
-	DirectionID  int    `json:"direction_id" gorm:"index:direction_id;type:int(11)"`  // 学生所属方向
-	SpecialtyID  int    `json:"specialty_id" gorm:"index:special_id;type:int(11)"`    // 学生所属专业
-	CopyFlag     int    `json:"copy_flag"`                                            // 区分课程是否为新课程
-	Selectable   bool   `json:"selectable"`                                           //区分课程是否为毕业设计
+	TeacherName  string `json:"teacher_name"`                                              // 教师名称
+	ClassroomID  int    `json:"classroom_id" gorm:"type:int(11);index:classroom_id;"`      // 教室号
+	MaxChooseNum int    `json:"max_choose_num" gorm:"type:int(11);not null;"`              // 最大可选课人数
+	Selected     int    `json:"selected" gorm:"column:selected"`                           // 已选人数
+	StartTime    int    `json:"start_time" gorm:"type:datetime;"`                          // 开始时间
+	EndTime      int    `json:"end_time" gorm:"type:datetime;"`                            // 结束时间
+	Name         string `json:"name" gorm:"size:50;not null"`                              // 教师姓名
+	WeekTime     int    `json:"week_time" gorm:"type:int(2)"`                              // 上课星期数
+	FacultyID    int    `json:"faculty_id" gorm:"type:int(11)"`                            // 学院ID
+	StartWeek    int    `json:"start_week" gorm:"type:int(11);"`                           // 起始周数
+	EndWeek      int    `json:"end_week" gorm:"type:int(11);"`                             // 结束周数
+	DirectionID  int    `json:"direction_id" gorm:"index:direction_id;type:int(11)"`       // 学生所属方向
+	SpecialtyID  int    `json:"specialty_id" gorm:"index:special_id;type:int(11)"`         // 学生所属专业
+	CopyFlag     int    `json:"copy_flag"`                                                 // 区分课程是否为新课程
+	Selectable   bool   `json:"selectable"`                                                //区分课程是否为毕业设计
 }
 
 type Student2CourseForChoose struct {
 	StudentID int `json:"student_id" gorm:"primary_Key;" sql:"type:INT(11) NOT NULL"` // 学生ID
-	CourseID  int `json:"course_id" gorm:"primary_Key;" sql:"type:INT(11) NOT NULL"`  //课程ID
+	CourseID  int `json:"course_id" gorm:"primary_Key;" sql:"type:INT(11) NOT NULL"`  // 课程ID
 	RecordID  int `json:"record_id" sql:"type:INT(11) NOT NULL"`                      // 课程列表号
 }
 
@@ -460,14 +462,14 @@ type StudentForUserInfo struct {
 	Created       time.Time `json:"created"`
 	Name          string    `json:"name" gorm:"type:varchar(50);not null;"`                    // 学生姓名
 	FacultyID     int       `json:"faculty_id" gorm:"index:faculty_id;"`                       // 所在院系
-	FacultyName   string    `json:"faculty_name"`                                              //学院名称
+	FacultyName   string    `json:"faculty_name"`                                              // 学院名称
 	Credit        float32   `json:"mark" gorm:"type:float(5,2);"`                              // 累计学分
 	DirectionID   int       `json:"direction_id" gorm:"index:direction_id;type:int(11)"`       // 学生所属方向
-	DirectionName string    `json:"direction_name"`                                            //学院名称
+	DirectionName string    `json:"direction_name"`                                            // 学院名称
 	SpecialtyID   int       `json:"specialty_id" gorm:"index:special_id;type:int(11)"`         // 学生所属专业
-	SpecialtyName string    `json:"specialty_name"`                                            //专业名称
+	SpecialtyName string    `json:"specialty_name"`                                            // 专业名称
 	TeacherID     int       `json:"teacher_id" gorm:"type:int(11);not null;index:teacher_id;"` // 导师ID
-	Practice      int       `json:"practice"`                                                  //实习方式
+	Practice      int       `json:"practice"`                                                  // 实习方式
 	TeacherFlag   bool      `json:"teacher_flag"`                                              // 表示老师是否同意作为导师
 }
 
@@ -508,8 +510,8 @@ type PunishmentForSelect struct {
 	StudentID         int    `json:"student_id" gorm:"primary_Key;" sql:"type:INT(11) NOT NULL"` // 学生ID
 	Reason            string `json:"reason" gorm:"size:60"`                                      // 处分原因
 	PunishmentLevelID int    `json:"punishment_level_id"`                                        // 处分等级
-	Level             string `json:"punishment_name"`
-	IsCancelled       bool   `json:"is_cancelled"` // 处分是否被清除
+	Level             string `json:"punishment_name"`                                            // 处分等级名称
+	IsCancelled       bool   `json:"is_cancelled"`                                               // 处分是否被清除
 }
 
 type CourseForChooses []CourseForChoose
