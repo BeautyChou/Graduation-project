@@ -436,10 +436,10 @@ func PostNewClass(db *gorm.DB) func(c *gin.Context) {
 func DeleteClass(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var id = c.Query("record_id")
-		db.Raw("SET FOREIGN_KEY_CHECKS = 0")
-		result := db.Debug().Where("record_id = ? OR copy_flag = ?", id, id).Delete(&Model.Course{})
+		db.Exec("SET FOREIGN_KEY_CHECKS = 0")
+		result := db.Unscoped().Debug().Where("record_id = ? OR copy_flag = ?", id, id).Delete(&Model.Course{})
 		fmt.Println(result.RowsAffected)
-		db.Raw("SET FOREIGN_KEY_CHECKS = 1")
+		db.Exec("SET FOREIGN_KEY_CHECKS = 1")
 		c.JSON(http.StatusOK, gin.H{
 			"snackbar":  "setSuccess",
 			"msg":       "删除课程成功！",
