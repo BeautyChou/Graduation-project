@@ -277,9 +277,6 @@ export default {
           let month = this.current_time.substr(5, 2)
           this.getDirectionList();
           this.getTeacherList();
-          // year = '2019'
-          // month = '06'
-          year = '2020'
           month = '09'
           if (year === (this.student_year + 2).toString() && month === "06") {
             this.direction_invalid = false

@@ -680,7 +680,12 @@ export default {
           return
         }
         this.valClassrooms = response.data.classrooms
-        if (this.valClassrooms.length === 0) this.$set(this.newClass, 'classroom_id', null)
+        if (this.valClassrooms.length !== 0){
+          this.valClassrooms.forEach((v, i) => {
+            v.name = "教室号:" + v.name + "  人数：" + v.max_num
+          })
+        }
+        else this.$set(this.newClass, 'classroom_id', null)
         console.log(response)
       })
     },

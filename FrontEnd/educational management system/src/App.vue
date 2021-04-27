@@ -297,6 +297,7 @@ export default {
       this.dialog = true
       this.$store.commit('clear')
       document.getElementById("blur").style.filter = "blur(10px)"
+      this.$router.replace('/UserInfo')
     },
     accept(){
       const formData = new FormData()

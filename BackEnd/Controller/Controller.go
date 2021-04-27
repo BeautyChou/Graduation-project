@@ -172,7 +172,7 @@ func GetHomeworkList(db *gorm.DB) func(c *gin.Context) {
 		var recordId = c.Query("record_id")
 		var homeworks Model.HomeworkForSelects
 		db.Model(&[]Model.Homework{}).Where("course_id = ? AND record_id = ?", courseId, recordId).Group("id").Count(&count).Offset((page - 1) * items).Limit(items).Scan(&homeworks)
-		if err := db.Model(&Model.Elective{}).Where("record_id = ?", recordId).First(&temp).Error; err != nil {
+		if err := db.Debug().Model(&Model.Elective{}).Where("record_id = ?", recordId).First(&temp).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				unchangeable = false
 			}
@@ -436,8 +436,10 @@ func PostNewClass(db *gorm.DB) func(c *gin.Context) {
 func DeleteClass(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var id = c.Query("record_id")
-		result := db.Unscoped().Where("record_id = ? OR copy_flag = ?", id, id).Delete(&Model.Course{})
+		db.Raw("SET FOREIGN_KEY_CHECKS = 0")
+		result := db.Debug().Where("record_id = ? OR copy_flag = ?", id, id).Delete(&Model.Course{})
 		fmt.Println(result.RowsAffected)
+		db.Raw("SET FOREIGN_KEY_CHECKS = 1")
 		c.JSON(http.StatusOK, gin.H{
 			"snackbar":  "setSuccess",
 			"msg":       "删除课程成功！",
@@ -781,7 +783,7 @@ func GetStudentScore(db *gorm.DB) func(c *gin.Context) {
 		recordID := c.Query("record_id")
 		db.Model(&Model.Homework{}).Select("count(distinct id)").Where("record_id = ?", recordID).Count(&count)
 		fmt.Println(count)
-		db.Debug().Table(" (?) as T", db.Model(&Model.Homework{}).Joins("left join homework_upload_records on homework_id = homeworks.id AND homeworks.question_id = homework_upload_records.question_id").Select("homework_upload_records.student_id,homework_upload_records.homework_id,sum(score) total_score,homeworks.record_id").Group("id")).Select("name,T.student_id,T.homework_id,round(sum(total_score)/?,0) homework_score", count).Joins("left join students on student_id = students.id").Where("record_id = ? AND student_id IS NOT NULL", recordID).Group("student_id").Scan(&scores)
+		db.Debug().Table(" (?) as T", db.Model(&Model.Homework{}).Joins("left join homework_upload_records on homework_id = homeworks.id AND homeworks.question_id = homework_upload_records.question_id").Select("homework_upload_records.student_id,homework_upload_records.homework_id,sum(score) total_score,homeworks.record_id").Group("student_id")).Select("name,T.student_id,T.homework_id,round(sum(total_score)/?,0) homework_score", count).Joins("left join students on student_id = students.id").Where("record_id = ? AND student_id IS NOT NULL", recordID).Group("student_id").Scan(&scores)
 		c.JSON(http.StatusOK, gin.H{
 			"scores": scores,
 		})
@@ -847,10 +849,10 @@ func GetUserInfo(db *gorm.DB) func(c *gin.Context) {
 		students := &Model.StudentForSelects{}
 		currentTime := time.Now()
 		if studentID == "" {
-			bTime := time.Date(currentTime.Year()-4, 6, 1, 0, 0, 0, 00, time.Local)
-			tTime := time.Date(currentTime.Year()-4, 8, 31, 23, 59, 59, 99, time.Local)
+			bTime := time.Date(currentTime.Year()-3, 6, 1, 0, 0, 0, 00, time.Local)
+			tTime := time.Date(currentTime.Year()-3, 8, 31, 23, 59, 59, 99, time.Local)
 			db.Model(&Model.Teacher{}).Select("teachers.*,faculties.name faculty_name").Where("teachers.id = ?", teacherID).Joins("left join faculties on faculties.id = teachers.faculty_id").Find(&teacher)
-			db.Model(&Model.Student{}).Where("teacher_id = ? AND created_at >= ? AND created_at <= ?", teacherID, bTime, tTime).Scan(&students)
+			db.Model(&Model.Student{}).Where("teacher_id = ? AND created_at >= ? AND created_at <= ? AND teacher_flag = 0", teacherID, bTime, tTime).Scan(&students)
 		} else {
 			db.Model(&Model.Student{}).Select("students.created_at created,faculties.name faculty_name,direction_to_specialties.*,students.*").Where("students.id = ?", studentID).Joins("left join faculties on faculties.id = students.faculty_id left join direction_to_specialties on direction_to_specialties.faculty_id = students.faculty_id AND direction_to_specialties.specialty_id = students.specialty_id AND direction_to_specialties.direction_id = students.direction_id").Find(&student)
 		}
@@ -936,6 +938,7 @@ func PostPractice(db *gorm.DB) func(c *gin.Context) {
 		practice := &Model.IndependentPractice{}
 		temp := &Model.IndependentPractice{}
 		if err := c.ShouldBindJSON(&practice); err != nil {
+			fmt.Println(err)
 			c.JSON(http.StatusOK, gin.H{
 				"snackbar":  "setError",
 				"msg":       "申请表格式有错，请重新填写！",
@@ -1114,8 +1117,8 @@ func PunishStudent(db *gorm.DB) func(c *gin.Context) {
 
 func DeletePunishment(db *gorm.DB) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		PunishmentID := c.Query("punishment_id")
-		db.Model(&Model.Punishment{}).Where("id = ?", PunishmentID).Update("is_cancelled", true)
+		PunishmentID := c.Query("student_id")
+		db.Debug().Model(&Model.Punishment{}).Where("id = ?", PunishmentID).Update("is_cancelled", true)
 		c.JSON(http.StatusOK, gin.H{
 			"snackbar":  "setSuccess",
 			"msg":       "取消处分成功！",

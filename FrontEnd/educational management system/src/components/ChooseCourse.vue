@@ -1,6 +1,6 @@
 <template>
   <v-card>
-    <v-overlay :value="overlay&&false">
+    <v-overlay :value="overlay">
       <v-card-title class="title font-weight-bold">当前时间不在可选课时间内！</v-card-title>
     </v-overlay>
     <v-card-title>课程列表</v-card-title>
@@ -124,7 +124,7 @@ export default {
         var month = time.substr(5,2)
         var day = time.substr(8,2)
         console.log(month,day)
-        if ( (month==='07'&&(day>='01'||day<='15'))||(month==='02'&&(day>='01'||day<='15')) ) this.overlay = false
+        if ( (month==='07'&&(day>='05'||day<='15'))||(month==='02'&&(day>='05'||day<='15')) ) this.overlay = false
         console.log(response)
       })
     }

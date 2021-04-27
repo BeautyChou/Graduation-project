@@ -11,7 +11,7 @@
       <div class="ml-8 mr-4">
         选择作业
       </div>
-      <span :v-if="unchangeable" class="red lighten-3">本课程已经提交成绩，不能再添加、批改、删除作业!</span>
+      <span v-if="unchangeable" class="red lighten-3">本课程已经提交成绩，不能再添加、批改、删除作业!</span>
       <v-spacer></v-spacer>
       <v-btn
         color="primary"

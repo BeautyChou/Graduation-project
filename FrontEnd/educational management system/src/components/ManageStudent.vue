@@ -274,8 +274,14 @@
           <template v-slot:item.operation="{ item }">
             <v-tooltip v-if="$store.state.level===2||true" bottom>
               <template v-slot:activator="{ on,attrs }">
-                <v-btn icon color="red darken-4" v-bind="attrs" v-on="on" x-large
-                       @click="cancelPunishment();selectOBJ = item" :disabled="item.is_cancelled === true">
+                <v-btn
+                  icon
+                  color="red darken-4"
+                  v-bind="attrs"
+                  v-on="on"
+                  x-large
+                  @click.native="cancelPunishment();selectPunishmentOBJ = item"
+                  :disabled="item.is_cancelled === true">
                   <v-icon>
                     mdi-alert-remove
                   </v-icon>
@@ -459,7 +465,7 @@ export default {
       new_grade: null,
       new_name: null,
       add_student: null,
-      punishments: [],
+      punishments: [{}],
       cancel_punishment: false,
       punish_reason: null,
       new_punishment_level: null,
@@ -471,6 +477,7 @@ export default {
       new_password: null,
       punishment_level: [],
       selectOBJ: {},
+      selectPunishmentOBJ: {},
       modify_student: false,
       delete_student: false,
       specialty_id: null,
@@ -479,10 +486,10 @@ export default {
       specialties: [],
       students: [],
       grades: [
-        {id: 1, name: "大一"},
-        {id: 2, name: "大二"},
-        {id: 3, name: "大三"},
-        {id: 4, name: "大四"}
+        {id: 4, name: "大一"},
+        {id: 3, name: "大二"},
+        {id: 2, name: "大三"},
+        {id: 1, name: "大四"}
       ],
       student_headers: [
         {text: '姓名', align: 'start', sortable: false, value: 'name'},
@@ -664,11 +671,12 @@ export default {
       })
     },
     cancelPunishment() {
+      console.log(this.selectPunishmentOBJ)
       this.$axios({
         url: "Punishment",
         method: "delete",
         params: {
-          punishment_id: this.selectOBJ.id
+          punishment_id: this.selectPunishmentOBJ.id
         },
         headers: {
           'Token': "8a54sh " + this.$store.state.Jwt
@@ -715,7 +723,7 @@ export default {
       deep: true,
     }
   },
-  inject:['expire']
+  inject: ['expire']
 }
 </script>
 
