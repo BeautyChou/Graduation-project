@@ -257,7 +257,7 @@
             </v-item-group>
           </v-container>
           <v-container class="mx-auto pa-0 pb-5" id="canvasContainer">
-            <canvas id="canvas" :width="widths" :height="heights" class="mx-auto d-block justify-space-between">
+            <canvas id="canvas" :width="widths" :height="heights" class="mx-auto d-block justify-space-between" >
               您的浏览器不兼容，请升级或更换浏览器！
             </canvas>
           </v-container>
