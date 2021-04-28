@@ -432,6 +432,7 @@ export default {
     validAfterClassrooms() {
       if (this.apply.after_week_time == null || this.apply.after_start_time == null || this.apply.after_end_time == null || this.apply.after_start_week == null || this.apply.after_end_week == null) return
       const formdata = new FormData
+      formdata.append('record_id', this.selectRecordID)
       formdata.append('course_id', this.selectId)
       formdata.append('week_time', this.apply.after_week_time)
       formdata.append('start_time', this.apply.after_start_time)
@@ -440,8 +441,7 @@ export default {
       formdata.append('end_week', this.apply.after_end_week)
       formdata.append('classroom_id', this.apply.after_classroom_id)
       formdata.append('time', "applyAfter")
-      console.log(this.apply.before_week_time, this.apply.after_week_time, this.apply.before_start_time, this.apply.after_start_time)
-      if ((this.apply.before_week_time === this.apply.after_week_time) && (this.apply.before_start_week >= this.apply.after_start_week || (this.apply.after_start_week <= this.selectEndWeek && this.apply.after_start_time === this.apply.before_start_time))) formdata.append('flag', "not")
+      if ((this.apply.before_week_time === this.apply.after_week_time) && (this.apply.before_start_week > this.apply.after_start_week || (this.apply.after_start_week < this.selectEndWeek && this.apply.after_start_time === this.apply.before_start_time))) formdata.append('flag', "not")
       this.$axios({
         method: "post",
         url: "http://127.0.0.1:9000/validClassrooms",

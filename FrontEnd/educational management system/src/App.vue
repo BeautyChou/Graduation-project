@@ -172,7 +172,12 @@
             </v-avatar>
           <v-card-text class="py-5">
             <v-text-field v-model="account" label="教务系统账号"></v-text-field>
-            <v-text-field v-model="password" label="教务系统密码"></v-text-field>
+            <v-text-field
+              v-model="password"
+              label="教务系统密码"
+              :type="textFieldType"
+              :append-icon="isPassword? 'mdi-eye' : 'mdi-eye-off' "
+              @click:append="changeType"></v-text-field>
           </v-card-text>
 
           <v-divider></v-divider>
@@ -272,6 +277,8 @@ export default {
   },
 
   data: () => ({
+    textFieldType:'password',
+    isPassword:true,
     avatar: null,
     account:null,
     password:null,
@@ -284,6 +291,11 @@ export default {
     alert_timer:true,
   }),
   methods:{
+    changeType(){
+      if (this.textFieldType === 'password') this.textFieldType = 'text'
+      else this.textFieldType= 'password'
+      this.isPassword = !this.isPassword
+    },
     jwtInvalid() {
       document.getElementById("blur").style.filter = "blur(0px)"
       this.$store.commit('setError','登录失效，请重新登录！')
@@ -347,6 +359,7 @@ export default {
             this.$store.commit("setTeacherID",response.data.ID)
           }
           this.dialog = false
+          this.$router.replace('/UserInfo')
           document.getElementById("blur").style.filter = "blur(0px)"
         }else if (response.data.msg === "failed"){
           this.$store.commit("setError","用户名或密码错误！")
