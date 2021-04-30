@@ -206,8 +206,7 @@
 
         <v-card class="text-center">
           <v-card-title class="font-weight-bold title pt-4">通知</v-card-title>
-          <v-card-text v-html="notification"></v-card-text>
-
+          <v-card-text v-html="notification" class="text-left"></v-card-text>
           <v-divider></v-divider>
 
           <v-card-actions>

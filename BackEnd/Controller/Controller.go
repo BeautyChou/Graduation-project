@@ -591,11 +591,13 @@ func ValidClassrooms(db *gorm.DB) func(c *gin.Context) {
 		course.SpecialtyID, _ = strconv.Atoi(c.PostForm("specialty_id"))
 		course.DirectionID, _ = strconv.Atoi(c.PostForm("direction_id"))
 		course.MaxChooseNum, _ = strconv.Atoi(c.PostForm("max_choose_num"))
+		selectable := c.PostForm("selectable")
 		fmt.Println("course_num:", course.MaxChooseNum)
 		if course.MaxChooseNum == 0 {
 			// 申请换课
 			class := &Model.Course{}
 			db.Debug().Model(&Model.Course{}).Where("record_id = ?", course.RecordID).Scan(&class)
+			selectable = utils.ToString(class.Selectable)
 			db.Debug().Model(&Model.Classroom{}).Where("max_num < ?", class.MaxChooseNum).Scan(&tempClassrooms3)
 		} else {
 			// 设置课程
@@ -603,7 +605,10 @@ func ValidClassrooms(db *gorm.DB) func(c *gin.Context) {
 		}
 		timeNode := c.PostForm("time")
 		flag := c.PostForm("flag")
-		if timeNode == "after" || timeNode == "applyAfter" {
+		if selectable == "false"{
+			// 课程是毕业设计 不需要教室
+			db.Debug().Model(&Model.Classroom{}).Scan(&classrooms)
+		} else if timeNode == "after" || timeNode == "applyAfter" {
 			if timeNode == "applyAfter" {
 				db.Debug().Model(&Model.Course{}).Select("faculty_id,direction_id,specialty_id,teacher_id,record_id").Where(" courses.id = ?", course.ID).Scan(&tempCourse)
 				course.FacultyID = tempCourse.FacultyID

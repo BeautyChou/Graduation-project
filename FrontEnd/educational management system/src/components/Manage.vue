@@ -7,7 +7,7 @@
     <v-tab @click="$refs.managePunishLevel.getPunishLevelList()">处分等级管理</v-tab>
     <v-tab @click="$refs.manageFaculty.getDirectionSpecialtyFacultyList()">学院管理</v-tab>
     <v-tab @click="$refs.manageClassroom.getClassroomList()">教室管理</v-tab>
-    <v-tab @click="$refs.manageNotification.getNotification()">通知管理</v-tab>
+    <v-tab @click="$refs.manageNotification.initTinymce();$refs.manageNotification.getNotification();">通知管理</v-tab>
 
     <v-tab-item>
       <v-manage-student ref="manageStudent"></v-manage-student>

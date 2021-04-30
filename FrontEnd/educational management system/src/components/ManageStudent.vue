@@ -98,7 +98,7 @@
         <v-tooltip v-if="$store.state.level===2||true" bottom>
           <template v-slot:activator="{ on,attrs }">
             <v-btn icon color="red darken-4" v-bind="attrs" v-on="on" x-large
-                   @click="selectOBJ = item;getPunishments();cancel_punishment = true;">
+                   @click="selectPunishmentOBJ = item;getPunishments();cancel_punishment = true;">
               <v-icon>
                 mdi-alert-minus
               </v-icon>
@@ -280,7 +280,7 @@
                   v-bind="attrs"
                   v-on="on"
                   x-large
-                  @click.native="cancelPunishment();selectPunishmentOBJ = item"
+                  @click.native="selectPunishmentOBJ = item;cancelPunishment()"
                   :disabled="item.is_cancelled === true">
                   <v-icon>
                     mdi-alert-remove
@@ -655,7 +655,7 @@ export default {
       this.$axios({
         url: "Punishment",
         params: {
-          student_id: this.selectOBJ.student_id
+          student_id: this.selectPunishmentOBJ.student_id
         },
         headers: {
           'Token': "8a54sh " + this.$store.state.Jwt
