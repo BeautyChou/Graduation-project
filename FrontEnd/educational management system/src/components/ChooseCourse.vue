@@ -1,6 +1,6 @@
 <template>
   <v-card>
-    <v-overlay :value="overlay">
+    <v-overlay :value="overlay&&false">
       <v-card-title class="title font-weight-bold">当前时间不在可选课时间内！</v-card-title>
     </v-overlay>
     <v-card-title>课程列表</v-card-title>

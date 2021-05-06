@@ -230,7 +230,7 @@
               <v-select
                 :disabled="newClass.week_time == null || newClass.start_time == null || newClass.end_time == null || newClass.start_week == null || newClass.end_week == null||newClass.faculty_id == null|| newClass.specialty_id == null||newClass.direction_id == null"
                 @click="validClassrooms()"
-                class="col-6"
+                class="col-4"
                 v-model="newClass.classroom_id"
                 :items="valClassrooms"
                 item-text="name"
@@ -239,7 +239,7 @@
                 label="上课教室"
               ></v-select>
               <v-select
-                class="col-6"
+                class="col-4"
                 v-model="newClass.selectable"
                 :disabled="copyFlag||copyCourseFlag"
                 :items="selectable"
@@ -247,6 +247,16 @@
                 item-value="value"
                 outlined
                 label="是否可被学生选择"
+              ></v-select>
+              <v-select
+                class="col-4"
+                v-model="newClass.grades"
+                :disabled="copyFlag||copyCourseFlag"
+                :items="grades"
+                item-text="name"
+                item-value="id"
+                outlined
+                label="学生年级"
               ></v-select>
               <v-text-field
                 outlined
@@ -485,6 +495,13 @@ export default {
       str:'',
       copyCourseFlag:false,
       selectRecordID:null,
+      grades: [
+        {id: 0, name: "不限"},
+        {id: 1, name: "大一"},
+        {id: 2, name: "大二"},
+        {id: 3, name: "大三"},
+        {id: 4, name: "大四"}
+      ],
     }
   },
   created() {
@@ -502,6 +519,7 @@ export default {
       this.newClass.faculty_id = classOBJ.faculty_id
       this.newClass.specialty_id = classOBJ.specialty_id
       this.newClass.direction_id = classOBJ.direction_id
+      this.newClass.grades = classOBJ.grades
       console.log(classOBJ.selectable)
       this.newClass.selectable = classOBJ.selectable
       this.str = 'course'
@@ -519,6 +537,7 @@ export default {
       this.newClass.specialty_id = classOBJ.specialty_id
       this.newClass.direction_id = classOBJ.direction_id
       this.newClass.selectable = classOBJ.selectable
+      this.newClass.grades = classOBJ.grades
       this.str = 'copy'
     },
     submitNewClass(){
@@ -541,6 +560,7 @@ export default {
       formData.append("copy_flag",this.newClass.copy_flag)
       formData.append("flag",this.str)
       formData.append("selectable",this.newClass.selectable)
+      formData.append("grades",this.newClass.grades)
       this.str = ''
       this.$axios({
         method:"post",

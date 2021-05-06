@@ -28,7 +28,7 @@ func Cors() gin.HandlerFunc {
 		}
 		c.Writer.Header().Set("Access-Control-Allow-Origin", origin)
 		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
-		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With, Token")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With, Token, user-agent")
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "OPTIONS, GET, POST, DELETE, PUT")
 
 		if c.Copy().Request.Method == "OPTIONS" {
@@ -82,7 +82,6 @@ func JWTAuthMiddleWare() func(c *gin.Context) {
 		}
 		parts := strings.SplitN(authHeader, " ", 2)
 		if !(len(parts) == 2 && parts[0] == "8a54sh") {
-			fmt.Println("Token格式错误")
 			c.JSON(http.StatusOK, gin.H{
 				"msg": "Token格式错误",
 			})
@@ -91,14 +90,12 @@ func JWTAuthMiddleWare() func(c *gin.Context) {
 		}
 		_, err := ParseToken(parts[1])
 		if err != nil {
-			fmt.Println("Token无效")
 			c.JSON(http.StatusOK, gin.H{
 				"msg": "Token无效",
 			})
 			c.Abort()
 			return
 		}
-		fmt.Println("Token验证成功")
 		c.Next()
 	}
 }

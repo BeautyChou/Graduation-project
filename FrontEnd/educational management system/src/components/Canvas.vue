@@ -754,6 +754,8 @@ export default {
     },
     saveCanvas() {
       this.clearEvent();
+      const selectOBJ = this.SelectObj
+      const selectOBJScore = this.SelectObjScore
       html2canvas(document.getElementById('canvasContainer'), {useCORS: true, allowTaint: false}).then((canvas) => {
         let imgUrl = canvas.toDataURL('Image/png')
         setTimeout(() => {
@@ -770,10 +772,10 @@ export default {
           });
           const formData = new FormData();
           formData.append("image", imgFile);
-          formData.append("student_id", this.SelectObj.student_id);
+          formData.append("student_id", selectOBJ.student_id);
           formData.append("homework_id", this.$store.state.homeworkId);
-          formData.append("question_id", this.SelectObj.question_id);
-          formData.append("score", this.SelectObjScore);
+          formData.append("question_id", selectOBJ.question_id);
+          formData.append("score", selectOBJScore);
 
           this.$axios({
             method: "post",

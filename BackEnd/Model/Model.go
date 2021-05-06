@@ -97,6 +97,7 @@ type Course struct {
 	EndWeek      int                  `json:"end_week" gorm:"type:int(11);"`                                       // 结束周数
 	CopyFlag     int                  `json:"copy_flag"`                                                           // 记录复制的Record_ID
 	Selectable   bool                 `json:"selectable"`                                                          // 区分毕业设计与普通课程的标记
+	Grades       int                  `json:"grades"`                                                              // 可选年级（4：大一 3：大二 2：大三 1：大四）
 }
 
 type ApplyForCourseChange struct {
@@ -294,6 +295,7 @@ type CourseForSelect struct {
 	SpecialtyID  int            `json:"specialty_id" gorm:"index:special_id;type:int(11)"`         // 学生所属专业
 	CopyFlag     int            `json:"copy_flag"`                                                 // 记录复制的Record_ID
 	Selectable   bool           `json:"selectable"`                                                // 区分毕业设计与普通课程的标记
+	Grades       int                  `json:"grades"`                                                              // 可选年级（4：大一 3：大二 2：大三 1：大四）
 }
 
 type QuestionForSelect struct {
@@ -413,13 +415,15 @@ type CourseForChoose struct {
 	DirectionID  int    `json:"direction_id" gorm:"index:direction_id;type:int(11)"`       // 学生所属方向
 	SpecialtyID  int    `json:"specialty_id" gorm:"index:special_id;type:int(11)"`         // 学生所属专业
 	CopyFlag     int    `json:"copy_flag"`                                                 // 区分课程是否为新课程
-	Selectable   bool   `json:"selectable"`                                                //区分课程是否为毕业设计
+	Selectable   bool   `json:"selectable"`                                                // 区分课程是否为毕业设计
+	Grades       int                  `json:"grades"`                                                              // 可选年级（4：大一 3：大二 2：大三 1：大四）
 }
 
 type Student2CourseForChoose struct {
 	StudentID int `json:"student_id" gorm:"primary_Key;" sql:"type:INT(11) NOT NULL"` // 学生ID
 	CourseID  int `json:"course_id" gorm:"primary_Key;" sql:"type:INT(11) NOT NULL"`  // 课程ID
 	RecordID  int `json:"record_id" sql:"type:INT(11) NOT NULL"`                      // 课程列表号
+	Grades       int                  `json:"grades"`                                                              // 可选年级（4：大一 3：大二 2：大三 1：大四）
 }
 
 type SelectedCourseID struct {

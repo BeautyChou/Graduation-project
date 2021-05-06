@@ -75,7 +75,7 @@ export default {
       }
       this.reviews = response.data.reviews
       this.sum = 0
-      response.data.reviews.forEach((item,i)=>{
+      this.reviews.forEach((item,i)=>{
         this.sum += item.score
         if (item.is_scored === false) this.unReviewedFlag = true
       })
