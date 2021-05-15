@@ -33,8 +33,8 @@ export default {
   name: "ChooseCourse",
   data() {
     return {
-      options:{},
-      total:null,
+      options: {},
+      total: null,
       headers: [
         {text: '课程名', align: 'start', sortable: false, value: 'course_name'},
         {text: '教师', sortable: false, value: 'name'},
@@ -47,7 +47,7 @@ export default {
         {text: '操作', sortable: false, value: 'operation'}
       ],
       courses: [{}],
-      overlay:true,
+      overlay: true,
     }
   },
   created() {
@@ -73,9 +73,9 @@ export default {
           return
         }
         this.$store.commit(response.data.snackbar, response.data.msg)
-        setTimeout(()=>{
+        setTimeout(() => {
           this.$store.commit(response.data.snackbar2)
-        },3000)
+        }, 3000)
         this.$axios({
           url: "Course",
           method: "get",
@@ -85,7 +85,7 @@ export default {
             'direction_id': this.$store.state.directionId,
             'specialty_id': this.$store.state.specialtyId,
           },
-          headers:{
+          headers: {
             'Token': "8a54sh " + this.$store.state.Jwt
           }
         }).then((response) => {
@@ -94,11 +94,10 @@ export default {
             return
           }
           this.courses = response.data.courses
-          console.log(response)
         })
       })
     },
-    getCourse(){
+    getCourse() {
       this.$axios({
         url: "Course",
         method: "get",
@@ -107,10 +106,10 @@ export default {
           'faculty_id': this.$store.state.facultyId,
           'direction_id': this.$store.state.directionId,
           'specialty_id': this.$store.state.specialtyId,
-          "page":this.options.page,
-          "items":this.options.itemsPerPage,
+          "page": this.options.page,
+          "items": this.options.itemsPerPage,
         },
-        headers:{
+        headers: {
           'Token': "8a54sh " + this.$store.state.Jwt
         }
       }).then((response) => {
@@ -121,11 +120,9 @@ export default {
         this.courses = response.data.courses
         this.total = response.data.total
         var time = response.data.time
-        var month = time.substr(5,2)
-        var day = time.substr(8,2)
-        console.log(month,day)
-        if ( (month==='07'&&(day>='05'||day<='15'))||(month==='02'&&(day>='05'||day<='15')) ) this.overlay = false
-        console.log(response)
+        var month = time.substr(5, 2)
+        var day = time.substr(8, 2)
+        if ((month === '07' && (day >= '05' || day <= '15')) || (month === '02' && (day >= '05' || day <= '15'))) this.overlay = false
       })
     }
   },
@@ -135,11 +132,11 @@ export default {
         this.getCourse()
       },
     },
-    options:{
-      handler(){
+    options: {
+      handler() {
         this.getCourse()
       },
-      deep:true,
+      deep: true,
     }
   }
 }

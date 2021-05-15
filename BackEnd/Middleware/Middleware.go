@@ -73,7 +73,6 @@ func JWTAuthMiddleWare() func(c *gin.Context) {
 	return func(c *gin.Context) {
 		authHeader := c.Request.Header.Get("Token")
 		if authHeader == "" {
-			fmt.Println("请求头中Token为空")
 			c.JSON(http.StatusOK, gin.H{
 				"msg": "请求头中Token为空",
 			})

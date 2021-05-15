@@ -89,18 +89,15 @@ export default {
         }
         this.electives = response.data.electives
         this.total = response.data.total
-        console.log(response)
       })
     }
   },
   computed: {
     totalScore() {
       return function (obj) {
-        console.log(obj)
         let homework = (obj.homework_score * obj.homework_percentage * (100 - obj.percentage)) / 10000
         let behavior = (obj.behavior_score * (100 - obj.homework_percentage) * (100 - obj.percentage)) / 10000
         let test = obj.test_score * obj.percentage / 100
-        console.log(homework, behavior, test)
         return (homework + behavior + test).toFixed(2)
       }
     },
@@ -111,7 +108,6 @@ export default {
         let test = obj.test_score * obj.percentage / 100
         let total = (homework + behavior + test).toFixed(0)
         let grade_point = 0
-        console.log()
         if (total > 95) return 4.5
         else if (total >= 90 && total <= 95) return 4.0;
         else if (total >= 85 && total <= 89) return 3.5;

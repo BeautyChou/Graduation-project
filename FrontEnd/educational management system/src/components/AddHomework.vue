@@ -83,7 +83,7 @@
         color="green"
         class="mr-2"
         @click.native="createHomework();"
-        >
+      >
 
         <v-icon>mdi-upload</v-icon>
         <span>
@@ -267,10 +267,7 @@ export default {
           this.$emit('func')
           return
         }
-        console.log(response)
-        if ( response.data.questions !== null)
-        {
-          console.log(123456)
+        if (response.data.questions !== null) {
           this.questions = response.data.questions
           this.deadlineTime = response.data.questions[0].DeadLine.substr(11, 5)
           this.deadlineDate = response.data.questions[0].DeadLine.substr(0, 10)
@@ -331,10 +328,9 @@ export default {
           setTimeout(() => {
             this.$store.commit("closeSuccess")
           }, 3000)
-          this.$router.push({path:'/selectHomework'})
+          this.$router.push({path: '/selectHomework'})
         })
           .catch((res) => {
-            console.log(res)
           })
       })
 
@@ -343,7 +339,6 @@ export default {
     addQuestionToHomework() {
       let flag = false;
       this.questions.some((item, i) => {
-        console.log(item, i)
         if (item.question_id === this.selectQuestion.id) {
           flag = true
         }
@@ -361,7 +356,6 @@ export default {
         question_max_score: 0
       })
       this.totals++
-      console.log(this.questions)
       this.selectQuestion = null
       this.alreadyQuestion = false
       this.$store.commit("setSuccess", "添加至作业成功！")
@@ -382,7 +376,6 @@ export default {
           return
         }
         this.contentList = response.data.questions
-        console.log(response)
       })
     },
     deleteQuestion(id) {
@@ -448,9 +441,7 @@ export default {
             this.$emit('func')
             return
           }
-          console.log(response)
-          if (response.data.questions !== null)
-          {
+          if (response.data.questions !== null) {
             this.questions = response.data.questions
             this.deadlineTime = response.data.questions[0].DeadLine.substr(11, 5)
             this.deadlineDate = response.data.questions[0].DeadLine.substr(0, 10)

@@ -5,7 +5,7 @@
         <v-icon>mdi-arrow-left-bold</v-icon>
         <span>返回</span>
       </v-btn>
-      <div class="mx-8">录入成绩  (输入的所有数据仅限正整数!)</div>
+      <div class="mx-8">录入成绩 (输入的所有数据仅限正整数!)</div>
       <v-spacer></v-spacer>
       <v-btn color="green" :disabled="uploadFlag()||scores.length===0" @click="postScore">上传成绩</v-btn>
     </v-card-title>
@@ -90,43 +90,42 @@ export default {
       percentage: 0,
     }
   },
-  methods:{
-    postScore(){
-      this.scores.forEach((v,i)=>{
+  methods: {
+    postScore() {
+      this.scores.forEach((v, i) => {
         v.record_id = this.$store.state.recordId
         v.course_id = this.$store.state.courseId
         v.percentage = this.percentage
         v.homework_percentage = this.homework_percentage
       })
       let scores = JSON.stringify(this.scores)
-      console.log(this.scores)
       this.$axios({
-        method:"post",
-        url:"Score",
-        data:scores,
-        headers:{
+        method: "post",
+        url: "Score",
+        data: scores,
+        headers: {
           "Content-Type": "multipart/form-data",
           'Token': "8a54sh " + this.$store.state.Jwt
         }
-      }).then((response)=>{
+      }).then((response) => {
         if (response.data.msg === "Token无效") {
           this.$emit('func')
           return
         }
-        this.$store.commit(response.data.snackbar,response.data.msg)
-        setTimeout(()=>{
+        this.$store.commit(response.data.snackbar, response.data.msg)
+        setTimeout(() => {
           this.$store.commit(response.data.snackbar2)
-        },3000)
+        }, 3000)
       })
     }
   },
   computed: {
     totalScore() {
-      return function (obj,v) {
+      return function (obj, v) {
         let homework = obj.homework_score * this.homework_percentage * (100 - this.percentage) / 10000
         let behavior = obj.behavior_score * (100 - this.homework_percentage) * (100 - this.percentage) / 10000
         let test = obj.test_score * this.percentage / 100
-        this.$set(this.scores[v],'total',(homework + behavior + test).toFixed(2))
+        this.$set(this.scores[v], 'total', (homework + behavior + test).toFixed(2))
         return (homework + behavior + test).toFixed(2)
       }
     },
@@ -134,12 +133,10 @@ export default {
       return function () {
         let flag = false
         this.scores.some((v, i) => {
-          console.log(v.total,i)
           if (isNaN(v.total)) {
             flag = true
           }
         })
-        console.log(this.scores)
         return flag
       }
     }
@@ -153,7 +150,7 @@ export default {
           params: {
             'record_id': newValue,
           },
-          headers:{
+          headers: {
             'Token': "8a54sh " + this.$store.state.Jwt
           }
         }).then((response) => {
@@ -162,7 +159,6 @@ export default {
             return
           }
           this.scores = response.data.scores
-          console.log(response)
         })
       },
     },
@@ -174,7 +170,7 @@ export default {
       params: {
         'record_id': this.$store.state.recordId,
       },
-      headers:{
+      headers: {
         'Token': "8a54sh " + this.$store.state.Jwt
       }
     }).then((response) => {
@@ -183,10 +179,9 @@ export default {
         return
       }
       this.scores = response.data.scores
-      console.log(response)
     })
   },
-  beforeRouteLeave(to,from,next) {
+  beforeRouteLeave(to, from, next) {
     this.$store.commit('setRecordId', null);
     next()
   },

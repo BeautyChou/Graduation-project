@@ -188,7 +188,6 @@ export default {
           this.expire()
           return
         }
-        console.log(response)
         this.punish_levels = response.data.punish_levels
       })
     },
@@ -265,7 +264,7 @@ export default {
       })
     },
   },
-  inject:['expire']
+  inject: ['expire']
 }
 </script>
 

@@ -317,7 +317,6 @@ export default {
   watch: {
     '$store.state.refreshFlag': {
       handler(newValue, oldValue) {
-        console.log(newValue, oldValue)
         if (newValue !== 1) return
         this.getClass()
       },
@@ -350,7 +349,6 @@ export default {
         }
         this.courses = response.data.courses
         this.total = response.data.total
-        console.log(this.courses)
       })
     },
     submitApplyForClassChange() {
@@ -375,7 +373,6 @@ export default {
         }, 3000)
         this.changeClass = false
         this.apply = {}
-        console.log(response)
       })
     },
     getInfo() {
@@ -461,7 +458,6 @@ export default {
             v.name = "教室号:" + v.name + "  人数：" + v.max_num
           })
         } else this.$set(this.apply, 'after_classroom_id', null)
-        console.log(response)
       })
     },
   },

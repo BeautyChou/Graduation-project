@@ -188,7 +188,6 @@ export default {
           this.$emit('func')
           return
         }
-        console.log(response)
         this.titles = response.data.titles
       })
     },
@@ -265,7 +264,7 @@ export default {
       })
     },
   },
-  inject:['expire']
+  inject: ['expire']
 }
 </script>
 

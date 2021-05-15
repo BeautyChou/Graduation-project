@@ -163,24 +163,24 @@
 <script>
 export default {
   name: "ManageAdmin",
-  data(){
-    return{
-      options:{},
-      total:null,
-      new_name:null,
-      new_password:null,
-      selectOBJ:{},
-      delete_admin:false,
-      modify_admin:false,
-      add_admin:false,
-      admins:[],
+  data() {
+    return {
+      options: {},
+      total: null,
+      new_name: null,
+      new_password: null,
+      selectOBJ: {},
+      delete_admin: false,
+      modify_admin: false,
+      add_admin: false,
+      admins: [],
       admins_headers: [
         {text: '姓名', align: 'start', sortable: false, value: 'name'},
         {text: '操作', sortable: false, value: 'operation'}
       ],
     }
   },
-  methods:{
+  methods: {
     getAdminList() {
       this.$axios({
         url: "Admin",
@@ -188,21 +188,20 @@ export default {
           'Token': "8a54sh " + this.$store.state.Jwt
         },
         method: "get",
-        params:{
-          "page":this.options.page,
-          "items":this.options.itemsPerPage,
+        params: {
+          "page": this.options.page,
+          "items": this.options.itemsPerPage,
         }
       }).then((response) => {
         if (response.data.msg === "Token无效") {
           this.expire()
           return
         }
-        console.log(response)
         this.admins = response.data.admins
         this.total = response.data.total
       })
     },
-    modifyAdmin(){
+    modifyAdmin() {
       const formData = new FormData()
       formData.append("admin_id", this.selectOBJ.ID)
       formData.append("password", this.new_password)
@@ -228,7 +227,7 @@ export default {
         }, 3000)
       })
     },
-    deleteAdmin(){
+    deleteAdmin() {
       this.$axios({
         url: "Admin",
         method: "delete",
@@ -243,7 +242,6 @@ export default {
           this.expire()
           return
         }
-        console.log(this.selectOBJ)
         this.delete_admin = false
         this.$store.commit(response.data.snackbar, response.data.msg)
         this.getAdminList()
@@ -252,7 +250,7 @@ export default {
         }, 3000)
       })
     },
-    addAdmin(){
+    addAdmin() {
       const formData = new FormData()
       formData.append("name", this.new_name)
       formData.append("password", this.new_password)
@@ -282,15 +280,15 @@ export default {
   created() {
     this.getAdminList()
   },
-  watch:{
-    options:{
-      handler(){
+  watch: {
+    options: {
+      handler() {
         this.getAdminList()
       },
-      deep:true,
+      deep: true,
     }
   },
-  inject:['expire']
+  inject: ['expire']
 }
 </script>
 

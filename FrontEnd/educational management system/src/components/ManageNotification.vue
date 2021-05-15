@@ -38,7 +38,6 @@ export default {
           'Token': "8a54sh " + this.$store.state.Jwt
         }
       }).then((response) => {
-        console.log(response)
         this.Alert = response.data.notification.notification
       })
     },
@@ -58,16 +57,15 @@ export default {
           this.expire()
           return
         }
-        console.log(response)
         this.$store.commit(response.data.snackbar, response.data.msg)
         setTimeout(() => {
           this.$store.commit(response.data.snackbar2)
         }, 3000)
       })
     },
-    initTinymce(){
+    initTinymce() {
       window.tinymce.init({
-        branding:false,
+        branding: false,
         height: '500',
         selector: 'textarea',
         language_url: '../../static/zh_CN.js',

@@ -231,23 +231,23 @@ export default {
   created() {
     this.getTeacherList()
   },
-  data(){
-    return{
-      options:{},
-      total:null,
-      new_name:null,
-      new_title:null,
-      new_faculty:null,
-      new_password:null,
-      selectOBJ:{},
-      delete_teacher:false,
-      modify_teacher:false,
-      add_teacher:false,
-      faculty_id:null,
+  data() {
+    return {
+      options: {},
+      total: null,
+      new_name: null,
+      new_title: null,
+      new_faculty: null,
+      new_password: null,
+      selectOBJ: {},
+      delete_teacher: false,
+      modify_teacher: false,
+      add_teacher: false,
+      faculty_id: null,
       title_id: null,
-      faculties:[],
-      teachers:[],
-      titles:[],
+      faculties: [],
+      teachers: [],
+      titles: [],
       teachers_headers: [
         {text: '姓名', align: 'start', sortable: false, value: 'name'},
         {text: '学院', sortable: false, value: 'faculty_name'},
@@ -256,15 +256,15 @@ export default {
       ],
     }
   },
-  methods:{
+  methods: {
     getTeacherList() {
       this.$axios({
         url: "Teacher",
         params: {
           faculty_id: this.faculty_id,
           title_id: this.title_id,
-          "page":this.options.page,
-          "items":this.options.itemsPerPage,
+          "page": this.options.page,
+          "items": this.options.itemsPerPage,
         },
         headers: {
           'Token': "8a54sh " + this.$store.state.Jwt
@@ -275,14 +275,13 @@ export default {
           this.expire()
           return
         }
-        console.log(response)
         this.faculties = response.data.faculties
         this.teachers = response.data.teachers
         this.titles = response.data.titles
         this.total = response.data.total
       })
     },
-    modifyTeacher(){
+    modifyTeacher() {
       const formData = new FormData()
       formData.append("teacher_id", this.selectOBJ.id)
       formData.append("password", this.new_password)
@@ -311,7 +310,7 @@ export default {
         }, 3000)
       })
     },
-    deleteTeacher(){
+    deleteTeacher() {
       this.$axios({
         url: "Teacher",
         method: "delete",
@@ -334,7 +333,7 @@ export default {
         }, 3000)
       })
     },
-    addTeacher(){
+    addTeacher() {
       const formData = new FormData()
       formData.append("name", this.new_name)
       formData.append("password", this.new_password)
@@ -365,15 +364,15 @@ export default {
       })
     },
   },
-  watch:{
-    options:{
-      handler(){
+  watch: {
+    options: {
+      handler() {
         this.getTeacherList()
       },
-      deep:true,
+      deep: true,
     }
   },
-  inject:['expire']
+  inject: ['expire']
 }
 </script>
 

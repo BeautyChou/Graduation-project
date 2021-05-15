@@ -392,8 +392,8 @@ export default {
   name: "SetClass",
   data() {
     return {
-      options:{},
-      total:null,
+      options: {},
+      total: null,
       headers: [
         {text: '课程', align: 'start', sortable: false, value: 'course_name'},
         {text: '学分', sortable: false, value: 'credit'},
@@ -408,11 +408,11 @@ export default {
         {text: '学生所属学院', sortable: false, value: 'faculties'},
         {text: '学生所属专业', sortable: false, value: 'specialties'},
         {text: '学生所属方向', sortable: false, value: 'directions'},
-        {text: '操作', sortable: false,value: 'operation'}
+        {text: '操作', sortable: false, value: 'operation'}
       ],
       classes: [],
       drag: false,
-      selectable:[
+      selectable: [
         {name: "是", value: true},
         {name: "否", value: false},
       ],
@@ -481,20 +481,20 @@ export default {
       ],
       teachers: [],
       classrooms: [],
-      valClassrooms:[],
+      valClassrooms: [],
       faculties: [],
-      specialties:[],
+      specialties: [],
       directions: [],
       addClass: false,
       newClass: {},
-      dialog:false,
-      selectId:null,
-      changedClasses:[],
-      uploadFlag:true,
-      copyFlag:false,
-      str:'',
-      copyCourseFlag:false,
-      selectRecordID:null,
+      dialog: false,
+      selectId: null,
+      changedClasses: [],
+      uploadFlag: true,
+      copyFlag: false,
+      str: '',
+      copyCourseFlag: false,
+      selectRecordID: null,
       grades: [
         {id: 0, name: "不限"},
         {id: 1, name: "大一"},
@@ -509,7 +509,7 @@ export default {
   },
   components: {},
   methods: {
-    copyCourse(classOBJ){ //复制班级(允许更多人上这门课)
+    copyCourse(classOBJ) { //复制班级(允许更多人上这门课)
       this.copyCourseFlag = true
       this.addClass = true
       this.selectId = classOBJ.course_id
@@ -520,11 +520,10 @@ export default {
       this.newClass.specialty_id = classOBJ.specialty_id
       this.newClass.direction_id = classOBJ.direction_id
       this.newClass.grades = classOBJ.grades
-      console.log(classOBJ.selectable)
       this.newClass.selectable = classOBJ.selectable
       this.str = 'course'
     },
-    copyClass(classOBJ){
+    copyClass(classOBJ) {
       this.copyFlag = true
       this.addClass = true
       this.selectId = classOBJ.course_id
@@ -540,63 +539,35 @@ export default {
       this.newClass.grades = classOBJ.grades
       this.str = 'copy'
     },
-    submitNewClass(){
+    submitNewClass() {
       const formData = new FormData()
-      if(this.str === 'copy') {this.$set(this.newClass,"copy_flag",this.selectRecordID);}
-      else this.$set(this.newClass,"copy_flag",0);
-      formData.append("name",this.newClass.course_name)
-      formData.append("credit",this.newClass.credit)
-      formData.append("max_choose_num",this.newClass.max_choose_num)
-      formData.append("week_time",this.newClass.week_time)
-      formData.append("start_time",this.newClass.start_time)
-      formData.append("end_time",this.newClass.end_time)
-      formData.append("teacher_id",this.newClass.teacher_id)
-      formData.append("start_week",this.newClass.start_week)
-      formData.append("end_week",this.newClass.end_week)
-      formData.append("faculty_id",this.newClass.faculty_id)
-      formData.append("classroom_id",this.newClass.classroom_id)
-      formData.append("specialty_id",this.newClass.specialty_id)
-      formData.append("direction_id",this.newClass.direction_id)
-      formData.append("copy_flag",this.newClass.copy_flag)
-      formData.append("flag",this.str)
-      formData.append("selectable",this.newClass.selectable)
-      formData.append("grades",this.newClass.grades)
+      if (this.str === 'copy') {
+        this.$set(this.newClass, "copy_flag", this.selectRecordID);
+      } else this.$set(this.newClass, "copy_flag", 0);
+      formData.append("name", this.newClass.course_name)
+      formData.append("credit", this.newClass.credit)
+      formData.append("max_choose_num", this.newClass.max_choose_num)
+      formData.append("week_time", this.newClass.week_time)
+      formData.append("start_time", this.newClass.start_time)
+      formData.append("end_time", this.newClass.end_time)
+      formData.append("teacher_id", this.newClass.teacher_id)
+      formData.append("start_week", this.newClass.start_week)
+      formData.append("end_week", this.newClass.end_week)
+      formData.append("faculty_id", this.newClass.faculty_id)
+      formData.append("classroom_id", this.newClass.classroom_id)
+      formData.append("specialty_id", this.newClass.specialty_id)
+      formData.append("direction_id", this.newClass.direction_id)
+      formData.append("copy_flag", this.newClass.copy_flag)
+      formData.append("flag", this.str)
+      formData.append("selectable", this.newClass.selectable)
+      formData.append("grades", this.newClass.grades)
       this.str = ''
       this.$axios({
-        method:"post",
-        url:"Class",
-        data:formData,
+        method: "post",
+        url: "Class",
+        data: formData,
         headers: {
           "Content-Type": "multipart/form-data",
-          'Token': "8a54sh " + this.$store.state.Jwt
-        }
-      }).then((response)=>{
-        if (response.data.msg === "Token无效") {
-          this.$emit('func')
-          return
-        }
-        console.log(response)
-        this.$store.commit(response.data.snackbar,response.data.msg)
-        setTimeout(()=>{
-          this.$store.commit(response.data.snackbar2)
-        },3000)
-        this.addClass = false
-        this.copyFlag = false
-        this.copyCourseFlag = false
-        if (response.data.snackbar === 'setSuccess') {
-          this.classes.push(this.newClass);
-          this.newClass = {};
-          console.log(this.classes)
-          this.getClass()
-        }
-      })
-    },
-    deleteClass(RecordID){
-      this.dialog = false
-      this.$axios({
-        method: "DELETE",
-        url: "Class?record_id=" + RecordID,
-        headers:{
           'Token': "8a54sh " + this.$store.state.Jwt
         }
       }).then((response) => {
@@ -604,78 +575,104 @@ export default {
           this.$emit('func')
           return
         }
-        for (let i = 0 ;i<this.changedClasses.length;i++){
-          if(this.changedClasses[i].record_id === RecordID || this.changedClasses[i].copy_flag === RecordID) {
-            this.changedClasses.splice(i,1);
-            i--
-          }
-        }
-        if (this.changedClasses.length === 0) this.uploadFlag = true
-        for (let i = 0 ;i<this.classes.length;i++){
-          if(this.classes[i].record_id === RecordID || this.classes[i].copy_flag === RecordID) {
-            this.classes.splice(i,1);
-            i--
-          }
-        }
-        this.$store.commit(response.data.snackbar,response.data.msg)
-        setTimeout(()=>{
+        this.$store.commit(response.data.snackbar, response.data.msg)
+        setTimeout(() => {
           this.$store.commit(response.data.snackbar2)
-        },3000)
-        this.dialog = false
+        }, 3000)
+        this.addClass = false
+        this.copyFlag = false
+        this.copyCourseFlag = false
+        if (response.data.snackbar === 'setSuccess') {
+          this.classes.push(this.newClass);
+          this.newClass = {};
+          this.getClass()
+        }
       })
     },
-    uploadClasses(){
+    deleteClass(RecordID) {
+      this.dialog = false
       this.$axios({
-        method:"put",
-        url:"Class",
-        data:this.changedClasses,
+        method: "DELETE",
+        url: "Class?record_id=" + RecordID,
         headers: {
-          "Content-Type": "multipart/form-data",
           'Token': "8a54sh " + this.$store.state.Jwt
         }
-      }).then((response)=>{
+      }).then((response) => {
         if (response.data.msg === "Token无效") {
           this.$emit('func')
           return
         }
-        this.$store.commit(response.data.snackbar,response.data.msg)
-        setTimeout(()=>{
+        for (let i = 0; i < this.changedClasses.length; i++) {
+          if (this.changedClasses[i].record_id === RecordID || this.changedClasses[i].copy_flag === RecordID) {
+            this.changedClasses.splice(i, 1);
+            i--
+          }
+        }
+        if (this.changedClasses.length === 0) this.uploadFlag = true
+        for (let i = 0; i < this.classes.length; i++) {
+          if (this.classes[i].record_id === RecordID || this.classes[i].copy_flag === RecordID) {
+            this.classes.splice(i, 1);
+            i--
+          }
+        }
+        this.$store.commit(response.data.snackbar, response.data.msg)
+        setTimeout(() => {
           this.$store.commit(response.data.snackbar2)
-        },3000)
-        if (response.data.snackbar === "setSuccess"){
+        }, 3000)
+        this.dialog = false
+      })
+    },
+    uploadClasses() {
+      this.$axios({
+        method: "put",
+        url: "Class",
+        data: this.changedClasses,
+        headers: {
+          "Content-Type": "multipart/form-data",
+          'Token': "8a54sh " + this.$store.state.Jwt
+        }
+      }).then((response) => {
+        if (response.data.msg === "Token无效") {
+          this.$emit('func')
+          return
+        }
+        this.$store.commit(response.data.snackbar, response.data.msg)
+        setTimeout(() => {
+          this.$store.commit(response.data.snackbar2)
+        }, 3000)
+        if (response.data.snackbar === "setSuccess") {
           this.changedClasses = []
           this.uploadFlag = true
         }
       })
     },
-    pushing(classOBJ,str){
+    pushing(classOBJ, str) {
       var flag = true
-      this.changedClasses.some((item,i)=>{
-        if(item.record_id === classOBJ.record_id){
+      this.changedClasses.some((item, i) => {
+        if (item.record_id === classOBJ.record_id) {
           flag = false
-          this.changedClasses.splice(i,1,item)
+          this.changedClasses.splice(i, 1, item)
         }
       })
-      if(str !== 'recursion'){
-        this.classes.forEach((item,i)=>{
-          if(item.course_id === classOBJ.course_id){
-            if (item.credit !== classOBJ.credit){
+      if (str !== 'recursion') {
+        this.classes.forEach((item, i) => {
+          if (item.course_id === classOBJ.course_id) {
+            if (item.credit !== classOBJ.credit) {
               item.credit = classOBJ.credit
-              this.pushing(item,'recursion')
+              this.pushing(item, 'recursion')
             }
           }
         })
       }
       if (flag) this.changedClasses.push(classOBJ)
       this.uploadFlag = false
-      console.log(this.changedClasses)
     },
-    validClassrooms(){
+    validClassrooms() {
       if (this.newClass.week_time == null || this.newClass.start_time == null || this.newClass.end_time == null || this.newClass.start_week == null || this.newClass.end_week == null) return
       const formdata = new FormData
       formdata.append('course_id', this.selectId)
-      formdata.append('selectable',this.newClass.selectable)
-      formdata.append("max_choose_num",this.newClass.max_choose_num)
+      formdata.append('selectable', this.newClass.selectable)
+      formdata.append("max_choose_num", this.newClass.max_choose_num)
       formdata.append('week_time', this.newClass.week_time)
       formdata.append('start_time', this.newClass.start_time)
       formdata.append('end_time', this.newClass.end_time)
@@ -683,9 +680,9 @@ export default {
       formdata.append('end_week', this.newClass.end_week)
       formdata.append('classroom_id', this.newClass.classroom_id)
       formdata.append('teacher_id', this.newClass.teacher_id)
-      formdata.append('faculty_id',this.newClass.faculty_id)
-      formdata.append('direction_id',this.newClass.direction_id)
-      formdata.append('specialty_id',this.newClass.specialty_id)
+      formdata.append('faculty_id', this.newClass.faculty_id)
+      formdata.append('direction_id', this.newClass.direction_id)
+      formdata.append('specialty_id', this.newClass.specialty_id)
       formdata.append('time', "after")
       this.$axios({
         method: "post",
@@ -701,26 +698,24 @@ export default {
           return
         }
         this.valClassrooms = response.data.classrooms
-        if (this.valClassrooms.length !== 0){
+        if (this.valClassrooms.length !== 0) {
           this.valClassrooms.forEach((v, i) => {
             v.name = "教室号:" + v.name + "  人数：" + v.max_num
           })
-        }
-        else this.$set(this.newClass, 'classroom_id', null)
-        console.log(response)
+        } else this.$set(this.newClass, 'classroom_id', null)
       })
     },
-    getClass(){
+    getClass() {
       this.$axios({
         method: "get",
         url: 'Class',
         params: {
           'teacher_id': this.$store.state.teacherId,
           'level': this.$store.state.level,
-          "page":this.options.page,
-          "items":this.options.itemsPerPage,
+          "page": this.options.page,
+          "items": this.options.itemsPerPage,
         },
-        headers:{
+        headers: {
           'Token': "8a54sh " + this.$store.state.Jwt
         }
       }).then((response) => {
@@ -735,16 +730,15 @@ export default {
         this.directions = response.data.directions
         this.faculties = response.data.faculties
         this.total = response.data.total
-        console.log(response)
       })
     }
   },
   watch: {
-    options:{
-      handler(){
+    options: {
+      handler() {
         this.getClass()
       },
-      deep:true,
+      deep: true,
     }
   }
 }

@@ -4,7 +4,8 @@
       <v-col class="col-3">
         <v-list shaped elevation="5">
           <v-card-title>
-            <v-btn icon to="/SelectHomework" @click.native="$store.commit('previousPage');$store.commit('setHomeworkId',null)" x-large>
+            <v-btn icon to="/SelectHomework"
+                   @click.native="$store.commit('previousPage');$store.commit('setHomeworkId',null)" x-large>
               <v-icon>mdi-arrow-left-bold</v-icon>
               <span>返回</span>
             </v-btn>
@@ -257,7 +258,7 @@
             </v-item-group>
           </v-container>
           <v-container class="mx-auto pa-0 pb-5" id="canvasContainer">
-            <canvas id="canvas" :width="widths" :height="heights" class="mx-auto d-block justify-space-between" >
+            <canvas id="canvas" :width="widths" :height="heights" class="mx-auto d-block justify-space-between">
               您的浏览器不兼容，请升级或更换浏览器！
             </canvas>
           </v-container>
@@ -326,8 +327,7 @@ export default {
       this.widths = this.windowWidth
       this.heights = this.windowHeight
       img.onload = () => {
-        console.log(img.width,img.height)
-        this.drawImg(this.src,img.width,img.height)
+        this.drawImg(this.src, img.width, img.height)
       }
       this.pen();
     },
@@ -368,10 +368,9 @@ export default {
         eraser.style.display = 'none'
       }
     },
-    drawImg(src,width,height) {
+    drawImg(src, width, height) {
       this.canvas.style.backgroundImage = 'url(' + src + ')'
       this.canvas.style.backgroundRepeat = 'no-repeat'
-      console.log(width, this.windowWidth, height, this.windowHeight)
       if ((width / this.windowWidth) > (height / this.windowHeight)) {
         this.canvas.style.backgroundSize = '100% auto';
         this.canvas.style.backgroundPositionY = 'center'
@@ -649,15 +648,13 @@ export default {
         }
         oldX = ev.offsetX;
         oldY = ev.offsetY;
-        console.log("After on-mousedown :",oldX,oldY)
         Txt = document.createElement("textArea");
         Txt.style.display = "inline";
         ctx.font = "18px Microsoft Yahei";
         ctx.fontWeight = "800"
         Txt.style.position = 'absolute'
         Txt.style.top = ev.offsetY + 144 + 'px'
-        Txt.style.left = ev.offsetX + (this.windowWidth+272)*0.25+ 200 +'px'
-        console.log(Txt.style.top, Txt.style.left, ev.offsetY, ev.offsetX)
+        Txt.style.left = ev.offsetX + (this.windowWidth + 272) * 0.25 + 200 + 'px'
 
         Txt.style.background = 'rgb(0,0,0,0)'
         Txt.style.border = '3px solid ' + this.color
@@ -683,7 +680,6 @@ export default {
         if (v !== '') {
           ctx.fillStyle = this_.color
           ctx.moveTo(oldX, oldY);
-          console.log("fillTxt:",oldX,oldY)
           let row = []
           let temp = ""
           for (var a = 0; a < v.length; a++) {
@@ -790,10 +786,10 @@ export default {
               this.$emit('func')
               return
             }
-            this.$store.commit('setSuccess',"成绩提交成功!")
-            setTimeout(()=>{
+            this.$store.commit('setSuccess', "成绩提交成功!")
+            setTimeout(() => {
               this.$store.commit("closeSuccess")
-            },3000)
+            }, 3000)
             this.UploadScore = false
           });
         }, 100)
@@ -858,7 +854,7 @@ export default {
           params: {
             "homework_id": newValue
           },
-          headers:{
+          headers: {
             'Token': "8a54sh " + this.$store.state.Jwt
           }
         }).then((response) => {
@@ -889,7 +885,7 @@ export default {
             params: {
               "homework_id": this.$store.state.homeworkId
             },
-            headers:{
+            headers: {
               'Token': "8a54sh " + this.$store.state.Jwt
             }
           }).then((response) => {

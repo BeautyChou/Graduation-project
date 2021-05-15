@@ -562,7 +562,6 @@ export default {
           this.expire()
           return
         }
-        console.log(response)
         this.specialties = response.data.specialties
         this.faculties = response.data.faculties
         this.students = response.data.students
@@ -666,12 +665,10 @@ export default {
           this.expire()
           return
         }
-        console.log(response)
         this.punishments = response.data.punishments
       })
     },
     cancelPunishment() {
-      console.log(this.selectPunishmentOBJ)
       this.$axios({
         url: "Punishment",
         method: "delete",
@@ -708,7 +705,6 @@ export default {
           this.expire()
           return
         }
-        console.log(response)
         this.independent_practice = response.data.independent_practice
         this.independent_practice.start_time = this.independent_practice.start_time.substr(0, 10)
         this.independent_practice.end_time = this.independent_practice.end_time.substr(0, 10)

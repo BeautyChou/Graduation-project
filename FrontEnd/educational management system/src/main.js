@@ -17,21 +17,21 @@ Vue.prototype.$axios = axios
 Vue.config.productionTip = false
 /* eslint-disable no-new */
 //读取配置文件中的baseURL
-const configArray =config.split("\n")
+const configArray = config.split("\n")
 let baseUrl
-configArray.some((val,index)=>{
-  if (val.indexOf("baseurl") !== -1){
+configArray.some((val, index) => {
+  if (val.indexOf("baseurl") !== -1) {
     baseUrl = val
   }
   return val.indexOf("baseurl") !== -1
 })
 console.log(baseUrl.split(": ")[1])
-axios.defaults.baseURL= baseUrl.split(": ")[1]
+axios.defaults.baseURL = baseUrl.split(": ")[1]
 
 new Vue({
   el: '#app',
   router,
-  components: { App },
+  components: {App},
   vuetify,
   store,
   template: '<App/>'

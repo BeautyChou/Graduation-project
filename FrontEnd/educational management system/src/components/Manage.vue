@@ -45,17 +45,18 @@ import ManagePunishLevel from "./ManagePunishLevel";
 import ManageClassroom from "./ManageClassroom";
 import ManageFaculty from "./ManageFaculty";
 import ManageNotification from "./ManageNotification";
+
 export default {
   name: "Manage",
   components: {
-    "v-manage-student":ManageStudent,
-    "v-manage-teacher":ManageTeacher,
-    "v-manage-admin":ManageAdmin,
-    "v-manage-title":ManageTitle,
-    "v-manage-punish-level":ManagePunishLevel,
-    "v-manage-classroom":ManageClassroom,
-    "v-manage-faculty":ManageFaculty,
-    "v-manage-notification":ManageNotification
+    "v-manage-student": ManageStudent,
+    "v-manage-teacher": ManageTeacher,
+    "v-manage-admin": ManageAdmin,
+    "v-manage-title": ManageTitle,
+    "v-manage-punish-level": ManagePunishLevel,
+    "v-manage-classroom": ManageClassroom,
+    "v-manage-faculty": ManageFaculty,
+    "v-manage-notification": ManageNotification
   },
   data() {
     return {
@@ -65,8 +66,7 @@ export default {
       ]
     }
   },
-  methods: {
-  },
+  methods: {},
   watch: {
     "$route.path": {
       handler(newVal, oldVal) {

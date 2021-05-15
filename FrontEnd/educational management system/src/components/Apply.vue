@@ -5,7 +5,7 @@
       <v-expansion-panel
         v-for="item in applies"
         :key="item.id"
-        >
+      >
         <v-expansion-panel-header :color="item.result===0?'white':item.result===1?'green':'red'">
           教师：{{ item.name }} 课程：{{ item.course_name }}
           <v-spacer></v-spacer>
@@ -103,7 +103,8 @@
               label="结束周"
               class="col-4"></v-select>
           </v-row>
-          <v-row class="my-0 font-weight-bold"><span class="mx-auto my-0"><v-icon x-large>mdi-arrow-down-bold</v-icon>修改为</span></v-row>
+          <v-row class="my-0 font-weight-bold"><span class="mx-auto my-0"><v-icon x-large>mdi-arrow-down-bold</v-icon>修改为</span>
+          </v-row>
           <v-row class="font-weight-bold">
             <v-select
               disabled
@@ -296,7 +297,7 @@ export default {
     this.$axios({
       method: "get",
       url: "Apply?level=" + this.$store.state.level + '&teacher_id=' + this.$store.state.teacherId,
-      headers:{
+      headers: {
         'Token': "8a54sh " + this.$store.state.Jwt
       }
     }).then((response) => {
@@ -306,7 +307,6 @@ export default {
       }
       this.classrooms = response.data.classrooms
       this.applies = response.data.applies
-      console.log(response)
     })
   }
 }

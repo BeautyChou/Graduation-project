@@ -42,7 +42,6 @@ func main() {
 	dsn := Conf.MysqlUsername + ":" + Conf.MysqlPassword + "@tcp(127.0.0.1:" + Conf.MysqlPort + ")/" + Conf.DatabaseName + "?charset=utf8mb4&parseTime=True&loc=Local"
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
-		fmt.Println(err)
 		return
 	}
 

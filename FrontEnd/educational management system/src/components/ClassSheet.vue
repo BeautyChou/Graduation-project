@@ -23,7 +23,7 @@
             width="80"
             @click="toggle"
           >
-            第{{n}}周
+            第{{ n }}周
           </v-card>
         </v-slide-item>
       </v-slide-group>
@@ -32,7 +32,7 @@
       <v-dialog v-model="classInfo" width="500">
         <v-card>
           <v-card-title class="font-weight-bold py">课程详情</v-card-title>
-          <v-card-text class="font-weight-bold mx-auto" >
+          <v-card-text class="font-weight-bold mx-auto">
             <div v-html="msg" class="mx-auto text-center"></div>
           </v-card-text>
         </v-card>
@@ -51,17 +51,17 @@ export default {
   name: "ClassSheet",
   mounted() {
     this.$axios({
-      method:"GET",
-      url:"http://127.0.0.1:9000/getClassSheet",
-      params:{
-        teacher_id:this.$store.state.teacherId,
-        week:(this.weekNum+1),
-        student_id:this.$store.state.studentId,
+      method: "GET",
+      url: "http://127.0.0.1:9000/getClassSheet",
+      params: {
+        teacher_id: this.$store.state.teacherId,
+        week: (this.weekNum + 1),
+        student_id: this.$store.state.studentId,
       },
-      headers:{
+      headers: {
         'Token': "8a54sh " + this.$store.state.Jwt
       }
-    }).then((response)=>{
+    }).then((response) => {
       if (response.data.msg === "Token无效") {
         this.$emit('func')
         return
@@ -73,11 +73,10 @@ export default {
         week: this.week,
         timetableType: this.timetableType,
         highlightWeek: this.highlightWeek,
-        gridOnClick:  (e)=> {
+        gridOnClick: (e) => {
           this.classInfo = true
           var reg = new RegExp("\n", "g")
           e.name = e.name.replace(reg, "<br/>")
-          console.log(e.name)
           this.msg = e.name + '<br/>' + e.week + '<br/> 第' + e.index + '节课<br/> 课长' + e.length + '节'
         },
         styles: this.styles
@@ -86,8 +85,8 @@ export default {
   },
   data() {
     return {
-      classInfo:false,
-      msg:null,
+      classInfo: false,
+      msg: null,
       timetable: null,
       timetables: [],
       timetableType: [
@@ -112,37 +111,36 @@ export default {
         Gheight: 50,
         leftHandWidth: 50,
       },
-      weekNum:null,
+      weekNum: null,
     }
   },
-  methods:{
-    refreshClassSheet(){
+  methods: {
+    refreshClassSheet() {
       this.$axios({
-        method:"GET",
-        url:"http://127.0.0.1:9000/getClassSheet",
-        params:{
-          teacher_id:this.$store.state.teacherId,
-          week:(this.weekNum+1),
-          student_id:this.$store.state.studentId,
+        method: "GET",
+        url: "http://127.0.0.1:9000/getClassSheet",
+        params: {
+          teacher_id: this.$store.state.teacherId,
+          week: (this.weekNum + 1),
+          student_id: this.$store.state.studentId,
         },
-        headers:{
+        headers: {
           'Token': "8a54sh " + this.$store.state.Jwt
         }
-      }).then((response)=>{
+      }).then((response) => {
         if (response.data.msg === "Token无效") {
           this.$emit('func')
           return
         }
         this.timetables = response.data.classSheet
         this.timetable.setOption({
-          timetables:this.timetables,
-          week:this.week,
+          timetables: this.timetables,
+          week: this.week,
           timetableType: this.timetableType,
-          gridOnClick:  (e)=> {
+          gridOnClick: (e) => {
             this.classInfo = true
             var reg = new RegExp("\n", "g")
             e.name = e.name.replace(reg, "<br/>")
-            console.log(e.name)
             this.msg = e.name + '<br/>' + e.week + '<br/> 第' + e.index + '节课<br/> 课长' + e.length + '节'
           },
         })
@@ -153,17 +151,17 @@ export default {
     "$route.path": {
       handler(newVal, oldVal) {
         this.$axios({
-          method:"GET",
-          url:"http://127.0.0.1:9000/getClassSheet",
-          params:{
-            teacher_id:this.$store.state.teacherId,
-            week:(this.weekNum+1),
-            student_id:this.$store.state.studentId,
+          method: "GET",
+          url: "http://127.0.0.1:9000/getClassSheet",
+          params: {
+            teacher_id: this.$store.state.teacherId,
+            week: (this.weekNum + 1),
+            student_id: this.$store.state.studentId,
           },
-          headers:{
+          headers: {
             'Token': "8a54sh " + this.$store.state.Jwt
           }
-        }).then((response)=>{
+        }).then((response) => {
           if (response.data.msg === "Token无效") {
             this.$emit('func')
             return
@@ -175,11 +173,10 @@ export default {
             week: this.week,
             timetableType: this.timetableType,
             highlightWeek: this.highlightWeek,
-            gridOnClick:  (e)=> {
+            gridOnClick: (e) => {
               this.classInfo = true
               var reg = new RegExp("\n", "g")
               e.name = e.name.replace(reg, "<br/>")
-              console.log(e.name)
               this.msg = e.name + '<br/>' + e.week + '<br/> 第' + e.index + '节课<br/> 课长' + e.length + '节'
             },
             styles: this.styles

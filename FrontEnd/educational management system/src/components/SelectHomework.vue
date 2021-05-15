@@ -249,7 +249,6 @@ export default {
         this.total = response.data.total
         this.time = response.data.time
         this.loadingFlag = false
-        console.log('1', response)
       })
     }
   },
@@ -287,13 +286,11 @@ export default {
           this.total = response.data.total
           this.time = response.data.time
           this.loadingFlag = false
-          console.log('1', response)
         })
       },
     },
     '$store.state.refreshFlag': {
       handler(newValue, oldValue) {
-        console.log(newValue, oldValue)
         if (newValue < 1) return
         this.getHomework()
       },

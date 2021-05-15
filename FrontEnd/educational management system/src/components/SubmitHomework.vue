@@ -9,9 +9,9 @@
         选择作业
       </div>
     </v-card-title>
-    <div v-for="(question,index) in questions" :key="index" >
+    <div v-for="(question,index) in questions" :key="index">
       <v-card class="ma-4" :color="question.uploaded?'green':'white'" elevation="5">
-        <v-card-title>第{{ index+1 }}题</v-card-title>
+        <v-card-title>第{{ index + 1 }}题</v-card-title>
         <v-card-subtitle>分值:{{ question.question_max_score }}分</v-card-subtitle>
         <v-card-text>{{ question.content }}</v-card-text>
         <v-card-actions>
@@ -20,8 +20,8 @@
             accept="image/*"
             label="上传文件"
             show-size
-          :rules="[v => !!v || '文件必选']"
-          @change="uploadHomework(index)"></v-file-input>
+            :rules="[v => !!v || '文件必选']"
+            @change="uploadHomework(index)"></v-file-input>
         </v-card-actions>
       </v-card>
       <v-divider></v-divider>
@@ -40,7 +40,7 @@ export default {
         'homework_id': this.$store.state.homeworkId,
         'student_id': this.$store.state.studentId,
       },
-      headers:{
+      headers: {
         'Token': "8a54sh " + this.$store.state.Jwt
       }
     }).then((response) => {
@@ -50,7 +50,6 @@ export default {
       }
       this.questions = response.data.questions
       this.uploaded = response.data.uploaded
-      console.log(response)
       this.homeworkTitle = response.data.questions[0].homework_title
       this.homeworkId = this.$store.state.homeworkId
       this.$store.commit('nextPage')
@@ -58,13 +57,13 @@ export default {
   },
   data() {
     return {
-      questions:[],
-      homeworkId:null,
-      uploaded:[],
+      questions: [],
+      homeworkId: null,
+      uploaded: [],
     }
   },
-  methods:{
-    uploadHomework(id){
+  methods: {
+    uploadHomework(id) {
       const formData = new FormData();
       formData.append("image", this.questions[id].image);
       formData.append("student_id", this.$store.state.studentId);
@@ -79,45 +78,44 @@ export default {
           "Content-Type": "multipart/form-data",
           'Token': "8a54sh " + this.$store.state.Jwt
         }
-      }).then((response)=>{
+      }).then((response) => {
         if (response.data.msg === "Token无效") {
           this.$emit('func')
           return
         }
-        this.$store.commit('setSuccess',"作业提交成功！")
+        this.$store.commit('setSuccess', "作业提交成功！")
         this.questions[id].uploaded = true;
       });
     },
   },
   watch: {
-    '$store.state.homeworkId':{
+    '$store.state.homeworkId': {
       handler(newValue, oldValue) {
-          this.$axios({
-            method: "get",
-            url: 'SelectedQuestion',
-            params: {
-              'homework_id': newValue,
-              'student_id': this.$store.state.studentId,
-            },
-            headers:{
-              'Token': "8a54sh " + this.$store.state.Jwt
-            }
-          }).then((response) => {
-            if (response.data.msg === "Token无效") {
-              this.$emit('func')
-              return
-            }
-            this.questions = response.data.questions
-            this.uploaded = response.data.uploaded
-            console.log(response)
-            this.homeworkTitle = response.data.questions[0].homework_title
-            this.homeworkId = newValue
-          })
+        this.$axios({
+          method: "get",
+          url: 'SelectedQuestion',
+          params: {
+            'homework_id': newValue,
+            'student_id': this.$store.state.studentId,
+          },
+          headers: {
+            'Token': "8a54sh " + this.$store.state.Jwt
+          }
+        }).then((response) => {
+          if (response.data.msg === "Token无效") {
+            this.$emit('func')
+            return
+          }
+          this.questions = response.data.questions
+          this.uploaded = response.data.uploaded
+          this.homeworkTitle = response.data.questions[0].homework_title
+          this.homeworkId = newValue
+        })
       },
     },
-    '$store.state.refreshFlag':{
+    '$store.state.refreshFlag': {
       handler(newValue, oldValue) {
-        if(newValue === 1) {
+        if (newValue === 1) {
           this.$store.commit('nextPage')
           this.$axios({
             method: "get",
@@ -126,7 +124,7 @@ export default {
               'homework_id': this.$store.state.homeworkId,
               'student_id': this.$store.state.studentId,
             },
-            headers:{
+            headers: {
               'Token': "8a54sh " + this.$store.state.Jwt
             }
           }).then((response) => {
@@ -136,12 +134,13 @@ export default {
             }
             this.questions = response.data.questions
             this.uploaded = response.data.uploaded
-            console.log(response)
             this.homeworkTitle = response.data.questions[0].homework_title
             this.homeworkId = this.$store.state.homeworkId
             this.$store.commit('nextPage')
           })
-        }else{return}
+        } else {
+          return
+        }
       },
       immediate: true
     },

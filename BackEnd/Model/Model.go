@@ -551,9 +551,9 @@ type Admins []Admin
 
 func CreateDatabase(db *gorm.DB) {
 	db.AutoMigrate(&Notification{}, &User{}, &Title{}, &Faculty{}, &Teacher{}, &Elective{}, &Admin{}, &Classroom{}, &DirectionToSpecialty{}, &Course{}, &Student{}, &HomeworkUploadRecord{}, &Homework{}, &Question{}, &Student2Course{}, &ApplyForCourseChange{}, &IndependentPractice{}, &PunishmentLevel{}, &Punishment{})
-	db.Debug().Exec("alter table admins AUTO_INCREMENT=1;")
-	db.Debug().Exec("alter table teachers AUTO_INCREMENT=100000;")
-	db.Debug().Exec("alter table students AUTO_INCREMENT=1000000;")
+	db.Exec("alter table admins AUTO_INCREMENT=1;")
+	db.Exec("alter table teachers AUTO_INCREMENT=100000;")
+	db.Exec("alter table students AUTO_INCREMENT=1000000;")
 	Password, _ := bcrypt.GenerateFromPassword([]byte("admin"), bcrypt.DefaultCost)
 	admin := Admin{
 		Name: "Admin",
@@ -581,19 +581,15 @@ func CreateDatabase(db *gorm.DB) {
 	db.FirstOrCreate(&teacher)
 	db.FirstOrCreate(&notification)
 	if err := os.MkdirAll("./Images/", 0666); err != nil {
-		fmt.Println("err", err)
 		return
 	}
 	if err := os.Chmod("./Images/", 0777); err != nil {
-		fmt.Println("err", err)
 		return
 	}
 	if err := os.MkdirAll("./Logs/", 0666); err != nil {
-		fmt.Println("err", err)
 		return
 	}
 	if err := os.Chmod("./Logs/", 0777); err != nil {
-		fmt.Println("err", err)
 		return
 	}
 }

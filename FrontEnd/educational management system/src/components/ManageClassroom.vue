@@ -173,10 +173,10 @@ export default {
   },
   data() {
     return {
-      options:{},
-      total:null,
+      options: {},
+      total: null,
       new_name: null,
-      new_max_num:null,
+      new_max_num: null,
       selectOBJ: {},
       delete_classroom: false,
       modify_classroom: false,
@@ -190,25 +190,24 @@ export default {
       ],
     }
   },
-  watch:{
-    options:{
-      handler(){
+  watch: {
+    options: {
+      handler() {
         this.getClassroomList()
       },
-      deep:true,
+      deep: true,
     }
   },
   methods: {
     getClassroomList() {
-      console.log(this.options)
       this.$axios({
         url: "Classroom",
         headers: {
           'Token': "8a54sh " + this.$store.state.Jwt
         },
-        params:{
-          "page":this.options.page,
-          "items":this.options.itemsPerPage,
+        params: {
+          "page": this.options.page,
+          "items": this.options.itemsPerPage,
         },
         method: "get"
       }).then((response) => {
@@ -216,7 +215,6 @@ export default {
           this.expire()
           return
         }
-        console.log(response)
         this.classrooms = response.data.classrooms
         this.total = response.data.total
       })
@@ -298,7 +296,7 @@ export default {
       })
     },
   },
-  inject:['expire']
+  inject: ['expire']
 }
 </script>
 

@@ -409,8 +409,8 @@ export default {
   name: "ManageFaculty",
   data() {
     return {
-      options:{},
-      total:null,
+      options: {},
+      total: null,
       new_faculty: null,
       new_specialty: null,
       new_direction: null,
@@ -443,8 +443,8 @@ export default {
         params: {
           faculty_id: this.faculty_id,
           specialty_id: this.specialty_id,
-          "page":this.options.page,
-          "items":this.options.itemsPerPage,
+          "page": this.options.page,
+          "items": this.options.itemsPerPage,
         },
         headers: {
           'Token': "8a54sh " + this.$store.state.Jwt
@@ -455,7 +455,6 @@ export default {
           this.expire()
           return
         }
-        console.log(response)
         this.specialties = response.data.specialties
         this.faculties = response.data.faculties
         this.directions = response.data.directions
@@ -471,15 +470,14 @@ export default {
         formData.append("faculty_id", this.new_faculty)
         formData.append("specialty_name", this.new_specialty)
       } else if (flag === 3) {
-        this.specialties[this.new_faculty].some((v,i)=>{
-          if (v.specialty_id === this.new_specialty){
+        this.specialties[this.new_faculty].some((v, i) => {
+          if (v.specialty_id === this.new_specialty) {
             formData.append("specialty_name", v.specialty_name)
           }
         })
         formData.append("faculty_id", this.new_faculty)
         formData.append("specialty_id", this.new_specialty)
         formData.append("direction_name", this.new_direction)
-        console.log(this.new_faculty,this.new_specialty,this.new_direction)
       }
       this.$axios({
         url: "DirectionSpecialtyFaculty",
@@ -489,7 +487,7 @@ export default {
           "Content-Type": "multipart/form-data",
           'Token': "8a54sh " + this.$store.state.Jwt
         }
-      }).then((response)=>{
+      }).then((response) => {
         if (response.data.msg === "Token无效") {
           this.expire()
           return
@@ -497,26 +495,25 @@ export default {
         this.add_faculty = this.add_specialty = this.add_direction = false
         this.new_faculty = this.new_specialty = this.new_direction = null
         this.getDirectionSpecialtyFacultyList()
-        console.log(response)
-        this.$store.commit(response.data.snackbar,response.data.msg)
-        setTimeout(()=>{
+        this.$store.commit(response.data.snackbar, response.data.msg)
+        setTimeout(() => {
           this.$store.commit(response.data.snackbar2)
-        },3000)
+        }, 3000)
       })
     },
     deleteFacultySpecialtyDirection() {
       this.$axios({
-        url:"DirectionSpecialtyFaculty",
-        method:"delete",
-        params:{
-          faculty_id:this.new_faculty,
-          specialty_id:this.new_specialty,
-          direction_id:this.new_direction,
+        url: "DirectionSpecialtyFaculty",
+        method: "delete",
+        params: {
+          faculty_id: this.new_faculty,
+          specialty_id: this.new_specialty,
+          direction_id: this.new_direction,
         },
-        headers:{
+        headers: {
           'Token': "8a54sh " + this.$store.state.Jwt
         }
-      }).then((response)=>{
+      }).then((response) => {
         if (response.data.msg === "Token无效") {
           this.expire()
           return
@@ -524,23 +521,22 @@ export default {
         this.delete_faculty = this.delete_specialty = this.delete_direction = false
         this.new_faculty = this.new_specialty = this.new_direction = null
         this.getDirectionSpecialtyFacultyList()
-        console.log(response)
-        this.$store.commit(response.data.snackbar,response.data.msg)
-        setTimeout(()=>{
+        this.$store.commit(response.data.snackbar, response.data.msg)
+        setTimeout(() => {
           this.$store.commit(response.data.snackbar2)
-        },3000)
+        }, 3000)
       })
     }
   },
-  watch:{
-    options:{
-      handler(){
+  watch: {
+    options: {
+      handler() {
         this.getDirectionSpecialtyFacultyList()
       },
-      deep:true,
+      deep: true,
     }
   },
-  inject:['expire']
+  inject: ['expire']
 }
 </script>
 

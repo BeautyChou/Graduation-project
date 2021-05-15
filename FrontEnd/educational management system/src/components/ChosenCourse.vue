@@ -39,8 +39,8 @@ export default {
   name: "ChosenCourse",
   data() {
     return {
-      options:{},
-      total:null,
+      options: {},
+      total: null,
       headers: [
         {text: '课程名', align: 'start', sortable: false, value: 'course_name'},
         {text: '教师', sortable: false, value: 'name'},
@@ -52,7 +52,7 @@ export default {
         {text: '操作', sortable: false, value: 'operation'}
       ],
       courses: [],
-      overlay:true
+      overlay: true
     }
   },
   created() {
@@ -79,11 +79,9 @@ export default {
         this.courses = response.data.courses
         this.total = response.data.total
         var time = response.data.time
-        var month = time.substr(5,2)
-        var day = time.substr(8,2)
-        console.log(month,day)
-        if ( (month==='07'&&(day>='05'||day<='15'))||(month==='02'&&(day>='05'||day<='15')) ) this.overlay = false
-        console.log(response)
+        var month = time.substr(5, 2)
+        var day = time.substr(8, 2)
+        if ((month === '07' && (day >= '05' || day <= '15')) || (month === '02' && (day >= '05' || day <= '15'))) this.overlay = false
       })
     },
     quitCourse(courseOBJ) {
@@ -122,7 +120,6 @@ export default {
             return
           }
           this.courses = response.data.courses
-          console.log(response)
         })
       })
     },
@@ -133,11 +130,11 @@ export default {
         this.getCourse()
       },
     },
-    options:{
-      handler(){
+    options: {
+      handler() {
         this.getCourse()
       },
-      deep:true,
+      deep: true,
     }
   }
 }

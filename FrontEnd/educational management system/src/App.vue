@@ -30,11 +30,10 @@
       >
         <v-navigation-drawer permanent app expand-on-hover :mini-variant.sync="mini">
           <v-system-bar></v-system-bar>
-          <v-toolbar-title class="text-center">{{ $store.state.recordId }}</v-toolbar-title>
-          <v-list >
+          <v-list>
             <v-list-item class="pl-2">
               <v-list-item-avatar>
-                <v-avatar color="red" size="36" >
+                <v-avatar color="red" size="36">
                   <span class="white--text headline">{{ avatar }}</span>
                 </v-avatar>
               </v-list-item-avatar>
@@ -56,7 +55,7 @@
                 <v-icon>
                   mdi-account-box
                 </v-icon>
-                <v-list-item-content >
+                <v-list-item-content>
                   <v-list-item-title>个人信息</v-list-item-title>
                 </v-list-item-content>
               </v-list-item>
@@ -101,7 +100,7 @@
                 <v-icon>
                   mdi-playlist-check
                 </v-icon>
-                <v-list-item-content >
+                <v-list-item-content>
                   <v-list-item-title>选课</v-list-item-title>
                 </v-list-item-content>
               </v-list-item>
@@ -110,7 +109,7 @@
                 <v-icon>
                   mdi-playlist-remove
                 </v-icon>
-                <v-list-item-content >
+                <v-list-item-content>
                   <v-list-item-title>查看已选课程/退课</v-list-item-title>
                 </v-list-item-content>
               </v-list-item>
@@ -119,7 +118,7 @@
                 <v-icon>
                   mdi-file-search
                 </v-icon>
-                <v-list-item-content >
+                <v-list-item-content>
                   <v-list-item-title>查询成绩</v-list-item-title>
                 </v-list-item-content>
               </v-list-item>
@@ -128,7 +127,7 @@
                 <v-icon>
                   mdi-cog
                 </v-icon>
-                <v-list-item-content >
+                <v-list-item-content>
                   <v-list-item-title>管理</v-list-item-title>
                 </v-list-item-content>
               </v-list-item>
@@ -136,14 +135,14 @@
           </v-list>
           <template v-slot:append>
             <v-list-item-group>
-            <v-list-item @click.native="exit">
-              <v-icon>
-                mdi-exit-to-app
-              </v-icon>
-              <v-list-item-content >
-                <v-list-item-title>退出登录</v-list-item-title>
-              </v-list-item-content>
-            </v-list-item>
+              <v-list-item @click.native="exit">
+                <v-icon>
+                  mdi-exit-to-app
+                </v-icon>
+                <v-list-item-content>
+                  <v-list-item-title>退出登录</v-list-item-title>
+                </v-list-item-content>
+              </v-list-item>
             </v-list-item-group>
           </template>
         </v-navigation-drawer>
@@ -165,11 +164,11 @@
         <v-card class="text-center">
           <v-card-text class="font-weight-bold title pt-4">欢迎使用本教务系统</v-card-text>
           <v-card-text class="font-weight-bold title">登录</v-card-text>
-            <v-avatar color="indigo" size="128">
-              <v-icon dark size="80">
-                mdi-account-circle
-              </v-icon>
-            </v-avatar>
+          <v-avatar color="indigo" size="128">
+            <v-icon dark size="80">
+              mdi-account-circle
+            </v-icon>
+          </v-avatar>
           <v-card-text class="py-5">
             <v-text-field v-model="account" label="教务系统账号"></v-text-field>
             <v-text-field
@@ -242,24 +241,24 @@ import Manage from "./components/Manage";
 export default {
   name: 'App',
   mounted() {
-    if (this.$store.state.Jwt !== null){
+    if (this.$store.state.Jwt !== null) {
       this.$axios({
-        url:"isExpire",
-        method:"post",
-        headers:{
+        url: "isExpire",
+        method: "post",
+        headers: {
           "Content-Type": "multipart/form-data",
           'Token': "8a54sh " + this.$store.state.Jwt
         }
-      }).then((response)=>{
-        if (response.data.msg === "Token无效" || response.data.msg === "Token格式错误" ){
+      }).then((response) => {
+        if (response.data.msg === "Token无效" || response.data.msg === "Token格式错误") {
           this.jwtInvalid()
-        }else{
+        } else {
           this.dialog = false
           this.$store.commit('jwtValid')
-          this.$nextTick(()=> {
+          this.$nextTick(() => {
             document.getElementById("blur").style.filter = "blur(0px)"
           });
-          this.avatar = this.$store.state.username.substr(0,1)
+          this.avatar = this.$store.state.username.substr(0, 1)
         }
       })
     }
@@ -276,102 +275,100 @@ export default {
   },
 
   data: () => ({
-    textFieldType:'password',
-    isPassword:true,
+    textFieldType: 'password',
+    isPassword: true,
     avatar: null,
-    account:null,
-    password:null,
-    dialog:true,
+    account: null,
+    password: null,
+    dialog: true,
     selectedItem: 0,
     mini: true,
     isActive: true,
-    alert:false,
-    notification:null,
-    alert_timer:true,
+    alert: false,
+    notification: null,
+    alert_timer: true,
   }),
-  methods:{
-    changeType(){
+  methods: {
+    changeType() {
       if (this.textFieldType === 'password') this.textFieldType = 'text'
-      else this.textFieldType= 'password'
+      else this.textFieldType = 'password'
       this.isPassword = !this.isPassword
     },
     jwtInvalid() {
       document.getElementById("blur").style.filter = "blur(0px)"
-      this.$store.commit('setError','登录失效，请重新登录！')
+      this.$store.commit('setError', '登录失效，请重新登录！')
       this.$router.replace('/UserInfo')
       this.$store.commit('jwtInvalid')
-      setTimeout(()=>{
+      setTimeout(() => {
         this.exit()
-      },1000)
+      }, 1000)
     },
-    exit(){
+    exit() {
       this.dialog = true
       this.$store.commit('clear')
       document.getElementById("blur").style.filter = "blur(10px)"
       this.$router.replace('/UserInfo')
     },
-    accept(){
+    accept() {
       const formData = new FormData()
-      formData.append("id",this.account)
-      formData.append("password",this.password)
+      formData.append("id", this.account)
+      formData.append("password", this.password)
       this.$axios({
-        url:"login",
-        method:"post",
-        data:formData,
-        headers:{
+        url: "login",
+        method: "post",
+        data: formData,
+        headers: {
           "Content-Type": "multipart/form-data"
         }
-      }).then((response)=>{
-        if (response.data.msg === "success"){
+      }).then((response) => {
+        if (response.data.msg === "success") {
           //登录成功并获取通知
           this.$axios({
-            url:"Notification",
-            method:"get",
-            headers:{
+            url: "Notification",
+            method: "get",
+            headers: {
               'Token': "8a54sh " + response.data.data.token
             }
-          }).then((response2)=>{
-            console.log(response2)
+          }).then((response2) => {
             this.notification = response2.data.notification.notification
             this.alert = true
-            setTimeout(()=>{
-              this.alert_timer=false
-            },5000)
+            setTimeout(() => {
+              this.alert_timer = false
+            }, 5000)
           })
-          this.avatar = response.data.username.substr(0,1)
-          console.log(response)
-          this.$store.commit("setSuccess","登录成功")
+          this.avatar = response.data.username.substr(0, 1)
+          this.$store.commit("setSuccess", "登录成功")
           this.$store.commit('jwtValid')
-          setTimeout(()=>{
+          setTimeout(() => {
             this.$store.commit("closeSuccess")
-          },3000)
-          this.$store.commit("setLevel",response.data.level)
-          this.$store.commit("setUsername",response.data.username)
-          this.$store.commit("setJwt",response.data.data.token)
-          if (response.data.level === 1){
-            this.$store.commit("setStudentID",response.data.ID)
-            this.$store.commit("setFacultyId",response.data.faculty_id)
-            this.$store.commit("setSpecialtyId",response.data.specialty_id)
-            this.$store.commit("setDirectionId",response.data.direction_id)
-          }else if (response.data.level === 2){
-            this.$store.commit("setFacultyId",response.data.faculty_id)
-            this.$store.commit("setTeacherID",response.data.ID)
+          }, 3000)
+          this.$store.commit("setLevel", response.data.level)
+          this.$store.commit("setUsername", response.data.username)
+          this.$store.commit("setJwt", response.data.data.token)
+          if (response.data.level === 1) {
+            this.$store.commit("setStudentID", response.data.ID)
+            this.$store.commit("setFacultyId", response.data.faculty_id)
+            this.$store.commit("setSpecialtyId", response.data.specialty_id)
+            this.$store.commit("setDirectionId", response.data.direction_id)
+          } else if (response.data.level === 2) {
+            this.$store.commit("setFacultyId", response.data.faculty_id)
+            this.$store.commit("setTeacherID", response.data.ID)
           }
           this.dialog = false
           this.$router.replace('/UserInfo')
           document.getElementById("blur").style.filter = "blur(0px)"
-        }else if (response.data.msg === "failed"){
-          this.$store.commit("setError","用户名或密码错误！")
-          setTimeout(()=>{
+        } else if (response.data.msg === "failed") {
+          this.$store.commit("setError", "用户名或密码错误！")
+          setTimeout(() => {
             this.$store.commit("closeError")
-          },3000)
+          }, 3000)
         }
       })
     }
   },
-  provide(){
-    return{
-      expire:this.jwtInvalid
+  provide() {
+    return {
+      expire: this.jwtInvalid
     }
   }
 };

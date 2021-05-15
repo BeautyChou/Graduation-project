@@ -18,7 +18,9 @@
           <v-card-title class="font-weight-bold">姓名：{{ $store.state.username }}</v-card-title>
         </v-row>
         <v-row>
-          <v-card-title class="font-weight-bold" v-if="this.$store.state.level === 1 || this.$store.state.level === 2">学院：{{ faculty }}</v-card-title>
+          <v-card-title class="font-weight-bold" v-if="this.$store.state.level === 1 || this.$store.state.level === 2">
+            学院：{{ faculty }}
+          </v-card-title>
         </v-row>
         <v-row>
           <v-card-title class="font-weight-bold" v-if="this.$store.state.level === 3">身份：管理员</v-card-title>
@@ -247,7 +249,7 @@ export default {
     this.getUserInfo()
   },
   methods: {
-    getUserInfo(){
+    getUserInfo() {
       this.$axios({
         method: 'get',
         url: "UserInfo/UserInfo",
@@ -259,7 +261,6 @@ export default {
           'Token': "8a54sh " + this.$store.state.Jwt
         }
       }).then((response) => {
-        console.log(response)
         if (response.data.msg === "Token无效") {
           this.$emit('func')
           return
