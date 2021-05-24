@@ -6,7 +6,7 @@
         <span>返回</span>
       </v-btn>
       <div class="mx-8">
-        选择作业
+        提交作业
       </div>
     </v-card-title>
     <div v-for="(question,index) in questions" :key="index">

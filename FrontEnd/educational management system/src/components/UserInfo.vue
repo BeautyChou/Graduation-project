@@ -278,6 +278,8 @@ export default {
           let month = this.current_time.substr(5, 2)
           this.getDirectionList();
           this.getTeacherList();
+          year = '2020'
+          month = '06'
           if (year === (this.student_year + 2).toString() && month === "06") {
             this.direction_invalid = false
           }
@@ -296,7 +298,6 @@ export default {
           this.name = response.data.teacher.name
           this.faculty = response.data.teacher.faculty_name
           this.students = response.data.students
-
         }
       })
     },
@@ -354,6 +355,7 @@ export default {
           this.$emit('func')
           return
         }
+        this.$store.commit('setDirectionId',this.direction_id)
         this.$store.commit(response.data.snackbar, response.data.msg)
         setTimeout(() => {
           this.$store.commit(response.data.snackbar2)

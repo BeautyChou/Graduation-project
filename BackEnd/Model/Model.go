@@ -1,7 +1,6 @@
 package Model
 
 import (
-	"fmt"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 	"os"

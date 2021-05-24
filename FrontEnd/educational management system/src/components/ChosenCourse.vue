@@ -20,7 +20,7 @@
                    v-on="on"
                    x-large
                    @click="quitCourse(item)"
-                   :disabled="!item.selectable"
+                   :disabled="!item.selectable||overlay"
             >
               <v-icon>
                 mdi-exit-to-app

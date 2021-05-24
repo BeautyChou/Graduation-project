@@ -157,6 +157,7 @@
               v-bind="attrs"
               v-on="on"
               x-large
+              :disabled=" time < item.DeadLine "
               @click.native="$store.commit('setHomeworkId',item.id)">
               <v-icon>
                 mdi-file-check

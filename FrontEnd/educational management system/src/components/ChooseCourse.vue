@@ -14,8 +14,13 @@
       <template v-slot:item.operation="{ item }">
         <v-tooltip v-if="$store.state.level===2||true" bottom>
           <template v-slot:activator="{ on,attrs }">
-            <v-btn icon color="primary" v-bind="attrs" v-on="on" x-large
-                   @click="chooseCourse(item)">
+            <v-btn :disabled="overlay"
+                   icon
+                   color="primary"
+                   v-bind="attrs"
+                   v-on="on"
+                   x-large
+                   @click="chooseCourse(item)" >
               <v-icon>
                 mdi-plus-thick
               </v-icon>
@@ -37,7 +42,7 @@ export default {
       total: null,
       headers: [
         {text: '课程名', align: 'start', sortable: false, value: 'course_name'},
-        {text: '教师', sortable: false, value: 'name'},
+        {text: '教师', sortable: false, value: 'teacher_name'},
         {text: '学分', sortable: false, value: 'credit'},
         {text: '最大人数', sortable: false, value: 'max_choose_num'},
         {text: '已选人数', sortable: false, value: 'selected'},
